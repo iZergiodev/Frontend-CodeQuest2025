@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* DevTalles Blog Design System - All colors, gradients, fonts, etc defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 250 100% 98%;
+    --foreground: 222 84% 5%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 84% 5%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 84% 5%;
+
+    --primary: 254 90% 65%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 263 85% 75%;
+
+    --secondary: 240 100% 97%;
+    --secondary-foreground: 222 84% 5%;
+
+    --muted: 240 50% 96%;
+    --muted-foreground: 220 15% 45%;
+
+    --accent: 263 85% 75%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 20% 90%;
+    --input: 240 20% 90%;
+    --ring: 254 90% 65%;
+
+    /* DevTalles Brand Colors */
+    --devtalles-blue: 214 100% 50%;
+    --devtalles-purple: 263 85% 75%;
+    --devtalles-gradient: linear-gradient(135deg, hsl(214 100% 50%), hsl(263 85% 75%));
+    
+    /* Blog-specific tokens */
+    --hero-bg: linear-gradient(135deg, hsl(254 90% 65% / 0.1), hsl(263 85% 75% / 0.05));
+    --post-shadow: 0 4px 20px hsl(254 90% 65% / 0.1);
+    --post-shadow-hover: 0 8px 30px hsl(254 90% 65% / 0.15);
+    
+    /* Typography */
+    --font-size-hero: 3.5rem;
+    --font-size-post-title: 1.5rem;
+    
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222 84% 5%;
+    --foreground: 250 100% 98%;
+
+    --card: 222 84% 5%;
+    --card-foreground: 250 100% 98%;
+
+    --popover: 222 84% 5%;
+    --popover-foreground: 250 100% 98%;
+
+    --primary: 254 90% 65%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 263 85% 75%;
+
+    --secondary: 240 20% 15%;
+    --secondary-foreground: 250 100% 98%;
+
+    --muted: 240 20% 15%;
+    --muted-foreground: 220 15% 65%;
+
+    --accent: 263 85% 75%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 20% 20%;
+    --input: 240 20% 20%;
+    --ring: 254 90% 65%;
+
+    /* DevTalles Brand Colors for dark mode */
+    --devtalles-blue: 214 100% 60%;
+    --devtalles-purple: 263 85% 80%;
+    --devtalles-gradient: linear-gradient(135deg, hsl(214 100% 60%), hsl(263 85% 80%));
+    
+    /* Blog-specific tokens for dark mode */
+    --hero-bg: linear-gradient(135deg, hsl(254 90% 65% / 0.1), hsl(263 85% 75% / 0.05));
+    --post-shadow: 0 4px 20px hsl(254 90% 65% / 0.2);
+    --post-shadow-hover: 0 8px 30px hsl(254 90% 65% / 0.3);
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}

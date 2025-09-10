@@ -1,121 +1,135 @@
-import { Heart, MessageCircle, Bookmark, Calendar, User } from "lucide-react";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Calendar, Clock, Heart, MessageSquare, User } from "lucide-react";
+import type { Post } from "@/types/blog";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 interface PostCardProps {
-  title: string;
-  excerpt: string;
-  author: string;
-  date: string;
-  category: string;
-  likes: number;
-  comments: number;
-  image?: string;
-  tags?: string[];
-  postId?: string;
+  post: Post;
+  onTagClick?: (tag: string) => void;
 }
 
-const PostCard = ({ 
-  title, 
-  excerpt, 
-  author, 
-  date, 
-  category, 
-  likes, 
-  comments,
-  image,
-  tags = [],
-  postId = "1"
-}: PostCardProps) => {
+export function PostCard({ post, onTagClick }: PostCardProps) {
   const navigate = useNavigate();
-
-  const handleCardClick = () => {
-    navigate(`/post/${postId}`);
-  };
-
+  const [showAllTags, setShowAllTags] = useState(false);
   return (
-    <Card 
-      className="group cursor-pointer overflow-hidden transition-all duration-300 hover:shadow-post-hover hover:-translate-y-1 bg-card"
-      onClick={handleCardClick}
-    >
-      {image && (
-        <div className="aspect-video overflow-hidden">
-          <img 
-            src={image} 
-            alt={title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-post-hover hover:-translate-y-1 flex flex-col h-full">
+      {/* Cover Image */}
+      {post.coverImage && (
+        <div className="relative overflow-hidden">
+          <img
+            src={post.coverImage}
+            alt={post.title}
+            className="h-48 w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
+          <div className="absolute top-4 left-4">
+            <Badge 
+              variant="secondary" 
+              className="bg-background/90 text-foreground backdrop-blur-sm border border-border/50"
+            >
+              <div
+                className="w-2 h-2 rounded-full mr-2"
+                style={{ backgroundColor: post.category.color }}
+              />
+              {post.category.name}
+            </Badge>
+          </div>
+          {post.featured && (
+            <div className="absolute top-4 right-4">
+              <Badge className="bg-gradient-to-r from-devtalles-blue to-devtalles-purple">
+                Destacado
+              </Badge>
+            </div>
+          )}
         </div>
       )}
-      
-      <CardContent className="p-6">
-        <div className="flex items-center gap-2 mb-3">
-          <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">
-            {category}
-          </Badge>
-          {tags.slice(0, 2).map((tag, index) => (
-            <Badge key={index} variant="outline" className="text-xs">
+
+      <CardHeader className="space-y-3 flex-1">
+        {/* Author info */}
+        <div className="flex items-center space-x-3">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={post.author.avatar} alt={post.author.displayName} />
+            <AvatarFallback>
+              <User className="h-4 w-4" />
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">{post.author.displayName}</p>
+            <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+              <Calendar className="h-3 w-3" />
+              <span>{new Date(post.createdAt).toLocaleDateString("es-ES")}</span>
+              <Clock className="h-3 w-3 ml-2" />
+              <span>{post.readTime} min</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Title */}
+        <h3 className="text-xl font-bold leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+          {post.title}
+        </h3>
+
+        {/* Excerpt */}
+        <p className="text-muted-foreground line-clamp-2">
+          {post.excerpt}
+        </p>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        {/* Tags */}
+        <div className="flex flex-wrap gap-1">
+          {(showAllTags ? post.tags : post.tags.slice(0, 3)).map((tag) => (
+            <Badge
+              key={tag}
+              variant="outline"
+              className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+              onClick={() => onTagClick?.(tag)}
+            >
               {tag}
             </Badge>
           ))}
-        </div>
-        
-        <h3 className="font-bold text-xl mb-3 text-card-foreground group-hover:text-primary transition-colors line-clamp-2">
-          {title}
-        </h3>
-        
-        <p className="text-muted-foreground mb-4 line-clamp-3 leading-relaxed">
-          {excerpt}
-        </p>
-        
-        <div className="flex items-center text-sm text-muted-foreground mb-4">
-          <div className="flex items-center mr-4">
-            <User className="h-4 w-4 mr-1" />
-            <span>{author}</span>
-          </div>
-          <div className="flex items-center">
-            <Calendar className="h-4 w-4 mr-1" />
-            <span>{date}</span>
-          </div>
+          {post.tags.length > 3 && !showAllTags && (
+            <Badge 
+              variant="outline" 
+              className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+              onClick={() => setShowAllTags(true)}
+            >
+              +{post.tags.length - 3}
+            </Badge>
+          )}
+          {post.tags.length > 3 && showAllTags && (
+            <Badge 
+              variant="outline" 
+              className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+              onClick={() => setShowAllTags(false)}
+            >
+              Ver menos
+            </Badge>
+          )}
         </div>
       </CardContent>
-      
-      <CardFooter className="px-6 py-4 bg-muted/30 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-muted-foreground hover:text-red-500 transition-colors"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Heart className="h-4 w-4 mr-1" />
-            <span>{likes}</span>
-          </Button>
-          
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-muted-foreground hover:text-primary transition-colors"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <MessageCircle className="h-4 w-4 mr-1" />
-            <span>{comments}</span>
-          </Button>
+
+      <CardFooter className="flex items-center justify-between pt-4 border-t">
+        {/* Engagement metrics */}
+        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+          <div className="flex items-center space-x-1">
+            <Heart className="h-4 w-4" />
+            <span>{post.likes}</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <MessageSquare className="h-4 w-4" />
+            <span>{post.comments.length}</span>
+          </div>
         </div>
-        
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="text-muted-foreground hover:text-primary transition-colors"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Bookmark className="h-4 w-4" />
+
+        {/* Read more button */}
+        <Button variant="ghost" size="sm" className="p-0 h-auto" onClick={() => navigate(`/post/${post.slug}`)}>
+          Leer más →
         </Button>
       </CardFooter>
     </Card>
   );
-};
-
-export default PostCard;
+}

@@ -6,10 +6,12 @@ import { useAuth } from "@/hooks/useAuth";
 import ThemeToggle from "@/components/ThemeToggle";
 import AuthModal from "@/components/AuthModal";
 import UserMenu from "@/components/UserMenu";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
   const { user, isAuthenticated, login } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleOpenAuthModal = () => {
     setIsAuthModalOpen(true);
@@ -22,7 +24,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
-        <div className="flex items-center space-x-2">
+        <div onClick={() => navigate("/")} className="flex items-center space-x-2">
           <div className="bg-devtalles-gradient rounded-lg p-2">
             <span className="text-white font-bold text-xl">DT</span>
           </div>
@@ -43,19 +45,7 @@ const Header = () => {
         </div>
 
         {/* Navigation & Actions */}
-        <div className="flex items-center space-x-4">
-          <nav className="hidden md:flex items-center space-x-6">
-            <a href="#" className="text-foreground hover:text-primary transition-colors">
-              Inicio
-            </a>
-            <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-              Categorías
-            </a>
-            <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-              Populares
-            </a>
-          </nav>
-          
+        <div className="flex items-center space-x-4">          
           <ThemeToggle />
           
           {isAuthenticated ? (

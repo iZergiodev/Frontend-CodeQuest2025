@@ -1,11 +1,13 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
-import PostCard from "@/components/PostCard";
+import { PostCard } from "@/components/PostCard";
+import { BlogFilters } from "@/components/Filters";
 import Sidebar from "@/components/Sidebar";
-import { posts } from "@/data/post-mock.data";
+import { useBlogData } from "@/hooks/useBlogData";
 
 const Index = () => {
-  
+  const { posts, featuredPosts, categories, filters, setFilters, trendingPosts, recentActivity } = useBlogData();
+  const featuredPost = featuredPosts[0];
 
   return (
     <div className="min-h-screen bg-background">
@@ -13,9 +15,14 @@ const Index = () => {
       <Hero />
       
       <main className="container mx-auto px-4 py-12">
-        <div className="flex gap-8">
+        <BlogFilters 
+          categories={categories}
+          filters={filters}
+          onFiltersChange={setFilters}
+        />
+        <div className="flex ga p-8">
           {/* Main Content */}
-          <div className="flex-1">
+          <div className="flex-1 pe-8">
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-foreground mb-2">
                 Últimos Posts
@@ -29,16 +36,7 @@ const Index = () => {
               {posts.map((post) => (
                 <PostCard 
                   key={post.id} 
-                  postId={post.id}
-                  title={post.title}
-                  excerpt={post.excerpt}
-                  author={post.author}
-                  date={post.date}
-                  category={post.category}
-                  likes={post.likes}
-                  comments={post.comments}
-                  image={post.image}
-                  tags={post.tags}
+                  post={post}
                 />
               ))}
             </div>
@@ -53,7 +51,10 @@ const Index = () => {
           
           {/* Sidebar */}
           <div className="hidden lg:block">
-            <Sidebar />
+            <Sidebar 
+              trendingPosts={trendingPosts}
+              recentActivity={recentActivity}
+            />
           </div>
         </div>
       </main>

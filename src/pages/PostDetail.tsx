@@ -136,7 +136,7 @@ más limpio, reutilizable y fácil de entender. ¡Experimenta con ellos en tus p
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Back Button */}
@@ -144,7 +144,7 @@ más limpio, reutilizable y fácil de entender. ¡Experimenta con ellos en tus p
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver al blog
           </Button>
-          
+
           {/* Article Header */}
           <div className="mb-8">
             <div className="flex flex-wrap gap-2 mb-4">
@@ -157,11 +157,11 @@ más limpio, reutilizable y fácil de entender. ¡Experimenta con ellos en tus p
                 </Badge>
               ))}
             </div>
-            
+
             <h1 className="text-4xl font-bold text-foreground mb-6 leading-tight">
               {post.title}
             </h1>
-            
+
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-4 text-muted-foreground">
                 <div className="flex items-center">
@@ -173,7 +173,7 @@ más limpio, reutilizable y fácil de entender. ¡Experimenta con ellos en tus p
                   <span>{post.date}</span>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <Button variant="ghost" size="sm">
                   <Heart className="h-4 w-4 mr-1" />
@@ -192,34 +192,34 @@ más limpio, reutilizable y fácil de entender. ¡Experimenta con ellos en tus p
               </div>
             </div>
           </div>
-          
+
           {/* Featured Image */}
           {post.image && (
             <div className="mb-8 rounded-lg overflow-hidden">
-              <img 
-                src={post.image} 
+              <img
+                src={post.image}
                 alt={post.title}
                 className="w-full h-96 object-cover"
               />
             </div>
           )}
-          
+
           {/* Article Content */}
           <div className="prose prose-lg max-w-none mb-12">
             <div className="whitespace-pre-line text-foreground leading-relaxed">
               {post.content}
             </div>
           </div>
-          
+
           {/* Comments Section */}
           <div className="border-t pt-8">
             <h3 className="text-2xl font-bold mb-6">Comentarios ({comments.length})</h3>
-            
+
             {/* Add Comment */}
             <Card className="mb-8">
               <CardContent className="p-6">
-                <Textarea 
-                  placeholder="¿Qué opinas sobre este artículo?" 
+                <Textarea
+                  placeholder="¿Qué opinas sobre este artículo?"
                   className="mb-4"
                   rows={3}
                 />
@@ -230,7 +230,7 @@ más limpio, reutilizable y fácil de entender. ¡Experimenta con ellos en tus p
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* Comments List */}
             <div className="space-y-6">
               {comments.map((comment) => (
@@ -246,13 +246,13 @@ más limpio, reutilizable y fácil de entender. ¡Experimenta con ellos en tus p
                           <p className="text-sm text-muted-foreground">{comment.date}</p>
                         </div>
                       </div>
-                      
+
                       <Button variant="ghost" size="sm">
                         <Heart className="h-4 w-4 mr-1" />
                         {comment.likes}
                       </Button>
                     </div>
-                    
+
                     <p className="text-foreground">{comment.content}</p>
                   </CardContent>
                 </Card>

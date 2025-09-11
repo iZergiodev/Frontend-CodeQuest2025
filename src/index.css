@@ -153,8 +153,12 @@ All colors MUST be HSL.
     
     /* Blog-specific tokens */
     --hero-bg: linear-gradient(135deg, hsl(254 90% 65% / 0.1), hsl(263 85% 75% / 0.05));
+    --hero-glow: 0 0 100px hsl(254 90% 65% / 0.3);
     --post-shadow: 0 4px 20px hsl(254 90% 65% / 0.1);
     --post-shadow-hover: 0 8px 30px hsl(254 90% 65% / 0.15);
+    --floating-shadow: 0 20px 40px hsl(254 90% 65% / 0.15);
+    --glow-primary: 0 0 20px hsl(254 90% 65% / 0.5);
+    --glow-secondary: 0 0 30px hsl(263 85% 75% / 0.4);
     
     /* Typography */
     --font-size-hero: 3.5rem;
@@ -213,8 +217,12 @@ All colors MUST be HSL.
     
     /* Blog-specific tokens for dark mode */
     --hero-bg: linear-gradient(135deg, hsl(254 90% 65% / 0.1), hsl(263 85% 75% / 0.05));
+    --hero-glow: 0 0 120px hsl(254 90% 65% / 0.4);
     --post-shadow: 0 4px 20px hsl(254 90% 65% / 0.2);
     --post-shadow-hover: 0 8px 30px hsl(254 90% 65% / 0.3);
+    --floating-shadow: 0 25px 50px hsl(254 90% 65% / 0.25);
+    --glow-primary: 0 0 25px hsl(254 90% 65% / 0.7);
+    --glow-secondary: 0 0 35px hsl(263 85% 75% / 0.6);
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -235,4 +243,7 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@layer utilities {
 }

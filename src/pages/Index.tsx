@@ -2,7 +2,7 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import { PostCard } from "@/components/PostCard";
 import { BlogFilters } from "@/components/Filters";
-import Sidebar from "@/components/Sidebar";
+import {Sidebar} from "@/components/Sidebar";
 import { useBlogData } from "@/hooks/useBlogData";
 
 const Index = () => {
@@ -11,7 +11,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      {/* <Header /> */}
       <Hero />
       
       <main className="container mx-auto px-4 py-12">
@@ -50,12 +50,12 @@ const Index = () => {
           </div>
           
           {/* Sidebar */}
-          <div className="hidden lg:block">
+          {/* <div className="hidden lg:block">
             <Sidebar 
-              trendingPosts={trendingPosts}
-              recentActivity={recentActivity}
+              // trendingPosts={trendingPosts}
+              // recentActivity={recentActivity}
             />
-          </div>
+          </div> */}
         </div>
       </main>
     </div>

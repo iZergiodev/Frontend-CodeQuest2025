@@ -1,71 +1,122 @@
-import { TrendingUp, Calendar, Star, Hash } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { TrendingPost, RecentActivity } from "@/types/blog";
+import { 
+  Home, 
+  TrendingUp, 
+  Code, 
+  Database, 
+  Globe, 
+  Smartphone,
+  Brain,
+  Users,
+  BookOpen,
+  Trophy,
+  Calendar
+} from "lucide-react";
 
-interface SidebarProps {
-  trendingPosts?: TrendingPost[];
-  recentActivity?: RecentActivity[];
-}
+const categories = [
+  { icon: Home, label: "Inicio", count: null, active: true },
+  { icon: TrendingUp, label: "Trending", count: 42 },
+  { icon: Code, label: "Frontend", count: 156 },
+  { icon: Database, label: "Backend", count: 98 },
+  { icon: Globe, label: "Fullstack", count: 73 },
+  { icon: Smartphone, label: "Mobile", count: 45 },
+  { icon: Brain, label: "AI/ML", count: 67 },
+  { icon: Users, label: "DevOps", count: 34 },
+];
 
-const Sidebar = ({ trendingPosts = [], recentActivity = [] }: SidebarProps) => {
+const quickLinks = [
+  { icon: BookOpen, label: "Guías" },
+  { icon: Trophy, label: "Challenges" },
+  { icon: Calendar, label: "Eventos" },
+];
 
+export const Sidebar = () => {
   return (
-    <aside className="w-80 space-y-6">
-      {/* Trending Posts */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center text-lg">
-            <TrendingUp className="h-5 w-5 mr-2 text-primary" />
-            Trending esta semana
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {trendingPosts.length > 0 ? (
-            trendingPosts.map((post) => (
-              <div key={post.id} className="cursor-pointer hover:bg-muted/50 p-2 rounded-md transition-colors">
-                <h4 className="font-medium text-sm mb-1 hover:text-primary transition-colors">
-                  {post.title}
-                </h4>
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{post.author.displayName}</span>
-                  <span>{post.views.toLocaleString()} vistas</span>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              No hay posts trending disponibles
-            </p>
-          )}
-        </CardContent>
-      </Card>
+    <aside className="w-86 h-screen fixed top-20 left-0 overflow-y-auto p-4 border-r bg-background">
+      <div className="space-y-6">
+        {/* Navigation */}
+        <div>
+          <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">
+            Navegación
+          </h3>
+          <nav className="space-y-1">
+            {categories.map((category, index) => (
+              <Button
+                key={index}
+                variant={category.active ? "secondary" : "ghost"}
+                className={`w-full justify-start gap-3 transition-smooth ${
+                  category.active ? 'bg-primary/10 text-primary hover:bg-primary/15' : 'hover:bg-accent'
+                }`}
+              >
+                <category.icon className="h-4 w-4" />
+                <span className="flex-1 text-left">{category.label}</span>
+                {category.count && (
+                  <Badge variant="outline" className="text-xs px-1.5 py-0.5">
+                    {category.count}
+                  </Badge>
+                )}
+              </Button>
+            ))}
+          </nav>
+        </div>
 
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center text-lg">
-            <Calendar className="h-5 w-5 mr-2 text-primary" />
-            Actividad Reciente
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {recentActivity.length > 0 ? (
-            recentActivity.map((activity) => (
-              <div key={activity.id} className="text-sm">
-                <p className="font-medium mb-1">{activity.title}</p>
-                <p className="text-muted-foreground text-xs">{activity.timestamp}</p>
-              </div>
-            ))
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              No hay actividad reciente
-            </p>
-          )}
-        </CardContent>
-      </Card>
+        {/* Quick Links */}
+        <div>
+          <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">
+            Quick Links
+          </h3>
+          <nav className="space-y-1">
+            {quickLinks.map((link, index) => (
+              <Button
+                key={index}
+                variant="ghost"
+                className="w-full justify-start gap-3 transition-smooth hover:bg-accent"
+              >
+                <link.icon className="h-4 w-4" />
+                <span>{link.label}</span>
+              </Button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Trending Tags */}
+        <div>
+          <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">
+            Tags Populares
+          </h3>
+          <div className="flex flex-wrap gap-1.5">
+            {['React', 'TypeScript', 'Node.js', 'Vue', 'Python', 'Docker', 'AWS', 'GraphQL'].map((tag, index) => (
+              <Badge 
+                key={index}
+                variant="outline" 
+                className="text-xs cursor-pointer hover:bg-primary/10 hover:border-primary/20 transition-smooth"
+              >
+                #{tag}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        {/* Community Stats */}
+        <div className="bg-card border rounded-lg p-4">
+          <h3 className="font-semibold mb-3">Estadísticas</h3>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Miembros activos</span>
+              <span className="font-medium">1,247</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Posts hoy</span>
+              <span className="font-medium">28</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Online ahora</span>
+              <span className="font-medium text-success">156</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </aside>
   );
 };
-
-export default Sidebar;

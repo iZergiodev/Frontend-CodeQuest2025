@@ -1,15 +1,19 @@
 import Header from "@/components/Header"
 import { Sidebar } from "@/components/Sidebar"
+import { useState } from "react";
 import { Outlet } from "react-router-dom"
 
 
 export const Layout = () => {
+
+  const [isOpen, setIsOpen] = useState<boolean>(false)
+
   return (
     <>
       <Header />
-      <div className="flex">
-        <Sidebar />
-        <div className="flex-grow ml-86 p-4 overflow-auto">
+      <div className={`flex ${isOpen ? 'ml-86' : 'ml-18'} transition-all duration-300 ease-in-out`}>
+        <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
+        <div className="flex-grow p-4 overflow-auto">
           <Outlet />
         </div>
       </div>

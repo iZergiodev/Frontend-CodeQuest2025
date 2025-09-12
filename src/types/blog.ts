@@ -29,6 +29,28 @@ export interface User {
   createdAt: string;
 }
 
+// Authentication related types
+export interface AuthUser {
+  id: string;
+  username: string;
+  email: string;
+  avatar?: string;
+  displayName: string;
+  bio?: string;
+  role: "admin" | "user";
+  discordId?: string;
+  createdAt: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: AuthUser;
+}
+
+export interface DiscordLoginUrlResponse {
+  authUrl: string;
+}
+
 export interface Category {
   id: string;
   name: string;

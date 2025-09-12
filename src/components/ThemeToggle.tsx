@@ -24,7 +24,7 @@ const ThemeToggle = () => {
       variant="ghost"
       size="sm"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="w-9 h-9 transition-transform hover:scale-110 rounded-2xl"
+      className="w-9 h-9 transition-transform hover:scale-110 rounded-xl"
     >
       {theme === "dark" ? (
         <Sun className="h-4 w-4 text-yellow-500 transition-colors" />

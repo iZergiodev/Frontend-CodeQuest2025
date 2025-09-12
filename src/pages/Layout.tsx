@@ -7,9 +7,9 @@ export const Layout = () => {
   return (
     <>
       <Header />
-      <div className="flex ml-86">
+      <div className="flex">
         <Sidebar />
-        <div className="flex-grow p-4 overflow-auto">
+        <div className="flex-grow ml-86 p-4 overflow-auto">
           <Outlet />
         </div>
       </div>

@@ -46,7 +46,7 @@ export const Sidebar = ({isOpen, setIsOpen}:stateProp) => {
   const conditionIsOpen = isOpen ? 'w-86 h-screen fixed top-20 left-0' : 'w-16 h-screen fixed top-20 left-0';
   return (
     <>
-      <aside className={`${conditionIsOpen} overflow-y-auto p-4 border-r bg-background shadow-[4px_0_10px_-2px_rgba(0,0,0,0.2)] dark:shadow-[4px_0_10px_-2px_rgba(0,0,0,0.7)] transition-all duration-300 ease-in-out`}>
+      <aside className={`${conditionIsOpen} overflow-y-auto p-4 border-r bg-background transition-all duration-300 ease-in-out`}>
         {isOpen && <div className="space-y-6">
           {/* Navigation */}
           <div>

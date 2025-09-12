@@ -1,6 +1,6 @@
 import { AuthUser, AuthResponse, DiscordLoginUrlResponse } from "../types/blog";
 
-const API_BASE_URL = "http://localhost:5110/api";
+const BACKEND_URL = import.meta.env.BACKEND_URL || "http://localhost:5000/api";
 
 class AuthService {
   private readonly TOKEN_KEY = "devtalles_token";
@@ -10,10 +10,10 @@ class AuthService {
   async getDiscordLoginUrl(): Promise<DiscordLoginUrlResponse> {
     try {
       console.log(
-        `Attempting to fetch from: ${API_BASE_URL}/auth/discord/login`
+        `Attempting to fetch from: ${BACKEND_URL}/auth/discord/login`
       );
 
-      const response = await fetch(`${API_BASE_URL}/auth/discord/login`, {
+      const response = await fetch(`${BACKEND_URL}/auth/discord/login`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -56,7 +56,7 @@ class AuthService {
         )}...`
       );
 
-      const response = await fetch(`${API_BASE_URL}/auth/discord/callback`, {
+      const response = await fetch(`${BACKEND_URL}/auth/discord/callback`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -128,7 +128,7 @@ class AuthService {
   // Verify token with backend
   async verifyToken(token: string): Promise<AuthUser | null> {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/verify`, {
+      const response = await fetch(`${BACKEND_URL}/auth/verify`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -154,7 +154,7 @@ class AuthService {
 
     if (token) {
       try {
-        await fetch(`${API_BASE_URL}/auth/logout`, {
+        await fetch(`${BACKEND_URL}/auth/logout`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,

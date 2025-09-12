@@ -67,7 +67,11 @@ const Header = () => {
 
           {user ? (
             <>
-              <Button size="lg" className="bg-devtalles-gradient hover:opacity-90 hidden md:flex rounded-xl">
+              <Button 
+                size="lg" 
+                className="bg-devtalles-gradient hover:opacity-90 hidden md:flex rounded-xl"
+                onClick={() => navigate("/create-post")}
+              >
                 <PenTool className="h-4 w-4 mr-2" />
                 Escribir Post
               </Button>

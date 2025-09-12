@@ -2,6 +2,7 @@ import Index from "@/pages/Index";
 import { Layout } from "@/pages/Layout";
 import NotFound from "@/pages/NotFound";
 import PostDetail from "@/pages/PostDetail";
+import CreatePost from "@/pages/CreatePost";
 import { createBrowserRouter } from "react-router-dom";
 
 export const appRouter = createBrowserRouter([
@@ -19,6 +20,16 @@ export const appRouter = createBrowserRouter([
     {
         path: "/post/:id",
         element: <PostDetail />,
+    },
+    {
+        path: "/create-post",
+        element: <Layout />,
+        children: [
+            {
+                index: true,
+                element: <CreatePost />,
+            },
+        ]
     },
     {
         path: "/*",

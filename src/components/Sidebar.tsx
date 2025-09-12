@@ -17,7 +17,6 @@ import {
   ChevronLeft
 } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
-import styles from './Sidebar.module.css'
 
 
 const categories = [
@@ -43,18 +42,18 @@ interface stateProp {
 }
 
 export const Sidebar = ({ isOpen, setIsOpen }: stateProp) => {
-
-  const conditionIsOpen = isOpen ? 'w-86 h-[calc(100dvh-5rem)] fixed top-20 left-0 bottom-0' : 'w-16 h-[calc(100dvh-5rem)] fixed top-20 left-0 bottom-0';
   return (
     <>
-      <aside className={`${conditionIsOpen} ${styles.sidebar} overflow-y-auto p-4 border-r bg-background shadow-[4px_0_10px_-2px_rgba(0,0,0,0.2)] dark:bg-gray-900 dark:shadow-[4px_0_10px_-2px_rgba(0,0,0,0.7)] transition-all duration-300 ease-in-out`}>
+        <aside 
+          className={`${isOpen ? "w-86" : "w-16"} fixed top-20 left-0 h-[calc(100dvh-5rem)] overflow-y-auto p-4 border-r bg-background transition-all duration-300 ease-in-out sidebar-scroll`}
+        >
         {isOpen && <div className="space-y-6">
           {/* Navigation */}
           <div>
             <h3 className="text-sm font-semibold mt-3 mb-3 text-muted-foreground uppercase tracking-wider">
               Navegación
             </h3>
-            <nav className="space-y-1 mx-3">
+            <nav className="space-y-1">
               {categories.map((category, index) => (
                 <Button
                   key={index}
@@ -79,7 +78,7 @@ export const Sidebar = ({ isOpen, setIsOpen }: stateProp) => {
             <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">
               Quick Links
             </h3>
-            <nav className="space-y-1 mx-3">
+            <nav className="space-y-1">
               {quickLinks.map((link, index) => (
                 <Button
                   key={index}
@@ -113,7 +112,7 @@ export const Sidebar = ({ isOpen, setIsOpen }: stateProp) => {
 
 
           {/* Community Stats */}
-          <div className="bg-card border rounded-lg p-4 mb-12">
+          <div className="bg-card border rounded-lg p-4 mb-4">
             <h3 className="font-semibold mb-3">Estadísticas</h3>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">

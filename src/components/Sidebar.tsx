@@ -17,6 +17,7 @@ import {
   ChevronLeft
 } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
+import styles from './Sidebar.module.css'
 
 
 const categories = [
@@ -41,19 +42,19 @@ interface stateProp {
   setIsOpen: Dispatch<SetStateAction<boolean>>
 }
 
-export const Sidebar = ({isOpen, setIsOpen}:stateProp) => {
+export const Sidebar = ({ isOpen, setIsOpen }: stateProp) => {
 
-  const conditionIsOpen = isOpen ? 'w-86 h-screen fixed top-20 left-0' : 'w-16 h-screen fixed top-20 left-0';
+  const conditionIsOpen = isOpen ? 'w-86 h-[calc(100dvh-5rem)] fixed top-20 left-0 bottom-0' : 'w-16 h-[calc(100dvh-5rem)] fixed top-20 left-0 bottom-0';
   return (
     <>
-      <aside className={`${conditionIsOpen} overflow-y-auto p-4 border-r bg-background transition-all duration-300 ease-in-out`}>
+      <aside className={`${conditionIsOpen} ${styles.sidebar} overflow-y-auto p-4 border-r bg-background  transition-all duration-300 ease-in-out`}>
         {isOpen && <div className="space-y-6">
           {/* Navigation */}
           <div>
-            <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">
+            <h3 className="text-sm font-semibold mt-3 mb-3 text-muted-foreground uppercase tracking-wider">
               Navegación
             </h3>
-            <nav className="space-y-1">
+            <nav className="space-y-1 mx-3">
               {categories.map((category, index) => (
                 <Button
                   key={index}
@@ -78,7 +79,7 @@ export const Sidebar = ({isOpen, setIsOpen}:stateProp) => {
             <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">
               Quick Links
             </h3>
-            <nav className="space-y-1">
+            <nav className="space-y-1 mx-3">
               {quickLinks.map((link, index) => (
                 <Button
                   key={index}
@@ -93,16 +94,16 @@ export const Sidebar = ({isOpen, setIsOpen}:stateProp) => {
           </div>
 
           {/* Trending Tags */}
-          <div>
+          <div className="mb-8">
             <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">
               Tags Populares
             </h3>
-            <div className="flex flex-wrap gap-1.5">
-              {['React', 'TypeScript', 'Node.js', 'Vue', 'Python', 'Docker', 'AWS', 'GraphQL'].map((tag, index) => (
+            <div className="grid grid-cols-3 gap-2 mx-4">
+              {['React', 'TypeScript', 'Node.js', 'Vue','React', 'TypeScript', 'Node.js', 'Vue','React', 'TypeScript', 'Node.js', 'Vue','React', 'TypeScript', 'Node.js', 'Vue','React', 'TypeScript', 'Node.js', 'Vue','React', 'TypeScript', 'Node.js', 'Vue','React', 'TypeScript', 'Node.js', 'Vue','React', 'TypeScript', 'Node.js', 'Vue', 'Python', 'Docker', 'AWS', 'GraphQL'].map((tag, i) => (
                 <Badge
-                  key={index}
+                  key={i}
                   variant="outline"
-                  className="text-xs cursor-pointer hover:bg-primary/10 hover:border-primary/20 transition-smooth"
+                  className="text-xs p-1.5 rounded-xl cursor-pointer hover:bg-primary/10 hover:border-primary/20 transition-smooth w-auto justify-center"
                 >
                   #{tag}
                 </Badge>
@@ -110,13 +111,9 @@ export const Sidebar = ({isOpen, setIsOpen}:stateProp) => {
             </div>
           </div>
 
-          <Button>
-            hola
-          </Button>
-
 
           {/* Community Stats */}
-          <div className="bg-card border rounded-lg p-4">
+          <div className="bg-card border rounded-lg p-4 mb-12">
             <h3 className="font-semibold mb-3">Estadísticas</h3>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
@@ -141,7 +138,7 @@ export const Sidebar = ({isOpen, setIsOpen}:stateProp) => {
         variant="default"
         size="icon"
         className={`fixed top-1/2 -translate-y-1/2 ${isOpen ? 'left-[21.5rem]' : 'left-[4rem]'} -translate-x-1/2 z-50 rounded-full shadow-lg ring-1 ring-black/5 p-0 bg-white text-gray-800 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700 dark:ring-white/10 transition-all duration-300 ease-in-out`}
-      onClick={() => setIsOpen(!isOpen)}  
+        onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? (
           <ChevronLeft className="h-5 w-5" />

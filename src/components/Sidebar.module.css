@@ -1,0 +1,32 @@
+/* Sidebar.module.css */
+.sidebar {
+  overflow-y: auto;
+  /* Reserva espacio fijo para la scrollbar (evita saltos) */
+  scrollbar-gutter: stable;              /* Chrome/Edge/Firefox modernos */
+
+  /* Firefox */
+  scrollbar-width: thin;                 /* ancho constante */
+  scrollbar-color: transparent transparent;  /* “oculta” por defecto */
+}
+
+/* Al interactuar, solo colorea el thumb (no cambies widths) */
+.sidebar:hover,
+.sidebar:focus-within {
+  scrollbar-color: rgba(100,116,139,.6) transparent; /* thumb, track */
+}
+
+/* WebKit (Chrome, Safari) */
+.sidebar::-webkit-scrollbar {
+  width: 8px;                            /* ancho constante */
+}
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: transparent;         /* “oculta” por defecto */
+  border-radius: 9999px;
+}
+.sidebar:hover::-webkit-scrollbar-thumb,
+.sidebar:focus-within::-webkit-scrollbar-thumb {
+  background-color: rgba(100,116,139,.6); /* aparece sin mover nada */
+}

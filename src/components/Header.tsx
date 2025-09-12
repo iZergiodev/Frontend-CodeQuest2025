@@ -30,15 +30,15 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pb-1 pt-1">
       <div className="px-4 py-4 flex items-center justify-between">
         <div onClick={() => navigate("/")} className="flex items-center space-x-2 pl-4 cursor-pointer">
-            <img 
-              src={theme === "dark" ? logoLight : logoDark} 
-              alt="Logo" 
-              className="h-11 w-11" 
-            />
-            
-          <img 
-            src={nameLogo} 
-            alt="DevBlog" 
+          <img
+            src={theme === "dark" ? logoLight : logoDark}
+            alt="Logo"
+            className="h-11 w-11"
+          />
+
+          <img
+            src={nameLogo}
+            alt="DevBlog"
             className="h-8 w-auto"
             style={{
               filter: theme === "dark" ? "brightness(0) invert(1)" : "brightness(0) invert(0)"
@@ -49,18 +49,19 @@ const Header = () => {
         {user && (
           <>
             {/* Search Bar - Hidden on mobile */}
-            <div className="hidden md:flex flex-1 max-w-md absolute left-110">
+            <div className="hidden md:flex flex-1 max-w-md">
               {/* <div> */}
               <div className="relative w-full">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+                <Search className="absolute -left-25 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
                 <Input
                   placeholder="Buscar posts..."
-                  className="pl-14 bg-muted/50 w-200"
+                  className="pl-14 bg-muted/50 w-200 -ml-30"
                 />
               </div>
             </div>
           </>
         )}
+
         {/* Navigation & Actions */}
         <div className="flex items-center space-x-4">
           <ThemeToggle />
@@ -104,7 +105,7 @@ const Header = () => {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={handleCloseAuthModal}
-        onLogin={() => {}}
+        onLogin={() => { }}
       />
     </header>
   );

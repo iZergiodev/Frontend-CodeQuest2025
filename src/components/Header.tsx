@@ -7,9 +7,14 @@ import ThemeToggle from "@/components/ThemeToggle";
 import AuthModal from "@/components/AuthModal";
 import UserMenu from "@/components/UserMenu";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
+import logoDark from "@/assets/logo_d.svg?url";
+import logoLight from "@/assets/logo_l.svg?url";
+import nameLogo from "@/assets/name_logo.svg?url";
 
 const Header = () => {
   const { user, logout } = useAuth();
+  const { theme } = useTheme();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -23,16 +28,22 @@ const Header = () => {
   };
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pb-1 pt-1">
-      {/* clase container removida */}
       <div className="px-4 py-4 flex items-center justify-between">
-        {/* Logo */}
         <div onClick={() => navigate("/")} className="flex items-center space-x-2 pl-4 cursor-pointer">
-          {/* <div className="bg-devtalles-gradient rounded-lg p-2"> */}
-            <img src='./src/assets/DEVI LAPTOP BORDER.png' alt="Logo" className="h-11 w-11" /> {/* Aquí agregas tu imagen */}
-          {/* </div> */}
-          <span className="text-3xl font-bold bg-devtalles-gradient bg-clip-text text-transparent">
-            DevBlog
-          </span>
+            <img 
+              src={theme === "dark" ? logoLight : logoDark} 
+              alt="Logo" 
+              className="h-11 w-11" 
+            />
+            
+          <img 
+            src={nameLogo} 
+            alt="DevBlog" 
+            className="h-8 w-auto"
+            style={{
+              filter: theme === "dark" ? "brightness(0) invert(1)" : "brightness(0) invert(0)"
+            }}
+          />
         </div>
 
         {user && (

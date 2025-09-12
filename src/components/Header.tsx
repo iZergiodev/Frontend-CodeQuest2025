@@ -1,4 +1,4 @@
-import { Search, Menu, User, PenTool } from "lucide-react";
+import { Search, Menu, User, PenTool, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -9,9 +9,10 @@ import UserMenu from "@/components/UserMenu";
 import { useNavigate } from "react-router-dom";
 
 const Header = () => {
-  const { user, isAuthenticated, login } = useAuth();
+  const { user, logout } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const navigate = useNavigate();
+
 
   const handleOpenAuthModal = () => {
     setIsAuthModalOpen(true);
@@ -34,25 +35,28 @@ const Header = () => {
           </span>
         </div>
 
-        {/* Search Bar - Hidden on mobile */}
-        <div className="hidden md:flex flex-1 max-w-md absolute left-110">
-          {/* <div> */}
-          <div className="relative w-full">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-            <Input
-              placeholder="Buscar posts..."
-              className="pl-14 bg-muted/50 w-200"
-            />
-          </div>
-        </div>
-
+        {user && (
+          <>
+            {/* Search Bar - Hidden on mobile */}
+            <div className="hidden md:flex flex-1 max-w-md absolute left-110">
+              {/* <div> */}
+              <div className="relative w-full">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+                <Input
+                  placeholder="Buscar posts..."
+                  className="pl-14 bg-muted/50 w-200"
+                />
+              </div>
+            </div>
+          </>
+        )}
         {/* Navigation & Actions */}
         <div className="flex items-center space-x-4">
           <ThemeToggle />
 
-          {isAuthenticated ? (
+          {user ? (
             <>
-              <Button size="sm" className="bg-devtalles-gradient hover:opacity-90 hidden md:flex rounded-2xl">
+              <Button size="lg" className="bg-devtalles-gradient hover:opacity-90 hidden md:flex rounded-xl">
                 <PenTool className="h-4 w-4 mr-2" />
                 Escribir Post
               </Button>
@@ -63,7 +67,7 @@ const Header = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="hidden md:flex rounded-2xl"
+                className="hidden md:flex rounded-xl"
                 onClick={handleOpenAuthModal}
               >
                 <User className="h-4 w-4 mr-2" />
@@ -71,8 +75,8 @@ const Header = () => {
               </Button>
 
               <Button
-                size="sm"
-                className="bg-devtalles-gradient hover:opacity-90 rounded-2xl"
+                size="lg"
+                className="bg-devtalles-gradient hover:opacity-90 rounded-xl"
                 onClick={handleOpenAuthModal}
               >
                 Unirse
@@ -89,7 +93,7 @@ const Header = () => {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={handleCloseAuthModal}
-        onLogin={login}
+        onLogin={() => {}}
       />
     </header>
   );

@@ -26,7 +26,8 @@ const UserMenu = () => {
     });
   };
 
-  const getInitials = (name: string) => {
+  const getInitials = (name: string | undefined) => {
+    if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
@@ -35,9 +36,9 @@ const UserMenu = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={user.avatar} alt={user.name} />
+            <AvatarImage src={user.avatar} alt={user.displayName || 'User'} />
             <AvatarFallback className="bg-primary text-primary-foreground">
-              {getInitials(user.name)}
+              {getInitials(user.displayName)}
             </AvatarFallback>
           </Avatar>
         </Button>
@@ -45,11 +46,11 @@ const UserMenu = () => {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
+            <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
+              {user.email || 'No email'}
             </p>
-            {user.provider === "discord" && (
+            {user.discordId && (
               <p className="text-xs text-[#5865F2] flex items-center gap-1">
                 <span>Conectado con Discord</span>
               </p>

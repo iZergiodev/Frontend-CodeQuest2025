@@ -20,8 +20,11 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useOpen } from "@/hooks/useOpen";
 
 const CreatePost = () => {
+  const {isOpen} = useOpen();
+
   const navigate = useNavigate();
   const { theme } = useTheme();
   
@@ -72,14 +75,14 @@ const CreatePost = () => {
         <div className="mx-auto">
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
-            <Button 
+            {/* <Button 
               variant="outline" 
               onClick={() => navigate(-1)}
               className="shrink-0"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Volver
-            </Button>
+            </Button> */}
             
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-foreground">Crear Nuevo Post</h1>
@@ -306,6 +309,12 @@ const CreatePost = () => {
           </div>
         </div>
       </main>
+      <button
+        onClick={() => navigate(-1)}
+        className={`p-1.5 fixed top-36 -translate-y-1/2 ${isOpen ? 'left-[25.5rem]' : 'left-[17rem]'} -translate-x-1/2 z-50 rounded-full shadow-lg ring-1 ring-black/5 p-0 bg-white text-gray-800 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700 dark:ring-white/10 transition-all duration-300 ease-in-out`}
+      >
+        <ArrowLeft className="h-6 w-6 text-muted-foreground" />
+      </button>
     </div>
   );
 };

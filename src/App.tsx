@@ -6,6 +6,7 @@ import { RouterProvider } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import { appRouter } from "./router/app.router";
+import { OpenProvider } from "./hooks/useOpen";
 
 const queryClient = new QueryClient();
 
@@ -18,11 +19,13 @@ const App = () => (
       disableTransitionOnChange={false}
     >
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <RouterProvider router={appRouter} />
-        </TooltipProvider>
+        <OpenProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <RouterProvider router={appRouter} />
+          </TooltipProvider>
+        </OpenProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>

@@ -14,23 +14,27 @@ export const appRouter = createBrowserRouter([
                 index: true,
                 element: <Index />,
             },
+            {
+                path: "/post/:id",
+                element: <PostDetail />,
+            },
+            {
+                path: "/create-post",
+                element: <CreatePost />,
+            },
 
         ]
     },
-    {
-        path: "/post/:id",
-        element: <PostDetail />,
-    },
-    {
-        path: "/create-post",
-        element: <Layout />,
-        children: [
-            {
-                index: true,
-                element: <CreatePost />,
-            },
-        ]
-    },
+    // {
+    //     path: "/create-post",
+    //     element: <Layout />,
+    //     children: [
+    //         {
+    //             index: true,
+    //             element: <CreatePost />,
+    //         },
+    //     ]
+    // },
     {
         path: "/*",
         element: <NotFound />,

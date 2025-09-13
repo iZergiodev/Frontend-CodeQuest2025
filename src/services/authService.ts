@@ -1,6 +1,6 @@
 import { AuthUser, AuthResponse, DiscordLoginUrlResponse } from "../types/blog";
 
-const BACKEND_URL = import.meta.env.BACKEND_URL || "http://localhost:5000/api";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 class AuthService {
   private readonly TOKEN_KEY = "devtalles_token";
@@ -37,9 +37,7 @@ class AuthService {
 
       // Provide more specific error messages
       if (error instanceof TypeError && error.message === "Failed to fetch") {
-        throw new Error(
-          "No se pudo conectar con el servidor. Verifica que el backend esté ejecutándose en http://localhost:5000"
-        );
+        throw new Error("No se pudo conectar con el servidor.");
       }
 
       throw error;

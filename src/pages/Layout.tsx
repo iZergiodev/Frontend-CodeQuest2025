@@ -11,9 +11,9 @@ export const Layout = () => {
   return (
     <>
       <Header />
-      <div className={`flex ${isOpen ? 'ml-86' : 'ml-18'} transition-all duration-300 ease-in-out`}>
+      <div className={`flex ${isOpen ? 'ml-86' : 'ml-16'} transition-all duration-300 ease-in-out`}>
         <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
-        <div className="flex-grow p-4 overflow-auto">
+        <div className="flex-grow overflow-auto">
           <Outlet />
         </div>
       </div>

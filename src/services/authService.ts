@@ -98,6 +98,23 @@ class AuthService {
   clearAuthData(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
+
+    sessionStorage.clear();
+
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (
+        key &&
+        (key.includes("auth") ||
+          key.includes("token") ||
+          key.includes("user") ||
+          key.includes("devtalles"))
+      ) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((key) => localStorage.removeItem(key));
   }
 
   async verifyToken(token: string): Promise<AuthUser | null> {
@@ -147,7 +164,7 @@ class AuthService {
     }
   }
 
-  isJwtTokenExpired(token: string): boolean {
+  public isJwtTokenExpired(token: string): boolean {
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
       const exp = payload.exp * 1000;
@@ -209,23 +226,33 @@ class AuthService {
   }
 
   async logout(): Promise<void> {
-    const token = this.getStoredToken();
-
-    if (token) {
-      try {
-        await fetch(`${BACKEND_URL}/auth/logout`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-      } catch (error) {
-        console.error("Error logging out from backend:", error);
-      }
-    }
-
     this.clearAuthData();
+    this.clearUrlParameters();
+  }
+
+  private clearUrlParameters(): void {
+    try {
+      const url = new URL(window.location.href);
+      const authParams = ["code", "state", "error", "error_description"];
+
+      let hasChanges = false;
+      authParams.forEach((param) => {
+        if (url.searchParams.has(param)) {
+          url.searchParams.delete(param);
+          hasChanges = true;
+        }
+      });
+
+      if (hasChanges) {
+        window.history.replaceState(
+          {},
+          document.title,
+          url.pathname + url.search
+        );
+      }
+    } catch (error) {
+      console.error("Error clearing URL parameters:", error);
+    }
   }
 
   async loginWithEmail(email: string, password: string): Promise<AuthResponse> {

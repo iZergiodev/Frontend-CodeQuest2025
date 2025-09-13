@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode, useRef } from 'react';
 import { authService } from '../services/authService';
 import { AuthUser } from '../types/blog';
 import { useToast } from './use-toast';
@@ -22,6 +22,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -31,26 +32,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         
         
         if (storedUser && storedToken) {
-          const refreshData = await authService.autoRefreshJwtToken();
-          if (refreshData) {
-            authService.storeAuthData(refreshData.token, refreshData.user);
-            setUser(refreshData.user);
-            
-            toast({
-              title: "Sesión actualizada",
-              description: "Tu sesión ha sido renovada automáticamente.",
-            });
-          } else {
-            const verifiedUser = await authService.verifyToken(storedToken);
-            if (verifiedUser) {
-              setUser(verifiedUser);
+          if (authService.isJwtTokenExpired(storedToken)) {
+            const refreshData = await authService.autoRefreshJwtToken();
+            if (refreshData) {
+              authService.storeAuthData(refreshData.token, refreshData.user);
+              setUser(refreshData.user);
+              
               toast({
-                title: "¡Bienvenido de vuelta!",
-                description: `Hola ${verifiedUser.displayName}, tu sesión ha sido restaurada.`,
+                title: "Sesión actualizada",
+                description: "Tu sesión ha sido renovada automáticamente.",
               });
             } else {
               authService.clearAuthData();
             }
+          } else {
+            setUser(storedUser);
+            toast({
+              title: "¡Bienvenido de vuelta!",
+              description: `Hola ${storedUser.name}, tu sesión ha sido restaurada.`,
+            });
           }
         } else {
           const urlParams = new URLSearchParams(window.location.search);
@@ -69,8 +69,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     initializeAuth();
+  }, []);
 
-    const refreshInterval = setInterval(async () => {
+  useEffect(() => {
+    refreshIntervalRef.current = setInterval(async () => {
       const token = authService.getStoredToken();
       if (token && user) {
         try {
@@ -85,7 +87,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     }, 6 * 24 * 60 * 60 * 1000); // 6 days
 
-    return () => clearInterval(refreshInterval);
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+        refreshIntervalRef.current = null;
+      }
+    };
   }, [user]);
 
   const loginWithDiscord = async () => {
@@ -112,7 +119,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         
         toast({
           title: "¡Bienvenido!",
-          description: `Hola ${data.user.displayName}, has iniciado sesión exitosamente.`,
+          description: `Hola ${data.user.name}, has iniciado sesión exitosamente.`,
         });
       }
     } catch (error: any) {
@@ -139,7 +146,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         
         toast({
           title: "¡Cuenta creada!",
-          description: `Hola ${data.user.displayName}, tu cuenta ha sido creada exitosamente.`,
+          description: `Hola ${data.user.name}, tu cuenta ha sido creada exitosamente.`,
         });
       }
     } catch (error: any) {
@@ -166,7 +173,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         
         toast({
           title: "¡Bienvenido!",
-          description: `Hola ${data.user.displayName}, has iniciado sesión exitosamente.`,
+          description: `Hola ${data.user.name}, has iniciado sesión exitosamente.`,
         });
         
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -180,6 +187,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const logout = async () => {
     try {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+        refreshIntervalRef.current = null;
+      }
+
       await authService.logout();
       setUser(null);
 
@@ -189,6 +201,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       });
     } catch (error) {
       console.error('Logout error:', error);
+      
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+        refreshIntervalRef.current = null;
+      }
+      
       authService.clearAuthData();
       setUser(null);
       

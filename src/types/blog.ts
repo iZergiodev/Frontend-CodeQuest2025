@@ -3,7 +3,7 @@ export interface Post {
   title: string;
   content: string;
   excerpt: string;
-  author: User;
+  author: AuthUser;
   category: Category;
   tags: string[];
   likes: number;
@@ -17,29 +17,29 @@ export interface Post {
   featured: boolean;
 }
 
+// Base user interface
 export interface User {
-  id: string;
-  username: string;
+  id: number;
+  username?: string;
   email: string;
+  name?: string;
   avatar?: string;
-  displayName: string;
-  bio?: string;
-  role: "admin" | "user";
+  biography?: string;
+  role?: string;
   discordId?: string;
+  discordUsername?: string;
+  discordDiscriminator?: string;
+  discordAvatar?: string;
+  birthDate: string;
   createdAt: string;
+  starDustPoints: number;
 }
 
-// Authentication related types
-export interface AuthUser {
-  id: string;
-  username: string;
-  email: string;
-  avatar?: string;
+// User with computed properties for frontend display
+export interface AuthUser extends User {
+  // Computed properties for display
   displayName: string;
   bio?: string;
-  role: "admin" | "user";
-  discordId?: string;
-  createdAt: string;
 }
 
 export interface AuthResponse {
@@ -49,6 +49,43 @@ export interface AuthResponse {
 
 export interface DiscordLoginUrlResponse {
   authUrl: string;
+}
+
+// Backend DTOs
+export interface CreateUserDto {
+  username?: string;
+  password: string;
+  email: string;
+  role?: string;
+}
+
+export interface UserLoginDto {
+  email: string;
+  password: string;
+}
+
+// Backend DTO (includes password for API calls)
+export interface UserDto extends User {
+  password?: string;
+}
+
+export interface UserRegisterDto {
+  id?: string;
+  email: string;
+  password: string;
+  username: string;
+  role?: string;
+  avatar?: string;
+  biography?: string;
+  birthDate: string;
+  createdAt: string;
+  starDustPoints: number;
+}
+
+export interface UserLoginResponseDto {
+  user?: UserRegisterDto;
+  token?: string;
+  message?: string;
 }
 
 export interface Category {
@@ -63,7 +100,7 @@ export interface Category {
 export interface Comment {
   id: string;
   content: string;
-  author: User;
+  author: AuthUser;
   postId: string;
   parentId?: string;
   replies?: Comment[];
@@ -83,7 +120,7 @@ export interface BlogFilters {
 export interface TrendingPost {
   id: string;
   title: string;
-  author: User;
+  author: AuthUser;
   views: number;
   slug: string;
 }
@@ -94,5 +131,5 @@ export interface RecentActivity {
   title: string;
   description: string;
   timestamp: string;
-  user?: User;
+  user?: AuthUser;
 }

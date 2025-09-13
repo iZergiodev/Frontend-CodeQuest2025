@@ -1,4 +1,4 @@
-import { Search, Menu, User, PenTool, LogOut } from "lucide-react";
+import { Search, Menu, User, PenTool, Trophy, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -13,13 +13,19 @@ import logoLight from "@/assets/logo_l.svg?url";
 import nameLogo from "@/assets/name_logo.svg?url";
 
 const Header = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { theme } = useTheme();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const navigate = useNavigate();
 
+  const handleOpenLoginModal = () => {
+    setAuthModalMode('login');
+    setIsAuthModalOpen(true);
+  };
 
-  const handleOpenAuthModal = () => {
+  const handleOpenRegisterModal = () => {
+    setAuthModalMode('register');
     setIsAuthModalOpen(true);
   };
 
@@ -68,6 +74,21 @@ const Header = () => {
 
           {user ? (
             <>
+              {/* Navigation Links */}
+              <div className="hidden md:flex items-center space-x-2">                
+                {user.role?.toLowerCase() === 'admin' && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => navigate("/admin/users")}
+                    className="flex items-center gap-2"
+                  >
+                    <Crown className="h-4 w-4" />
+                    Admin
+                  </Button>
+                )}
+              </div>
+
               <Button 
                 size="lg" 
                 className="bg-devtalles-gradient hover:opacity-90 hidden md:flex rounded-xl"
@@ -84,7 +105,7 @@ const Header = () => {
                 variant="outline"
                 size="lg"
                 className="hidden md:flex rounded-xl"
-                onClick={handleOpenAuthModal}
+                onClick={handleOpenLoginModal}
               >
                 <User className="h-4 w-4 mr-2" />
                 Iniciar Sesión
@@ -93,7 +114,7 @@ const Header = () => {
               <Button
                 size="lg"
                 className="bg-devtalles-gradient hover:opacity-90 rounded-xl"
-                onClick={handleOpenAuthModal}
+                onClick={handleOpenRegisterModal}
               >
                 Unirse
               </Button>
@@ -110,6 +131,7 @@ const Header = () => {
         isOpen={isAuthModalOpen}
         onClose={handleCloseAuthModal}
         onLogin={() => { }}
+        initialMode={authModalMode}
       />
     </header>
   );

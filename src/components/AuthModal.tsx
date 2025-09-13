@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLogin: (user: AuthUser) => void;
+  initialMode?: 'login' | 'register';
 }
 
 // Simular Discord logo
@@ -24,17 +25,32 @@ const DiscordIcon = () => (
   </svg>
 );
 
-const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
-  const [isLoginMode, setIsLoginMode] = useState(true);
+const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }: AuthModalProps) => {
+  const [isLoginMode, setIsLoginMode] = useState(initialMode === 'login');
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    username: "",
     name: "",
+    role: "User",
   });
   const [isDiscordLoading, setIsDiscordLoading] = useState(false);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const { toast } = useToast();
-  const { loginWithDiscord } = useAuth();
+  const { loginWithDiscord, loginWithEmail, registerWithEmail } = useAuth();
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsLoginMode(initialMode === 'login');
+      setFormData({
+        email: "",
+        password: "",
+        username: "",
+        name: "",
+        role: "User",
+      });
+    }
+  }, [isOpen, initialMode]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -66,29 +82,15 @@ const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
       setIsEmailLoading(true);
       
       if (isLoginMode) {
-        // TODO: Implement email login with backend
-        // For now, show a message that this will be implemented
-        toast({
-          title: "Próximamente",
-          description: "La autenticación por email estará disponible pronto. Usa Discord por ahora.",
-          variant: "default",
-        });
+        await loginWithEmail(formData.email, formData.password);
+        onClose(); // Close modal on successful login
       } else {
-        // TODO: Implement email registration with backend
-        // For now, show a message that this will be implemented
-        toast({
-          title: "Próximamente",
-          description: "El registro por email estará disponible pronto. Usa Discord por ahora.",
-          variant: "default",
-        });
+        await registerWithEmail(formData.email, formData.password, formData.username, formData.role);
+        onClose(); // Close modal on successful registration
       }
     } catch (error) {
+      // Error handling is done in the useAuth hook
       console.error('Email auth error:', error);
-      toast({
-        title: "Error",
-        description: "Ocurrió un error. Inténtalo de nuevo.",
-        variant: "destructive",
-      });
     } finally {
       setIsEmailLoading(false);
     }
@@ -127,21 +129,38 @@ const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
           {/* Email Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLoginMode && (
-              <div className="space-y-2">
-                <Label htmlFor="name">Nombre</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    id="name"
-                    name="name"
-                    placeholder="Tu nombre completo"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="pl-10"
-                    required={!isLoginMode}
-                  />
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="username">Nombre de usuario</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      id="username"
+                      name="username"
+                      placeholder="tu_usuario"
+                      value={formData.username}
+                      onChange={handleInputChange}
+                      className="pl-10"
+                      required={!isLoginMode}
+                    />
+                  </div>
                 </div>
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nombre completo</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      id="name"
+                      name="name"
+                      placeholder="Tu nombre completo"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="pl-10"
+                      required={!isLoginMode}
+                    />
+                  </div>
+                </div>
+              </>
             )}
             
             <div className="space-y-2">

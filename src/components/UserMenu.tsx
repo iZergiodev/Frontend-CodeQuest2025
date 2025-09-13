@@ -1,4 +1,4 @@
-import { LogOut, Settings, BookOpen, Heart } from "lucide-react";
+import { LogOut, Settings, BookOpen, Heart, Star, User, Crown, UserCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,10 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const UserMenu = () => {
   const { user, logout } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   if (!user) return null;
 
@@ -46,18 +48,31 @@ const UserMenu = () => {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
+              {user.role?.toLowerCase() === 'admin' && (
+                <Crown className="h-3 w-3 text-red-500" />
+              )}
+            </div>
             <p className="text-xs leading-none text-muted-foreground">
               {user.email || 'No email'}
             </p>
-            {user.discordId && (
-              <p className="text-xs text-[#5865F2] flex items-center gap-1">
-                <span>Conectado con Discord</span>
-              </p>
-            )}
+            <div className="flex items-center gap-2 text-xs">
+              <div className="flex items-center gap-1 text-yellow-600">
+                <Star className="h-3 w-3" />
+                <span>{user.starDustPoints} StarDust</span>
+              </div>
+              {user.discordId && (
+                <span className="text-[#5865F2]">• Discord</span>
+              )}
+            </div>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => navigate("/profile")}>
+          <UserCircle className="mr-2 h-4 w-4" />
+          <span>Mi Perfil</span>
+        </DropdownMenuItem>
         <DropdownMenuItem>
           <BookOpen className="mr-2 h-4 w-4" />
           <span>Mis Posts</span>

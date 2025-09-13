@@ -3,17 +3,17 @@ import { authService } from '../services/authService';
 import { AuthUser } from '../types/blog';
 import { useToast } from './use-toast';
 
-// Create AuthContext
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
   loginWithDiscord: () => Promise<void>;
+  loginWithEmail: (email: string, password: string) => Promise<void>;
+  registerWithEmail: (email: string, password: string, username: string, role?: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// AuthProvider component
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -31,34 +31,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         
         
         if (storedUser && storedToken) {
-          // Verify token with backend
-          const verifiedUser = await authService.verifyToken(storedToken);
-          if (verifiedUser) {
-            setUser(verifiedUser);
+          const refreshData = await authService.autoRefreshJwtToken();
+          if (refreshData) {
+            authService.storeAuthData(refreshData.token, refreshData.user);
+            setUser(refreshData.user);
             
-            // Print user info for existing session
-            console.log('🔄 User session restored! User info:');
-            console.log('👤 User ID:', verifiedUser.id);
-            console.log('👤 Username:', verifiedUser.username);
-            console.log('📧 Email:', verifiedUser.email);
-            console.log('🏷️ Display Name:', verifiedUser.displayName);
-            console.log('🆔 Discord ID:', verifiedUser.discordId);
-            console.log('👑 Role:', verifiedUser.role);
-            console.log('📅 Created At:', verifiedUser.createdAt);
-            console.log('🖼️ Avatar:', verifiedUser.avatar);
-            console.log('📝 Bio:', verifiedUser.bio);
-            
-            // Show toast notification
             toast({
-              title: "¡Bienvenido de vuelta!",
-              description: `Hola ${verifiedUser.displayName}, tu sesión ha sido restaurada.`,
+              title: "Sesión actualizada",
+              description: "Tu sesión ha sido renovada automáticamente.",
             });
           } else {
-            // Token is invalid, clear stored data
-            authService.clearAuthData();
+            const verifiedUser = await authService.verifyToken(storedToken);
+            if (verifiedUser) {
+              setUser(verifiedUser);
+              toast({
+                title: "¡Bienvenido de vuelta!",
+                description: `Hola ${verifiedUser.displayName}, tu sesión ha sido restaurada.`,
+              });
+            } else {
+              authService.clearAuthData();
+            }
           }
         } else {
-          // Check for Discord callback
           const urlParams = new URLSearchParams(window.location.search);
           const code = urlParams.get('code');
           
@@ -75,7 +69,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     initializeAuth();
-  }, []);
+
+    const refreshInterval = setInterval(async () => {
+      const token = authService.getStoredToken();
+      if (token && user) {
+        try {
+          const refreshData = await authService.autoRefreshJwtToken();
+          if (refreshData) {
+            authService.storeAuthData(refreshData.token, refreshData.user);
+            setUser(refreshData.user);
+          }
+        } catch (error) {
+          console.error('Periodic JWT token refresh failed:', error);
+        }
+      }
+    }, 6 * 24 * 60 * 60 * 1000); // 6 days
+
+    return () => clearInterval(refreshInterval);
+  }, [user]);
 
   const loginWithDiscord = async () => {
     try {
@@ -86,6 +97,60 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     } catch (error) {
       console.error('Login error:', error);
+      setLoading(false);
+    }
+  };
+
+  const loginWithEmail = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      const data = await authService.loginWithEmail(email, password);
+      
+      if (data.token && data.user) {
+        authService.storeAuthData(data.token, data.user);
+        setUser(data.user);
+        
+        toast({
+          title: "¡Bienvenido!",
+          description: `Hola ${data.user.displayName}, has iniciado sesión exitosamente.`,
+        });
+      }
+    } catch (error: any) {
+      console.error('Email login error:', error);
+      toast({
+        title: "Error de autenticación",
+        description: error.message || "No se pudo iniciar sesión. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const registerWithEmail = async (email: string, password: string, username: string, role: string = "User") => {
+    try {
+      setLoading(true);
+      const data = await authService.registerWithEmail(email, password, username, role);
+      
+      if (data.token && data.user) {
+        authService.storeAuthData(data.token, data.user);
+        setUser(data.user);
+        
+        toast({
+          title: "¡Cuenta creada!",
+          description: `Hola ${data.user.displayName}, tu cuenta ha sido creada exitosamente.`,
+        });
+      }
+    } catch (error: any) {
+      console.error('Email registration error:', error);
+      toast({
+        title: "Error al crear cuenta",
+        description: error.message || "No se pudo crear la cuenta. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
       setLoading(false);
     }
   };
@@ -138,6 +203,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     loading,
     loginWithDiscord,
+    loginWithEmail,
+    registerWithEmail,
     logout,
   };
 
@@ -149,7 +216,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 };
 
-// Custom hook to use auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

@@ -49,15 +49,18 @@ export function CommentRow({ c, onReply, onReport, className }: CommentRowProps)
 
       {/* acciones: DustPoint + Responder + Reportar (sin compartir por defecto) */}
       <PostActions
+        context="comment"
+        className="pl-10"
+        // showLabels
+        showSave={false}
+        showShare={false}
+        variant="ghost"
         size="sm"
         gapClass="gap-2"
-        className="pl-11"
-        showShare={false}
-        initialDust={c.dust ?? 0}
+        initialStartDust={c.dust ?? 0}
         initialComments={c.repliesCount ?? 0}
         onCommentClick={() => onReply?.(c)}
         onReport={() => onReport?.(c)}
-        tooltips={{ comments: "Responder", dust: "Dar DustPoint", report: "Denunciar comentario" }}
       />
     </div>
   );

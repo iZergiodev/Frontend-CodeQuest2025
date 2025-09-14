@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,27 +7,27 @@ import { Textarea } from "@/components/ui/textarea";
 import MDEditor from '@uiw/react-md-editor';
 import { Badge } from "@/components/ui/badge";
 import { useTheme } from "next-themes";
-import { 
-  Save, 
-  Eye, 
-  ArrowLeft, 
-  Image as ImageIcon, 
-  Tag, 
+import {
+  Save,
+  Eye,
+  ArrowLeft,
+  Image as ImageIcon,
+  Tag,
   X,
   BookOpen,
   Calendar,
-  User
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useOpen } from "@/hooks/useOpen";
+import { FloatingEdgeButton } from "@/components/FloatingEdgeButton";
 
 const CreatePost = () => {
-  const {isOpen} = useOpen();
+  const { isOpen } = useOpen();
 
   const navigate = useNavigate();
   const { theme } = useTheme();
-  
+
   const [formData, setFormData] = useState({
     title: "",
     excerpt: "",
@@ -37,9 +37,10 @@ const CreatePost = () => {
     tags: [] as string[],
     status: "draft"
   });
-  
+
   const [newTag, setNewTag] = useState("");
   const [previewMode, setPreviewMode] = useState<"edit" | "live" | "preview">("live");
+  const postRef = useRef<HTMLDivElement>(null);
 
   const categories = ["React", "Node.js", "TypeScript", "Vue.js", "DevOps", "JavaScript", "CSS", "Python"];
 
@@ -60,10 +61,12 @@ const CreatePost = () => {
     }));
   };
 
+  const handleBackClick = () => navigate(-1);
+
   const handleSubmit = (status: "draft" | "published") => {
     // Here you would normally save to your backend
     console.log("Saving post:", { ...formData, status });
-    
+
     // Show success message and redirect
     alert(status === "published" ? "Post publicado exitosamente!" : "Borrador guardado!");
     navigate("/admin");
@@ -72,7 +75,7 @@ const CreatePost = () => {
   return (
     <div className="bg-background">
       <main className="container mx-auto px-4 py-8">
-        <div className="mx-auto">
+        <div ref={postRef} className="mx-auto">
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
             {/* <Button 
@@ -83,24 +86,24 @@ const CreatePost = () => {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Volver
             </Button> */}
-            
+
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-foreground">Crear Nuevo Post</h1>
               <p className="text-muted-foreground mt-1">
                 Escribe y publica contenido increíble para tu audiencia
               </p>
             </div>
-            
+
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => handleSubmit("draft")}
                 disabled={!formData.title}
               >
                 <Save className="h-4 w-4 mr-2" />
                 Guardar Borrador
               </Button>
-              <Button 
+              <Button
                 onClick={() => handleSubmit("published")}
                 disabled={!formData.title || !formData.content}
                 className="bg-devtalles-gradient hover:opacity-90"
@@ -240,9 +243,9 @@ const CreatePost = () => {
                       />
                       {formData.image && (
                         <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-                          <img 
-                            src={formData.image} 
-                            alt="Preview" 
+                          <img
+                            src={formData.image}
+                            alt="Preview"
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               e.currentTarget.style.display = 'none';
@@ -284,7 +287,7 @@ const CreatePost = () => {
                         Añadir
                       </Button>
                     </div>
-                    
+
                     {formData.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {formData.tags.map((tag) => (
@@ -309,12 +312,25 @@ const CreatePost = () => {
           </div>
         </div>
       </main>
-      <button
+
+      <FloatingEdgeButton
+        referenceRef={postRef}
+        onClick={handleBackClick}
+        label="Volver"
+        hideBelow="lg"
+        topPx={126}
+        offsetMain={12}
+        watch={isOpen}
+        className="cursor-pointer"
+      >
+        <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+      </FloatingEdgeButton>
+      {/* <button
         onClick={() => navigate(-1)}
         className={`p-1.5 fixed top-36 -translate-y-1/2 ${isOpen ? 'left-[25.5rem]' : 'left-[17rem]'} -translate-x-1/2 z-50 rounded-full shadow-lg ring-1 ring-black/5 p-0 bg-white text-gray-800 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700 dark:ring-white/10 transition-all duration-300 ease-in-out`}
       >
         <ArrowLeft className="h-6 w-6 text-muted-foreground" />
-      </button>
+      </button> */}
     </div>
   );
 };

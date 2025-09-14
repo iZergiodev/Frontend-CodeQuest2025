@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import { GlobalAuthWrapper } from "@/components/GlobalAuthWrapper";
 import { appRouter } from "./router/app.router";
+import { OpenProvider } from "./hooks/useOpen";
 
 const queryClient = new QueryClient();
 

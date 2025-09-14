@@ -1,13 +1,19 @@
-import { ArrowLeft, Heart, MessageCircle, Share2, Bookmark, User, Calendar } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowLeft, User, Calendar, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useOpen } from "@/hooks/useOpen";
+import { PostActions } from "@/components/PostActions";
+import { CommentBox } from "@/components/CommentBox";
+import { FlatComment } from "@/components/comments/CommentRow";
+import { CommentsList } from "@/components/comments/CommentList";
+
+
 
 const PostDetail = () => {
   const navigate = useNavigate();
+
+  const { isOpen } = useOpen();
 
   const handleBackClick = () => {
     navigate('/');
@@ -106,90 +112,75 @@ más limpio, reutilizable y fácil de entender. ¡Experimenta con ellos en tus p
     tags: ["React", "Hooks", "JavaScript", "Frontend"],
     likes: 234,
     comments: 45,
-    image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=400&fit=crop"
+    image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=400&fit=crop",
+    authorAvatar: null,
+    createdAt: 'Hoy'
   };
 
-  const comments = [
+  const comments: FlatComment[] = [
     {
-      id: 1,
-      author: "María González",
-      content: "Excelente artículo! Me ayudó mucho a entender mejor los hooks personalizados.",
-      date: "hace 2 horas",
-      likes: 12
+      id: "1",
+      author: "Aggressive_Pitch6623",
+      timeAgo: "hace 40 min",
+      content: "Un desastre absoluto Sommer desde ese partido contra el Barça...",
+      dust: 1,
+      repliesCount: 0,
     },
     {
-      id: 2,
-      author: "Carlos Ruiz",
-      content: "¿Podrías hacer un artículo sobre useContext también? Sería genial.",
-      date: "hace 5 horas",
-      likes: 8
+      id: "2",
+      author: "Vyphr",
+      timeAgo: "hace 2 h",
+      content: "Nuestra defensa está bien jodida y mentalmente no somos fuertes...",
+      dust: 3,
+      repliesCount: 3,
     },
-    {
-      id: 3,
-      author: "Ana López",
-      content: "Los ejemplos están muy claros. Gracias por compartir!",
-      date: "hace 1 día",
-      likes: 15
-    }
   ];
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      {/* <Header /> */}
 
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          {/* Back Button */}
-          <Button variant="ghost" className="mb-6" onClick={handleBackClick}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver al blog
-          </Button>
+          {/* Article Header*/}
+          <div className="mb-6">
 
-          {/* Article Header */}
-          <div className="mb-8">
-            <div className="flex flex-wrap gap-2 mb-4">
-              <Badge className="bg-primary/10 text-primary">
-                {post.category}
-              </Badge>
-              {post.tags.slice(1).map((tag, index) => (
-                <Badge key={index} variant="outline">
-                  {tag}
-                </Badge>
-              ))}
+            {/* Header: back + avatar + meta */}
+            <div className="flex items-center gap-3 mb-3">
+
+              {/* Avatar */}
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={post.authorAvatar} alt={post.author} />
+                <AvatarFallback>
+                  <User className="h-6 w-6" />
+                </AvatarFallback>
+              </Avatar>
+
+              {/* Nombre + fecha */}
+              <div className="flex-1 min-w-0 leading-tight">
+                <p className="text-sm font-medium truncate">{post.author}</p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Calendar className="h-3 w-3" />
+                  <span>{post.createdAt}</span>
+                  <Clock className="h-3 w-3" />
+                  <span>{'5'} min</span>
+                </div>
+              </div>
             </div>
 
-            <h1 className="text-4xl font-bold text-foreground mb-6 leading-tight">
+            {/* Título */}
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-tight mb-4">
               {post.title}
             </h1>
 
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-4 text-muted-foreground">
-                <div className="flex items-center">
-                  <User className="h-4 w-4 mr-2" />
-                  <span className="font-medium">{post.author}</span>
-                </div>
-                <div className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  <span>{post.date}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="sm">
-                  <Heart className="h-4 w-4 mr-1" />
-                  {post.likes}
-                </Button>
-                <Button variant="ghost" size="sm">
-                  <MessageCircle className="h-4 w-4 mr-1" />
-                  {post.comments}
-                </Button>
-                <Button variant="ghost" size="sm">
-                  <Bookmark className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm">
-                  <Share2 className="h-4 w-4" />
-                </Button>
-              </div>
+            {/* Tags */}
+            <div className="flex flex-wrap gap-2">
+              <Badge className="bg-primary/10 text-primary">{post.category}</Badge>
+              {post.tags.map((tag, i) => (
+                <Badge key={i} variant="outline">
+                  {tag}
+                </Badge>
+              ))}
             </div>
           </div>
 
@@ -211,12 +202,29 @@ más limpio, reutilizable y fácil de entender. ¡Experimenta con ellos en tus p
             </div>
           </div>
 
+          {/* botones comment */}
+          <PostActions
+            size="md"
+            gapClass="gap-2"
+            showShare
+            initialDust={172}
+            initialComments={43}
+            initialShares={12}
+            onCommentClick={() =>
+              document.getElementById("comments")?.scrollIntoView({ behavior: "smooth" })
+            }
+            onReport={() => console.log('true')}
+          />
+
           {/* Comments Section */}
-          <div className="border-t pt-8">
-            <h3 className="text-2xl font-bold mb-6">Comentarios ({comments.length})</h3>
+          <div className="pt-8">
+            {/* <h3 className="text-2xl font-bold mb-6">Comentarios ({comments.length})</h3> */}
 
             {/* Add Comment */}
-            <Card className="mb-8">
+            <CommentBox onSubmit={() => console.log('comentario enviado')} />
+
+
+            {/* <Card className="mb-8">
               <CardContent className="p-6">
                 <Textarea
                   placeholder="¿Qué opinas sobre este artículo?"
@@ -229,10 +237,23 @@ más limpio, reutilizable y fácil de entender. ¡Experimenta con ellos en tus p
                   </Button>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Comments List */}
-            <div className="space-y-6">
+            <CommentsList
+              comments={comments}
+              onReply={(c) => {
+                // abre tu CommentBox o hace scroll
+                document.getElementById("comment-box")?.scrollIntoView({ behavior: "smooth" });
+              }}
+              onReport={(c) => {
+                // abre modal de denuncia o lanza acción
+                console.log("Denunciar comentario:", c.id);
+              }}
+            />
+
+
+            {/* <div className="space-y-6 mt-6">
               {comments.map((comment) => (
                 <Card key={comment.id}>
                   <CardContent className="p-6">
@@ -257,10 +278,18 @@ más limpio, reutilizable y fácil de entender. ¡Experimenta con ellos en tus p
                   </CardContent>
                 </Card>
               ))}
-            </div>
+            </div> */}
           </div>
         </div>
       </main>
+
+      <button
+        onClick={handleBackClick}
+        className={`p-1.5 fixed top-36.5 -translate-y-1/2 ${isOpen ? 'left-[40.5rem]' : 'left-[32rem]'} -translate-x-1/2 z-50 rounded-full shadow-lg ring-1 ring-black/5 p-0 bg-white text-gray-800 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700 dark:ring-white/10 transition-all duration-300 ease-in-out`}
+      >
+        <ArrowLeft className="h-6 w-6 text-muted-foreground" />
+      </button>
+
     </div>
   );
 };

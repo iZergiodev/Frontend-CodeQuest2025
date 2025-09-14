@@ -17,6 +17,7 @@ import {
   ChevronLeft
 } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
+import { useOpen } from "@/hooks/useOpen";
 
 
 const categories = [
@@ -36,12 +37,10 @@ const quickLinks = [
   { icon: Calendar, label: "Eventos" },
 ];
 
-interface stateProp {
-  isOpen: boolean,
-  setIsOpen: Dispatch<SetStateAction<boolean>>
-}
+export const Sidebar = () => {
 
-export const Sidebar = ({ isOpen, setIsOpen }: stateProp) => {
+  const {isOpen, setIsOpen} = useOpen();
+
   return (
     <>
         <aside 

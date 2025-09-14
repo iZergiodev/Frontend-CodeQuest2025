@@ -1,16 +1,17 @@
 import { useMemo, useRef, useState } from "react";
 import { ArrowLeft, User, Calendar, Clock, Trophy, History, MessageSquare } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/shared/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
+import { Button } from "@/shared/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
-import { PostActions } from "@/components/PostActions";
-import { CommentBox } from "@/components/CommentBox";
-import { CommentsList } from "@/components/comments/CommentList";
-import type { FlatComment } from "@/components/comments/CommentRow";
+
 import { useOpen } from "@/hooks/useOpen";
-import { FloatingEdgeButton } from "@/components/FloatingEdgeButton";
+import { FloatingEdgeButton } from "@/shared/components/FloatingEdgeButton";
+import { FlatComment } from "../components/CommentRow";
+import { PostActions } from "../components/PostActions";
+import { CommentBox } from "../components/CommentBox";
+import { CommentsList } from "../components/CommentList";
 
 
 type SortKey = "top" | "new" | "old" | "controversial";

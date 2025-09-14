@@ -1,7 +1,7 @@
 import { Search, TrendingUp, Users, BookOpen } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import AnimatedSVG from "./AnimatedDeviHero.tsx"; 
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import AnimatedSVG from "../../../shared/components/AnimatedDeviHero"; 
 import { useNavigate } from "react-router-dom";
     
 const Hero = () => {

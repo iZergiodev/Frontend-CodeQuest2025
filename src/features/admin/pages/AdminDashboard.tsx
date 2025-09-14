@@ -15,7 +15,7 @@ import {
   Trash2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
+import Header from "@/app/layout/components/Header";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();

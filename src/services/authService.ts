@@ -1,6 +1,7 @@
 import { AuthUser, AuthResponse, DiscordLoginUrlResponse } from "../types/blog";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+// const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const BACKEND_URL = 'https://backend-codequest2025-production.up.railway.app/api';
 
 class AuthService {
   private readonly TOKEN_KEY = "devtalles_token";

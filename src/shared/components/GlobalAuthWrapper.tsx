@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
-import { LoadingScreen } from "@/components/LoadingScreen";
+import { LoadingScreen } from "@/shared/components/LoadingScreen";
 import { ReactNode } from "react";
 
 interface GlobalAuthWrapperProps {

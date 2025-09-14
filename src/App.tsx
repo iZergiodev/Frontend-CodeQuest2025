@@ -21,11 +21,13 @@ const App = () => (
     >
       <AuthProvider>
         <GlobalAuthWrapper>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <RouterProvider router={appRouter} />
-          </TooltipProvider>
+          <OpenProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <RouterProvider router={appRouter} />
+            </TooltipProvider>
+          </OpenProvider>
         </GlobalAuthWrapper>
       </AuthProvider>
     </ThemeProvider>

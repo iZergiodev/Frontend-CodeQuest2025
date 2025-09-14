@@ -1,12 +1,11 @@
 import Header from "@/components/Header"
 import { Sidebar } from "@/components/Sidebar"
 import { useOpen } from "@/hooks/useOpen";
-import { useState } from "react";
 import { Outlet } from "react-router-dom"
 
 
 export const Layout = () => {
-  const [isOpen, setIsOpen] = useState<boolean>(true)
+  const { isOpen } = useOpen();
 
   return (
     <>

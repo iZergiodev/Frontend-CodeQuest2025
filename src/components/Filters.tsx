@@ -22,11 +22,9 @@ export function BlogFilters({ categories, filters, onFiltersChange, categoryPage
     { value: "trending", label: "Trending", icon: TrendingUp },
   ];
 
-  // Get subcategories for the selected category
   const selectedCategory = categories.find(c => c.slug === filters.category);
   const { data: subcategories = [] } = useSubcategoriesByCategory(selectedCategory?.id || "");
 
-  // Detect dark mode
   useEffect(() => {
     const checkDarkMode = () => {
       setIsDarkMode(document.documentElement.classList.contains('dark'));
@@ -34,7 +32,6 @@ export function BlogFilters({ categories, filters, onFiltersChange, categoryPage
     
     checkDarkMode();
     
-    // Watch for changes
     const observer = new MutationObserver(checkDarkMode);
     observer.observe(document.documentElement, {
       attributes: true,
@@ -126,10 +123,8 @@ export function BlogFilters({ categories, filters, onFiltersChange, categoryPage
               Todas
             </Button>
             {subcategories.map((subcategory) => {
-              // Check if color is black for dark mode handling
               const isBlack = subcategory.color === '#000000' || subcategory.color === '#000';
               
-              // Use white for black colors in dark mode, original color otherwise
               const displayColor = isBlack && isDarkMode ? 'white' : subcategory.color;
               
               return (
@@ -149,7 +144,7 @@ export function BlogFilters({ categories, filters, onFiltersChange, categoryPage
                   style={{
                     backgroundColor: filters.subcategory === subcategory.id ? `${displayColor}20` : undefined,
                     borderColor: filters.subcategory !== subcategory.id ? `${displayColor}40` : undefined,
-                    color: isBlack ? undefined : subcategory.color, // Let Tailwind handle black colors
+                    color: isBlack ? undefined : subcategory.color,
                     '--hover-bg': `${displayColor}15`
                   } as React.CSSProperties & { '--hover-bg': string }}
                   onMouseEnter={(e) => {

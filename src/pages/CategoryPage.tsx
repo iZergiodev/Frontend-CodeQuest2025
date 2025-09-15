@@ -25,12 +25,12 @@ const CategoryPage = () => {
   const { data: subcategories = [] } = useSubcategoriesByCategory(category?.id || "");
   const { data: categoryData, isLoading: categoryLoading } = useCategory(category?.id || "");
 
-  // Reset subcategory filter when category changes
+
   useEffect(() => {
     setFilters(prevFilters => ({
       ...prevFilters,
       category: categorySlug,
-      subcategory: undefined // Reset subcategory when changing categories
+      subcategory: undefined
     }));
   }, [categorySlug]);
 

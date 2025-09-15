@@ -130,30 +130,30 @@ export function BlogFilters({ categories, filters, onFiltersChange, categoryPage
               return (
                 <Button
                   key={subcategory.id}
-                  variant={filters.subcategory === subcategory.id ? "default" : "outline"}
+                  variant={filters.subcategory === subcategory.slug ? "default" : "outline"}
                   size="sm"
                   onClick={() => 
                     onFiltersChange({ 
                       ...filters, 
-                      subcategory: filters.subcategory === subcategory.id ? undefined : subcategory.id 
+                      subcategory: filters.subcategory === subcategory.slug ? undefined : subcategory.slug 
                     })
                   }
                   className={`h-8 transition-all duration-200 ${
                     isBlack ? 'text-black dark:text-white' : ''
                   }`}
                   style={{
-                    backgroundColor: filters.subcategory === subcategory.id ? `${displayColor}20` : undefined,
-                    borderColor: filters.subcategory !== subcategory.id ? `${displayColor}40` : undefined,
+                    backgroundColor: filters.subcategory === subcategory.slug ? `${displayColor}20` : undefined,
+                    borderColor: filters.subcategory !== subcategory.slug ? `${displayColor}40` : undefined,
                     color: isBlack ? undefined : subcategory.color,
                     '--hover-bg': `${displayColor}15`
                   } as React.CSSProperties & { '--hover-bg': string }}
                   onMouseEnter={(e) => {
-                    if (filters.subcategory !== subcategory.id) {
+                    if (filters.subcategory !== subcategory.slug) {
                       e.currentTarget.style.backgroundColor = `${displayColor}15`;
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (filters.subcategory !== subcategory.id) {
+                    if (filters.subcategory !== subcategory.slug) {
                       e.currentTarget.style.backgroundColor = '';
                     }
                   }}
@@ -190,7 +190,7 @@ export function BlogFilters({ categories, filters, onFiltersChange, categoryPage
             )}
             {filters.subcategory && (
               <Badge variant="secondary" className="gap-1">
-                Subcategoría: {subcategories.find(s => s.id === filters.subcategory)?.name}
+                Subcategoría: {subcategories.find(s => s.slug === filters.subcategory)?.name}
                 <button
                   onClick={() => onFiltersChange({ ...filters, subcategory: undefined })}
                   className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"

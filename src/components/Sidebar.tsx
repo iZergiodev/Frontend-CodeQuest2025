@@ -16,8 +16,8 @@ import {
   ChevronDown,
   Terminal
 } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useOpen } from "@/hooks/useOpen";
 import { useCategories, useSubcategoriesByCategory } from "@/services/postsService";
 import type { Category } from "@/types/blog";
@@ -32,11 +32,46 @@ const quickLinks = [
 export const Sidebar = () => {
   const { isOpen, setIsOpen } = useOpen();
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [selectedHome, setSelectedHome] = useState<boolean>(true);
+
+  // Update selected states based on current URL
+  useEffect(() => {
+    const pathname = location.pathname;
+    const searchParams = new URLSearchParams(location.search);
+    
+    if (pathname === '/') {
+      setSelectedHome(true);
+      setSelectedCategory(null);
+      setSelectedSubcategory(null);
+    } else if (pathname.startsWith('/category/')) {
+      const categorySlug = pathname.split('/category/')[1];
+      const category = categories.find(c => c.slug === categorySlug);
+      
+      if (category) {
+        setSelectedCategory(category.id);
+        setSelectedHome(false);
+        
+        // Check for subcategory in URL
+        const subcategorySlug = searchParams.get('subcategory');
+        if (subcategorySlug) {
+          setSelectedSubcategory(subcategorySlug);
+          // Expand the category to show subcategories
+          setExpandedCategories(prev => new Set([...prev, category.id]));
+        } else {
+          setSelectedSubcategory(null);
+        }
+      }
+    } else {
+      setSelectedHome(false);
+      setSelectedCategory(null);
+      setSelectedSubcategory(null);
+    }
+  }, [location, categories]);
 
   const getCategoryIcon = (categoryName: string) => {
     const name = categoryName.toLowerCase();
@@ -86,9 +121,17 @@ export const Sidebar = () => {
     setExpandedCategories(newExpanded);
   };
 
-  const handleSubcategoryClick = (subcategoryId: string) => {
-    setSelectedSubcategory(subcategoryId);
-    setSelectedHome(false);
+  const handleSubcategoryClick = (subcategorySlug: string, categorySlug: string) => {
+    const category = categories.find(c => c.slug === categorySlug);
+    if (category) {
+      setSelectedCategory(category.id);
+      setSelectedSubcategory(subcategorySlug);
+      setSelectedHome(false);
+      // Expand the category to show subcategories
+      setExpandedCategories(prev => new Set([...prev, category.id]));
+    }
+    // Navigate to category page with subcategory filter
+    navigate(`/category/${categorySlug}?subcategory=${subcategorySlug}`);
   };
 
   const CategoryItem = ({ category }: { category: Category }) => {
@@ -131,14 +174,14 @@ export const Sidebar = () => {
             {subcategories.map((subcategory) => (
               <Button
                 key={subcategory.id}
-                variant={selectedSubcategory === subcategory.id ? "secondary" : "ghost"}
+                variant={selectedSubcategory === subcategory.slug ? "secondary" : "ghost"}
                 size="sm"
                 className={`w-full justify-start gap-2 text-sm transition-smooth ${
-                  selectedSubcategory === subcategory.id 
+                  selectedSubcategory === subcategory.slug 
                     ? 'bg-primary/10 text-primary hover:bg-primary/15' 
                     : 'hover:bg-accent'
                 }`}
-                onClick={() => handleSubcategoryClick(subcategory.id)}
+                onClick={() => handleSubcategoryClick(subcategory.slug, category.slug)}
               >
                 <div
                   className="w-2 h-2 rounded-full"

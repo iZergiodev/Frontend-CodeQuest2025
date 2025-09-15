@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { PostCard } from "@/components/PostCard";
 import { useCategory, useSubcategoriesByCategory, usePosts, useCategories } from "@/services/postsService";
 import { BlogFilters } from "@/components/Filters";
@@ -10,11 +10,13 @@ import type { BlogFilters as BlogFiltersType } from "@/types/blog";
 
 const CategoryPage = () => {
   const { categorySlug } = useParams<{ categorySlug: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { data: posts = [] } = usePosts();
   const { data: categories = [] } = useCategories();
   const [filters, setFilters] = useState<BlogFiltersType>({
     category: categorySlug,
+    subcategory: searchParams.get('subcategory') || undefined,
     sortBy: "latest"
   });
 
@@ -30,15 +32,15 @@ const CategoryPage = () => {
     setFilters(prevFilters => ({
       ...prevFilters,
       category: categorySlug,
-      subcategory: undefined
+      subcategory: searchParams.get('subcategory') || undefined
     }));
-  }, [categorySlug]);
+  }, [categorySlug, searchParams]);
 
   const filteredPosts = useMemo(() => {
     let result = posts.filter(post => post.category.slug === categorySlug);
 
     if (filters.subcategory) {
-      result = result.filter(post => post.subcategory?.id === filters.subcategory);
+      result = result.filter(post => post.subcategory?.slug === filters.subcategory);
     }
 
     if (filters.tag) {
@@ -115,6 +117,20 @@ const CategoryPage = () => {
               style={{ backgroundColor: category.color }}
             />
             <h1 className="text-4xl font-bold text-foreground">{category.name}</h1>
+            {filters.subcategory && (
+              <div className="flex items-center gap-2 ml-4">
+                <span className="text-muted-foreground">/</span>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: subcategories.find(s => s.slug === filters.subcategory)?.color }}
+                  />
+                  <span className="text-xl font-semibold text-foreground">
+                    {subcategories.find(s => s.slug === filters.subcategory)?.name}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
           
           {category.description && (
@@ -127,7 +143,18 @@ const CategoryPage = () => {
           <BlogFilters 
             categories={categories}
             filters={filters}
-            onFiltersChange={setFilters}
+            onFiltersChange={(newFilters) => {
+              setFilters(newFilters);
+              // Update URL parameters
+              const newSearchParams = new URLSearchParams();
+              if (newFilters.subcategory) {
+                newSearchParams.set('subcategory', newFilters.subcategory);
+              }
+              const newUrl = newSearchParams.toString() 
+                ? `/category/${categorySlug}?${newSearchParams.toString()}`
+                : `/category/${categorySlug}`;
+              navigate(newUrl, { replace: true });
+            }}
             categoryPage={true}
           />
         </div>
@@ -136,7 +163,10 @@ const CategoryPage = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-foreground">
-              {category.name} Posts
+              {filters.subcategory 
+                ? `${subcategories.find(s => s.slug === filters.subcategory)?.name} Posts`
+                : `${category.name} Posts`
+              }
             </h2>
           </div>
 

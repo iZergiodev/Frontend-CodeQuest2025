@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Home,
-  TrendingUp,
   Code,
   Database,
   Globe,
@@ -12,24 +11,17 @@ import {
   BookOpen,
   Trophy,
   Calendar,
-  Menu,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  ChevronDown,
+  Terminal
 } from "lucide-react";
-import { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useOpen } from "@/hooks/useOpen";
+import { useCategories, useSubcategoriesByCategory } from "@/services/postsService";
+import type { Category } from "@/types/blog";
 
-
-const categories = [
-  { icon: Home, label: "Inicio", count: null, active: true },
-  { icon: TrendingUp, label: "Trending", count: 42 },
-  { icon: Code, label: "Frontend", count: 156 },
-  { icon: Database, label: "Backend", count: 98 },
-  { icon: Globe, label: "Fullstack", count: 73 },
-  { icon: Smartphone, label: "Mobile", count: 45 },
-  { icon: Brain, label: "AI/ML", count: 67 },
-  { icon: Users, label: "DevOps", count: 34 },
-];
 
 const quickLinks = [
   { icon: BookOpen, label: "Guías" },
@@ -38,8 +30,128 @@ const quickLinks = [
 ];
 
 export const Sidebar = () => {
+  const { isOpen, setIsOpen } = useOpen();
+  const navigate = useNavigate();
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+  const [selectedHome, setSelectedHome] = useState<boolean>(true);
 
-  const {isOpen, setIsOpen} = useOpen();
+  const getCategoryIcon = (categoryName: string) => {
+    const name = categoryName.toLowerCase();
+    switch (name) {
+      case 'frontend':
+        return Code;
+      case 'backend':
+        return Database;
+      case 'programming':
+        return Terminal;
+      case 'full-stack':
+        return Globe;
+      case 'devops':
+        return Users;
+      case 'mobile development':
+        return Smartphone;
+      case 'ai':
+        return Brain;
+      default:
+        return Code;
+    }
+  };
+
+  const handleHomeClick = () => {
+    setSelectedHome(true);
+    setSelectedCategory(null);
+    setSelectedSubcategory(null);
+  };
+
+  const handleCategoryClick = (categoryId: string, categorySlug: string) => {
+    // Navigate to category page
+    navigate(`/category/${categorySlug}`);
+    setSelectedCategory(categoryId);
+    setSelectedSubcategory(null);
+    setSelectedHome(false);
+  };
+
+  const toggleCategoryDropdown = (categoryId: string, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent navigation when clicking dropdown
+    
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(categoryId)) {
+      newExpanded.delete(categoryId);
+    } else {
+      newExpanded.add(categoryId);
+    }
+    setExpandedCategories(newExpanded);
+  };
+
+  const handleSubcategoryClick = (subcategoryId: string) => {
+    setSelectedSubcategory(subcategoryId);
+    setSelectedHome(false);
+  };
+
+  const CategoryItem = ({ category }: { category: Category }) => {
+    const { data: subcategories = [] } = useSubcategoriesByCategory(category.id);
+    const isExpanded = expandedCategories.has(category.id);
+    const isSelected = selectedCategory === category.id;
+    const IconComponent = getCategoryIcon(category.name);
+
+    return (
+      <div>
+        <div className="flex items-center">
+          <Button
+            variant={isSelected ? "secondary" : "ghost"}
+            className={`flex-1 justify-start gap-3 transition-smooth ${
+              isSelected ? 'bg-primary/10 text-primary hover:bg-primary/15' : 'hover:bg-accent'
+            }`}
+            onClick={() => handleCategoryClick(category.id, category.slug)}
+          >
+            <IconComponent className="h-4 w-4" style={{ color: category.color }} />
+            <span className="flex-1 text-left">{category.name}</span>
+          </Button>
+          {subcategories.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-1 h-8 w-8 hover:bg-accent"
+              onClick={(e) => toggleCategoryDropdown(category.id, e)}
+            >
+              <ChevronDown
+                className={`h-4 w-4 transition-transform ${
+                  isExpanded ? 'rotate-180' : ''
+                }`}
+              />
+            </Button>
+          )}
+        </div>
+        
+        {isExpanded && subcategories.length > 0 && (
+          <div className="ml-4 mt-1 space-y-1">
+            {subcategories.map((subcategory) => (
+              <Button
+                key={subcategory.id}
+                variant={selectedSubcategory === subcategory.id ? "secondary" : "ghost"}
+                size="sm"
+                className={`w-full justify-start gap-2 text-sm transition-smooth ${
+                  selectedSubcategory === subcategory.id 
+                    ? 'bg-primary/10 text-primary hover:bg-primary/15' 
+                    : 'hover:bg-accent'
+                }`}
+                onClick={() => handleSubcategoryClick(subcategory.id)}
+              >
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: subcategory.color }}
+                />
+                <span className="flex-1 text-left">{subcategory.name}</span>
+              </Button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <>
@@ -53,62 +165,29 @@ export const Sidebar = () => {
               Navegación
             </h3>
             <nav className="space-y-1">
-              {categories.map((category, index) => (
-                <Button
-                  key={index}
-                  variant={category.active ? "secondary" : "ghost"}
-                  className={`w-full justify-start gap-3 transition-smooth ${category.active ? 'bg-primary/10 text-primary hover:bg-primary/15' : 'hover:bg-accent'
-                    }`}
-                >
-                  <category.icon className="h-4 w-4" />
-                  <span className="flex-1 text-left">{category.label}</span>
-                  {category.count && (
-                    <Badge variant="outline" className="text-xs px-1.5 py-0.5">
-                      {category.count}
-                    </Badge>
-                  )}
-                </Button>
-              ))}
+              {/* Home Button */}
+              <Button
+                variant={selectedHome ? "secondary" : "ghost"}
+                className={`w-full justify-start gap-3 transition-smooth ${
+                  selectedHome ? 'bg-primary/10 text-primary hover:bg-primary/15' : 'hover:bg-accent'
+                }`}
+                onClick={handleHomeClick}
+              >
+                <Home className="h-4 w-4" />
+                <span className="flex-1 text-left">Inicio</span>
+              </Button>
+
+              {categoriesLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                categories.map((category) => (
+                  <CategoryItem key={category.id} category={category} />
+                ))
+              )}
             </nav>
           </div>
-
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">
-              Quick Links
-            </h3>
-            <nav className="space-y-1">
-              {quickLinks.map((link, index) => (
-                <Button
-                  key={index}
-                  variant="ghost"
-                  className="w-full justify-start gap-3 transition-smooth hover:bg-accent"
-                >
-                  <link.icon className="h-4 w-4" />
-                  <span>{link.label}</span>
-                </Button>
-              ))}
-            </nav>
-          </div>
-
-          {/* Trending Tags */}
-          <div className="mb-8">
-            <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">
-              Tags Populares
-            </h3>
-            <div className="grid grid-cols-3 gap-2 mx-4">
-              {['React', 'TypeScript', 'Node.js', 'Vue','React', 'TypeScript', 'Node.js', 'Vue','React', 'TypeScript', 'Node.js', 'Vue','React', 'TypeScript', 'Node.js', 'Vue','React', 'TypeScript', 'Node.js', 'Vue','React', 'TypeScript', 'Node.js', 'Vue','React', 'TypeScript', 'Node.js', 'Vue','React', 'TypeScript', 'Node.js', 'Vue', 'Python', 'Docker', 'AWS', 'GraphQL'].map((tag, i) => (
-                <Badge
-                  key={i}
-                  variant="outline"
-                  className="text-xs p-1.5 rounded-xl cursor-pointer hover:bg-primary/10 hover:border-primary/20 transition-smooth w-auto justify-center"
-                >
-                  #{tag}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
 
           {/* Community Stats */}
           <div className="bg-card border rounded-lg p-4 mb-4">

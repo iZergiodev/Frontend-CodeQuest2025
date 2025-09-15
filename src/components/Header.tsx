@@ -45,7 +45,7 @@ const Header = () => {
           <img
             src={nameLogo}
             alt="DevBlog"
-            className="h-8 w-auto"
+            className="h-8 w-auto hidden md:block"
             style={{
               filter: theme === "dark" ? "brightness(0) invert(1)" : "brightness(0) invert(0)"
             }}

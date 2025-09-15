@@ -11,9 +11,9 @@ const Hero = () => {
     <section className="relative py-20 px-4 bg-hero-bg overflow-hidden">
       <div className="absolute inset-0 bg-devtalles-gradient opacity-5"></div>
       
-      <div className="container mx-auto relative z-10">
+      <div className="container mx-auto relative z-20">
         {/* Content Section */}
-        <div className="text-center mx-auto pr-0 sm:pr-16 md:pr-24 lg:pr-32 xl:pr-40">
+        <div className="text-center mx-auto pr-0 xl:pr-40">
         <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
           Comparte tu conocimiento con la
           <br/>
@@ -22,7 +22,7 @@ const Hero = () => {
           </span>
           <div className="inline-block relative">
             <svg 
-              className="inline-block h-12 md:h-16 lg:h-12 xl:h-14 w-auto ml-4 mb-2" 
+              className="inline-block h-8 md:h-16 lg:h-12 xl:h-14 w-auto lg:ml-4 mb-2" 
               viewBox="0 0 3217.23 572.37" 
               fill="#b794f6"
             >
@@ -55,7 +55,7 @@ const Hero = () => {
           de nuestra comunidad. Aprende, enseña y crece junto a nosotros.
         </p>
         
-        <div className="animate-scale-in" style={{animationDelay: '0.4s'}}>
+        <div className="animate-scale-in z-20" style={{animationDelay: '0.4s'}}>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 max-w-lg mx-auto">
             <div className="relative flex-1 w-full group">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 transition-colors group-hover:text-primary" />
@@ -75,35 +75,35 @@ const Hero = () => {
           </div>
         </div>
         
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              <div className="flex flex-col items-center text-center">
-                <div className="bg-primary/10 p-4 rounded-full mb-4">
-                  <BookOpen className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="font-semibold text-lg mb-2">+500 Artículos</h3>
-                <p className="text-muted-foreground">Contenido técnico de calidad</p>
-              </div>
-              
-              <div className="flex flex-col items-center text-center">
-                <div className="bg-primary/10 p-4 rounded-full mb-4">
-                  <Users className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="font-semibold text-lg mb-2">Comunidad Activa</h3>
-                <p className="text-muted-foreground">Miles de desarrolladores conectados</p>
-              </div>
-              
-              <div className="flex flex-col items-center text-center">
-                <div className="bg-primary/10 p-4 rounded-full mb-4">
-                  <TrendingUp className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="font-semibold text-lg mb-2">Contenido Trending</h3>
-                <p className="text-muted-foreground">Las últimas tendencias en desarrollo</p>
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto z-20">
+          <div className="flex flex-col items-center text-center">
+            <div className="bg-primary/10 p-4 rounded-full mb-4">
+              <BookOpen className="h-8 w-8 text-primary" />
             </div>
+            <h3 className="font-semibold text-lg mb-2">+500 Artículos</h3>
+            <p className="text-muted-foreground">Contenido técnico de calidad</p>
+          </div>
+            
+          <div className="flex flex-col items-center text-center">
+            <div className="bg-primary/10 p-4 rounded-full mb-4">
+              <Users className="h-8 w-8 text-primary" />
+            </div>
+            <h3 className="font-semibold text-lg mb-2">Comunidad Activa</h3>
+            <p className="text-muted-foreground">Miles de desarrolladores conectados</p>
+          </div>
+              
+            <div className="flex flex-col items-center text-center">
+              <div className="bg-primary/10 p-4 rounded-full mb-4">
+                <TrendingUp className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">Contenido Trending</h3>
+              <p className="text-muted-foreground">Las últimas tendencias en desarrollo</p>
+            </div>
+          </div>
         </div>
         
         {/* SVG positioned absolutely */}
-        <div className="absolute opacity-50 lg:opacity-100 top-1/2 right-4 lg:right-8 xl:right-16 transform -translate-y-1/2 w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 xl:w-80 xl:h-80 z-0 pointer-events-none">
+        <div className="absolute opacity-25 xl:opacity-100 top-50 lg:top-120  xl:top-1/2 xl:left-auto xl:-right-20 left-1/2 sm:left-1/2 md:left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-100 h-100 lg:w-200 lg:h-200 xl:w-80 xl:h-80 -z-10 pointer-events-none">
           <AnimatedSVG />
         </div>
       </div>

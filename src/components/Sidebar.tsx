@@ -200,7 +200,7 @@ export const Sidebar = () => {
   return (
     <>
         <aside 
-          className={`${isOpen ? "w-86" : "w-16"} fixed top-20 left-0 h-[calc(100dvh-5rem)] overflow-y-auto p-4 border-r bg-background transition-all duration-300 ease-in-out sidebar-scroll`}
+          className={`${isOpen ? "w-86" : "w-16"} fixed top-20 left-0 h-[calc(100dvh-5rem)] overflow-y-auto p-4 border-r bg-background transition-all duration-300 ease-in-out sidebar-scroll hidden md:block`}
         >
         {isOpen && <div className="space-y-6">
           {/* Navigation */}
@@ -258,7 +258,7 @@ export const Sidebar = () => {
         aria-label="Abrir/cerrar sidebar"
         variant="default"
         size="icon"
-        className={`fixed top-1/2 -translate-y-1/2 ${isOpen ? 'left-[21.5rem]' : 'left-[4rem]'} -translate-x-1/2 z-50 rounded-full shadow-lg ring-1 ring-black/5 p-0 bg-white text-gray-800 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700 dark:ring-white/10 transition-all duration-300 ease-in-out`}
+        className={`fixed top-1/2 -translate-y-1/2 ${isOpen ? 'left-[21.5rem]' : 'left-[4rem]'} -translate-x-1/2 z-50 rounded-full shadow-lg ring-1 ring-black/5 p-0 bg-white text-gray-800 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700 dark:ring-white/10 transition-all duration-300 ease-in-out hidden md:flex`}
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? (

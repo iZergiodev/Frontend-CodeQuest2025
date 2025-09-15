@@ -99,6 +99,7 @@ export const Sidebar = () => {
     setSelectedHome(true);
     setSelectedCategory(null);
     setSelectedSubcategory(null);
+    navigate('/');
   };
 
   const handleCategoryClick = (categoryId: string, categorySlug: string) => {

@@ -1,6 +1,8 @@
-import { AuthUser, AuthResponse, DiscordLoginUrlResponse } from "../types/blog";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { AuthResponse, User, DiscordLoginUrlResponse } from "../types/blog";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
 class AuthService {
   private readonly TOKEN_KEY = "devtalles_token";
@@ -8,29 +10,23 @@ class AuthService {
 
   async getDiscordLoginUrl(): Promise<DiscordLoginUrlResponse> {
     try {
-      const response = await fetch(`${BACKEND_URL}/auth/discord/login`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        mode: "cors", // Explicitly set CORS mode
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Backend error: ${response.status} - ${errorText}`);
-        throw new Error(
-          `HTTP error! status: ${response.status} - ${errorText}`
-        );
-      }
-
-      const data = await response.json();
-      return data;
+      const response = await axios.get<DiscordLoginUrlResponse>(
+        `${BACKEND_URL}/api/auth/discord/login`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data;
     } catch (error) {
       console.error("Error getting Discord login URL:", error);
 
-      if (error instanceof TypeError && error.message === "Failed to fetch") {
-        throw new Error("No se pudo conectar con el servidor.");
+      if (axios.isAxiosError(error)) {
+        if (error.code === "ECONNREFUSED" || error.code === "ERR_NETWORK") {
+          throw new Error("No se pudo conectar con el servidor.");
+        }
+        throw new Error(error.response?.data?.message || error.message);
       }
 
       throw error;
@@ -39,41 +35,33 @@ class AuthService {
 
   async handleDiscordCallback(code: string): Promise<AuthResponse> {
     try {
-      const response = await fetch(`${BACKEND_URL}/auth/discord/callback`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ code }),
-        mode: "cors",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error(
-          `Backend error: ${response.status} - ${JSON.stringify(errorData)}`
-        );
-        throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
-        );
-      }
-
-      const data = await response.json();
-      return data;
+      const response = await axios.post<AuthResponse>(
+        `${BACKEND_URL}/api/auth/discord/callback`,
+        { code },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data;
     } catch (error) {
       console.error("Error handling Discord callback:", error);
 
-      if (error instanceof TypeError && error.message === "Failed to fetch") {
-        throw new Error(
-          "No se pudo conectar con el servidor. Verifica que el backend esté ejecutándose en http://localhost:5000"
-        );
+      if (axios.isAxiosError(error)) {
+        if (error.code === "ECONNREFUSED" || error.code === "ERR_NETWORK") {
+          throw new Error(
+            "No se pudo conectar con el servidor. Verifica que el backend esté ejecutándose en http://localhost:5000"
+          );
+        }
+        throw new Error(error.response?.data?.message || error.message);
       }
 
       throw error;
     }
   }
 
-  storeAuthData(token: string, user: AuthUser): void {
+  storeAuthData(token: string, user: User): void {
     localStorage.setItem(this.TOKEN_KEY, token);
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
   }
@@ -82,7 +70,7 @@ class AuthService {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
-  getStoredUser(): AuthUser | null {
+  getStoredUser(): User | null {
     const userStr = localStorage.getItem(this.USER_KEY);
     if (userStr) {
       try {
@@ -117,22 +105,15 @@ class AuthService {
     keysToRemove.forEach((key) => localStorage.removeItem(key));
   }
 
-  async verifyToken(token: string): Promise<AuthUser | null> {
+  async verifyToken(token: string): Promise<User | null> {
     try {
-      const response = await fetch(`${BACKEND_URL}/auth/verify`, {
-        method: "GET",
+      const response = await axios.get(`${BACKEND_URL}/api/auth/verify`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
-
-      if (!response.ok) {
-        return null;
-      }
-
-      const data = await response.json();
-      return data.user;
+      return response.data.user;
     } catch (error) {
       console.error("Error verifying token:", error);
       return null;
@@ -141,23 +122,17 @@ class AuthService {
 
   async refreshJwtToken(token: string): Promise<AuthResponse | null> {
     try {
-      const response = await fetch(`${BACKEND_URL}/auth/discord/refresh`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token }),
-        mode: "cors",
-      });
-
-      if (!response.ok) {
-        console.error(`JWT token refresh failed: ${response.status}`);
-        return null;
-      }
-
-      const data = await response.json();
-      return data;
+      const response = await axios.post<AuthResponse>(
+        `${BACKEND_URL}/api/auth/discord/refresh`,
+        { token },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data;
     } catch (error) {
       console.error("Error refreshing JWT token:", error);
       return null;
@@ -257,30 +232,27 @@ class AuthService {
 
   async loginWithEmail(email: string, password: string): Promise<AuthResponse> {
     try {
-      const response = await fetch(`${BACKEND_URL}/users/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-        mode: "cors",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
-        );
-      }
-
-      const data = await response.json();
+      const response = await axios.post(
+        `${BACKEND_URL}/api/users/login`,
+        { email, password },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       return {
-        token: data.token || "",
-        user: this.transformUserToAuthUser(data.user || data),
+        token: response.data.token || "",
+        user: this.transformUserToAuthUser(response.data.user || response.data),
       };
     } catch (error) {
       console.error("Error with email login:", error);
+
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || error.message);
+      }
+
       throw error;
     }
   }
@@ -292,40 +264,37 @@ class AuthService {
     role: string = "User"
   ): Promise<AuthResponse> {
     try {
-      const response = await fetch(`${BACKEND_URL}/users/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const response = await axios.post(
+        `${BACKEND_URL}/api/users/register`,
+        {
           email,
           password,
           username,
           role,
-        }),
-        mode: "cors",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
-        );
-      }
-
-      const data = await response.json();
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       return {
-        token: data.token || "",
-        user: this.transformUserToAuthUser(data.user || data),
+        token: response.data.token || "",
+        user: this.transformUserToAuthUser(response.data.user || response.data),
       };
     } catch (error) {
       console.error("Error with email registration:", error);
+
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || error.message);
+      }
+
       throw error;
     }
   }
 
-  private transformUserToAuthUser(user: any): AuthUser {
+  private transformUserToAuthUser(user: any): User {
     return {
       id: user.id,
       username: user.username,
@@ -341,53 +310,79 @@ class AuthService {
       birthDate: user.birthDate,
       createdAt: user.createdAt,
       starDustPoints: user.starDustPoints || 0,
-      // Computed properties
-      displayName: user.name || user.username || user.email,
-      bio: user.biography,
     };
-  }
-
-  async makeAuthenticatedRequest(
-    url: string,
-    options: RequestInit = {}
-  ): Promise<Response> {
-    const token = this.getStoredToken();
-
-    if (!token) {
-      throw new Error("No authentication token available");
-    }
-
-    const requestOptions: RequestInit = {
-      ...options,
-      headers: {
-        ...options.headers,
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    };
-
-    let response = await fetch(url, requestOptions);
-
-    if (response.status === 401) {
-      const refreshSuccess = await this.handleUnauthorizedResponse();
-
-      if (refreshSuccess) {
-        const newToken = this.getStoredToken();
-        if (newToken) {
-          requestOptions.headers = {
-            ...requestOptions.headers,
-            Authorization: `Bearer ${newToken}`,
-          };
-          response = await fetch(url, requestOptions);
-        }
-      } else {
-        this.clearAuthData();
-        throw new Error("Authentication failed - please log in again");
-      }
-    }
-
-    return response;
   }
 }
 
 export const authService = new AuthService();
+
+// TanStack Query hooks for authentication
+export const useDiscordLoginUrl = () => {
+  return useQuery({
+    queryKey: ["discord-login-url"],
+    queryFn: () => authService.getDiscordLoginUrl(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+export const useDiscordCallback = () => {
+  return useMutation({
+    mutationFn: (code: string) => authService.handleDiscordCallback(code),
+    onSuccess: (data) => {
+      authService.storeAuthData(data.token, data.user);
+    },
+  });
+};
+
+export const useEmailLogin = () => {
+  return useMutation({
+    mutationFn: ({ email, password }: { email: string; password: string }) =>
+      authService.loginWithEmail(email, password),
+    onSuccess: (data) => {
+      authService.storeAuthData(data.token, data.user);
+    },
+  });
+};
+
+export const useEmailRegister = () => {
+  return useMutation({
+    mutationFn: ({
+      email,
+      password,
+      username,
+      role,
+    }: {
+      email: string;
+      password: string;
+      username: string;
+      role?: string;
+    }) => authService.registerWithEmail(email, password, username, role),
+    onSuccess: (data) => {
+      authService.storeAuthData(data.token, data.user);
+    },
+  });
+};
+
+export const useTokenVerification = () => {
+  const token = authService.getStoredToken();
+
+  return useQuery({
+    queryKey: ["verify-token", token],
+    queryFn: () => authService.verifyToken(token!),
+    enabled: !!token,
+    retry: false,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+};
+
+export const useLogout = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => authService.logout(),
+    onSuccess: () => {
+      // Clear all cached data on logout
+      queryClient.clear();
+    },
+  });
+};

@@ -1,10 +1,10 @@
 import { useState, useEffect, createContext, useContext, ReactNode, useRef } from 'react';
-import { authService } from '../services/authService';
-import { AuthUser } from '../types/blog';
+import { authService, useDiscordLoginUrl, useDiscordCallback, useEmailLogin, useEmailRegister, useLogout, useTokenVerification } from '../services/authService';
+import { User } from '../types/blog';
 import { useToast } from './use-toast';
 
 interface AuthContextType {
-  user: AuthUser | null;
+  user: User | null;
   loading: boolean;
   loginWithDiscord: () => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<void>;
@@ -19,10 +19,18 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // TanStack Query hooks
+  const discordLoginUrlQuery = useDiscordLoginUrl();
+  const discordCallbackMutation = useDiscordCallback();
+  const emailLoginMutation = useEmailLogin();
+  const emailRegisterMutation = useEmailRegister();
+  const logoutMutation = useLogout();
+  const tokenVerificationQuery = useTokenVerification();
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -98,9 +106,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const loginWithDiscord = async () => {
     try {
       setLoading(true);
-      const data = await authService.getDiscordLoginUrl();
-      if (data.authUrl) {
-        window.location.href = data.authUrl;
+      if (discordLoginUrlQuery.data?.authUrl) {
+        window.location.href = discordLoginUrlQuery.data.authUrl;
+      } else if (!discordLoginUrlQuery.isLoading) {
+        await discordLoginUrlQuery.refetch();
+        if (discordLoginUrlQuery.data?.authUrl) {
+          window.location.href = discordLoginUrlQuery.data.authUrl;
+        }
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -111,17 +123,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const loginWithEmail = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const data = await authService.loginWithEmail(email, password);
+      await emailLoginMutation.mutateAsync({ email, password });
       
-      if (data.token && data.user) {
-        authService.storeAuthData(data.token, data.user);
-        setUser(data.user);
-        
-        toast({
-          title: "¡Bienvenido!",
-          description: `Hola ${data.user.name}, has iniciado sesión exitosamente.`,
-        });
-      }
+      const storedUser = authService.getStoredUser();
+      setUser(storedUser);
+      
+      toast({
+        title: "¡Bienvenido!",
+        description: `Hola ${storedUser?.name}, has iniciado sesión exitosamente.`,
+      });
     } catch (error: any) {
       console.error('Email login error:', error);
       toast({
@@ -138,17 +148,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const registerWithEmail = async (email: string, password: string, username: string, role: string = "User") => {
     try {
       setLoading(true);
-      const data = await authService.registerWithEmail(email, password, username, role);
+      await emailRegisterMutation.mutateAsync({ email, password, username, role });
       
-      if (data.token && data.user) {
-        authService.storeAuthData(data.token, data.user);
-        setUser(data.user);
-        
-        toast({
-          title: "¡Cuenta creada!",
-          description: `Hola ${data.user.name}, tu cuenta ha sido creada exitosamente.`,
-        });
-      }
+      const storedUser = authService.getStoredUser();
+      setUser(storedUser);
+      
+      toast({
+        title: "¡Cuenta creada!",
+        description: `Hola ${storedUser?.name}, tu cuenta ha sido creada exitosamente.`,
+      });
     } catch (error: any) {
       console.error('Email registration error:', error);
       toast({
@@ -165,19 +173,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const handleDiscordCallback = async (code: string) => {
     try {
       setLoading(true);
-      const data = await authService.handleDiscordCallback(code);
+      await discordCallbackMutation.mutateAsync(code);
       
-      if (data.token && data.user) {
-        authService.storeAuthData(data.token, data.user);
-        setUser(data.user);
-        
-        toast({
-          title: "¡Bienvenido!",
-          description: `Hola ${data.user.name}, has iniciado sesión exitosamente.`,
-        });
-        
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
+      const storedUser = authService.getStoredUser();
+      setUser(storedUser);
+      
+      toast({
+        title: "¡Bienvenid@!",
+        description: `Hola ${storedUser?.name}, has iniciado sesión exitosamente.`,
+      });
+      
+      window.history.replaceState({}, document.title, window.location.pathname);
     } catch (error) {
       console.error('Callback error:', error);
     } finally {
@@ -192,7 +198,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         refreshIntervalRef.current = null;
       }
 
-      await authService.logout();
+      await logoutMutation.mutateAsync();
       setUser(null);
 
       toast({

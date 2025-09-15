@@ -3,6 +3,7 @@ import { Layout } from "@/pages/Layout";
 import NotFound from "@/pages/NotFound";
 import PostDetail from "@/pages/PostDetail";
 import CreatePost from "@/pages/CreatePost";
+import CategoryPage from "@/pages/CategoryPage";
 import { createBrowserRouter } from "react-router-dom";
 
 export const appRouter = createBrowserRouter([
@@ -21,6 +22,10 @@ export const appRouter = createBrowserRouter([
             {
                 path: "/create-post",
                 element: <CreatePost />,
+            },
+            {
+                path: "/category/:categorySlug",
+                element: <CategoryPage />,
             },
 
         ]

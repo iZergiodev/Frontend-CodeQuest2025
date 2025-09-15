@@ -1,21 +1,12 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { User, UserDto, CreateUserDto, UserLoginDto } from "../types/blog";
-import { authService } from "./authService";
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+import apiClient from "../lib/api-client";
 
 class UserService {
   async getAllUsers(): Promise<User[]> {
     try {
-      const response = await authService.makeAuthenticatedRequest(
-        `${BACKEND_URL}/users`
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      const response = await apiClient.get<User[]>("/users");
+      return response.data;
     } catch (error) {
       console.error("Error fetching users:", error);
       throw error;
@@ -24,19 +15,8 @@ class UserService {
 
   async getUserById(id: number): Promise<User> {
     try {
-      const response = await authService.makeAuthenticatedRequest(
-        `${BACKEND_URL}/users/${id}`
-      );
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error("Usuario no encontrado");
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      const response = await apiClient.get<User>(`/users/${id}`);
+      return response.data;
     } catch (error) {
       console.error("Error fetching user:", error);
       throw error;
@@ -45,23 +25,8 @@ class UserService {
 
   async createUser(userData: CreateUserDto): Promise<User> {
     try {
-      const response = await authService.makeAuthenticatedRequest(
-        `${BACKEND_URL}/users/register`,
-        {
-          method: "POST",
-          body: JSON.stringify(userData),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
-        );
-      }
-
-      const data = await response.json();
-      return data;
+      const response = await apiClient.post<User>("/users/register", userData);
+      return response.data;
     } catch (error) {
       console.error("Error creating user:", error);
       throw error;
@@ -70,23 +35,8 @@ class UserService {
 
   async updateUserProfile(id: number, userData: Partial<User>): Promise<User> {
     try {
-      const response = await authService.makeAuthenticatedRequest(
-        `${BACKEND_URL}/users/${id}`,
-        {
-          method: "PUT",
-          body: JSON.stringify(userData),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
-        );
-      }
-
-      const data = await response.json();
-      return data;
+      const response = await apiClient.put<User>(`/users/${id}`, userData);
+      return response.data;
     } catch (error) {
       console.error("Error updating user:", error);
       throw error;
@@ -95,19 +45,7 @@ class UserService {
 
   async deleteUser(id: number): Promise<void> {
     try {
-      const response = await authService.makeAuthenticatedRequest(
-        `${BACKEND_URL}/users/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
-        );
-      }
+      await apiClient.delete(`/users/${id}`);
     } catch (error) {
       console.error("Error deleting user:", error);
       throw error;
@@ -117,7 +55,7 @@ class UserService {
   // Get current user profile
   async getCurrentUserProfile(): Promise<User> {
     try {
-      const token = authService.getStoredToken();
+      const token = localStorage.getItem("devtalles_token");
       if (!token) {
         throw new Error("No authentication token available");
       }
@@ -140,7 +78,7 @@ class UserService {
   // Update current user profile
   async updateCurrentUserProfile(userData: Partial<User>): Promise<User> {
     try {
-      const token = authService.getStoredToken();
+      const token = localStorage.getItem("devtalles_token");
       if (!token) {
         throw new Error("No authentication token available");
       }
@@ -176,3 +114,91 @@ class UserService {
 }
 
 export const userService = new UserService();
+
+// TanStack Query hooks for users
+export const useUsers = () => {
+  return useQuery({
+    queryKey: ["users"],
+    queryFn: () => userService.getAllUsers(),
+  });
+};
+
+export const useUser = (id: number) => {
+  return useQuery({
+    queryKey: ["users", id],
+    queryFn: () => userService.getUserById(id),
+    enabled: !!id,
+  });
+};
+
+export const useCurrentUser = () => {
+  return useQuery({
+    queryKey: ["current-user"],
+    queryFn: () => userService.getCurrentUserProfile(),
+    retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+export const useCreateUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (userData: CreateUserDto) => userService.createUser(userData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+};
+
+export const useUpdateUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, userData }: { id: number; userData: Partial<User> }) =>
+      userService.updateUserProfile(id, userData),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["users", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["current-user"] });
+    },
+  });
+};
+
+export const useUpdateCurrentUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (userData: Partial<User>) =>
+      userService.updateCurrentUserProfile(userData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["current-user"] });
+    },
+  });
+};
+
+export const useDeleteUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => userService.deleteUser(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+};
+
+export const useAddStarDustPoints = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ userId, points }: { userId: number; points: number }) =>
+      userService.addStarDustPoints(userId, points),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["users", variables.userId] });
+      queryClient.invalidateQueries({ queryKey: ["current-user"] });
+    },
+  });
+};

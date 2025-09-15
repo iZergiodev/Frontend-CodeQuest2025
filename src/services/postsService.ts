@@ -115,15 +115,11 @@ const transformSubcategoryDto = (dto: SubcategoryDto): Subcategory => {
 const postsApi = {
   getAllPosts: async (): Promise<Post[]> => {
     const response = await apiClient.get<PostDto[]>("/api/posts");
-    console.log("📡 Posts API Response:", response.data);
-    console.log("📝 Transformed Posts:", response.data.map(transformPostDto));
     return response.data.map(transformPostDto);
   },
 
   getPostById: async (id: string): Promise<Post> => {
     const response = await apiClient.get<PostDto>(`/api/posts/${id}`);
-    console.log("📡 Single Post API Response:", response.data);
-    console.log("📝 Transformed Single Post:", transformPostDto(response.data));
     return transformPostDto(response.data);
   },
 

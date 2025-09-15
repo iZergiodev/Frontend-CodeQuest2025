@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { AuthUser, AuthResponse, DiscordLoginUrlResponse } from "../types/blog";
+import { AuthResponse, User, DiscordLoginUrlResponse } from "../types/blog";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
@@ -61,7 +61,7 @@ class AuthService {
     }
   }
 
-  storeAuthData(token: string, user: AuthUser): void {
+  storeAuthData(token: string, user: User): void {
     localStorage.setItem(this.TOKEN_KEY, token);
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
   }
@@ -70,7 +70,7 @@ class AuthService {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
-  getStoredUser(): AuthUser | null {
+  getStoredUser(): User | null {
     const userStr = localStorage.getItem(this.USER_KEY);
     if (userStr) {
       try {
@@ -105,7 +105,7 @@ class AuthService {
     keysToRemove.forEach((key) => localStorage.removeItem(key));
   }
 
-  async verifyToken(token: string): Promise<AuthUser | null> {
+  async verifyToken(token: string): Promise<User | null> {
     try {
       const response = await axios.get(`${BACKEND_URL}/api/auth/verify`, {
         headers: {
@@ -294,7 +294,7 @@ class AuthService {
     }
   }
 
-  private transformUserToAuthUser(user: any): AuthUser {
+  private transformUserToAuthUser(user: any): User {
     return {
       id: user.id,
       username: user.username,
@@ -310,19 +310,8 @@ class AuthService {
       birthDate: user.birthDate,
       createdAt: user.createdAt,
       starDustPoints: user.starDustPoints || 0,
-      // Computed properties
-      displayName: user.name || user.username || user.email,
-      bio: user.biography,
     };
   }
-
-  // This method is deprecated - use apiClient instead
-  // async makeAuthenticatedRequest(
-  //   url: string,
-  //   options: RequestInit = {}
-  // ): Promise<Response> {
-  //   // Implementation removed - use apiClient with interceptors instead
-  // }
 }
 
 export const authService = new AuthService();

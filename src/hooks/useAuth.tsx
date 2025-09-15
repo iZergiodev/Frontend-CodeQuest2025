@@ -1,10 +1,10 @@
 import { useState, useEffect, createContext, useContext, ReactNode, useRef } from 'react';
 import { authService, useDiscordLoginUrl, useDiscordCallback, useEmailLogin, useEmailRegister, useLogout, useTokenVerification } from '../services/authService';
-import { AuthUser } from '../types/blog';
+import { User } from '../types/blog';
 import { useToast } from './use-toast';
 
 interface AuthContextType {
-  user: AuthUser | null;
+  user: User | null;
   loading: boolean;
   loginWithDiscord: () => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<void>;
@@ -19,7 +19,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -125,7 +125,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setLoading(true);
       await emailLoginMutation.mutateAsync({ email, password });
       
-      // The mutation's onSuccess will handle storing auth data
       const storedUser = authService.getStoredUser();
       setUser(storedUser);
       
@@ -151,7 +150,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setLoading(true);
       await emailRegisterMutation.mutateAsync({ email, password, username, role });
       
-      // The mutation's onSuccess will handle storing auth data
       const storedUser = authService.getStoredUser();
       setUser(storedUser);
       
@@ -177,7 +175,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setLoading(true);
       await discordCallbackMutation.mutateAsync(code);
       
-      // The mutation's onSuccess will handle storing auth data
       const storedUser = authService.getStoredUser();
       setUser(storedUser);
       

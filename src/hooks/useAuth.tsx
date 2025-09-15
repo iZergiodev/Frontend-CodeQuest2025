@@ -38,7 +38,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const storedUser = authService.getStoredUser();
         const storedToken = authService.getStoredToken();
         
-        
         if (storedUser && storedToken) {
           if (authService.isJwtTokenExpired(storedToken)) {
             const refreshData = await authService.autoRefreshJwtToken();
@@ -54,11 +53,33 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               authService.clearAuthData();
             }
           } else {
-            setUser(storedUser);
-            toast({
-              title: "¡Bienvenido de vuelta!",
-              description: `Hola ${storedUser.name}, tu sesión ha sido restaurada.`,
-            });
+            // Token is not expired, but verify it with the server
+            try {
+              const verifiedUser = await authService.verifyToken(storedToken);
+              if (verifiedUser) {
+                setUser(verifiedUser);
+                toast({
+                  title: "¡Bienvenido de vuelta!",
+                  description: `Hola ${verifiedUser.name}, tu sesión ha sido restaurada.`,
+                });
+              } else {
+                // Token verification failed, try to refresh
+                const refreshData = await authService.autoRefreshJwtToken();
+                if (refreshData) {
+                  authService.storeAuthData(refreshData.token, refreshData.user);
+                  setUser(refreshData.user);
+                  toast({
+                    title: "Sesión actualizada",
+                    description: "Tu sesión ha sido renovada automáticamente.",
+                  });
+                } else {
+                  authService.clearAuthData();
+                }
+              }
+            } catch (verifyError) {
+              console.error('Token verification failed:', verifyError);
+              authService.clearAuthData();
+            }
           }
         } else {
           const urlParams = new URLSearchParams(window.location.search);

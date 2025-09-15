@@ -35,4 +35,8 @@ export const appRouter = createBrowserRouter([
         element: <NotFound />,
     },
 
-])
+], {
+    future: {
+        v7_startTransition: true,
+    },
+})

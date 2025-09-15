@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "../lib/api-client";
-import type { Post, Category } from "../types/blog";
+import type { Post, Category, Subcategory } from "../types/blog";
 
 interface PostDto {
   id: number;
@@ -38,6 +38,15 @@ interface CategoryDto {
   name: string;
   description?: string;
   color?: string;
+}
+
+interface SubcategoryDto {
+  id: number;
+  name: string;
+  description?: string;
+  color?: string;
+  categoryId: number;
+  categoryName?: string;
 }
 
 const transformPostDto = (dto: PostDto): Post => {
@@ -80,7 +89,6 @@ const transformPostDto = (dto: PostDto): Post => {
   };
 };
 
-// Transform backend CategoryDto to frontend Category type
 const transformCategoryDto = (dto: CategoryDto): Category => {
   return {
     id: dto.id.toString(),
@@ -88,6 +96,18 @@ const transformCategoryDto = (dto: CategoryDto): Category => {
     slug: dto.name.toLowerCase().replace(/\s+/g, "-"),
     description: dto.description || "",
     color: dto.color || "#6366f1",
+  };
+};
+
+const transformSubcategoryDto = (dto: SubcategoryDto): Subcategory => {
+  return {
+    id: dto.id.toString(),
+    name: dto.name,
+    slug: dto.name.toLowerCase().replace(/\s+/g, "-"),
+    description: dto.description || "",
+    color: dto.color || "#6366f1",
+    categoryId: dto.categoryId.toString(),
+    categoryName: dto.categoryName || "",
   };
 };
 
@@ -185,6 +205,31 @@ const categoriesApi = {
 
   deleteCategory: async (id: string): Promise<void> => {
     await apiClient.delete(`/api/categories/${id}`);
+  },
+};
+
+const subcategoriesApi = {
+  getAllSubcategories: async (): Promise<Subcategory[]> => {
+    const response = await apiClient.get<SubcategoryDto[]>(
+      "/api/subcategories"
+    );
+    return response.data.map(transformSubcategoryDto);
+  },
+
+  getSubcategoryById: async (id: string): Promise<Subcategory> => {
+    const response = await apiClient.get<SubcategoryDto>(
+      `/api/subcategories/${id}`
+    );
+    return transformSubcategoryDto(response.data);
+  },
+
+  getSubcategoriesByCategory: async (
+    categoryId: string
+  ): Promise<Subcategory[]> => {
+    const response = await apiClient.get<SubcategoryDto[]>(
+      `/api/subcategories/category/${categoryId}`
+    );
+    return response.data.map(transformSubcategoryDto);
   },
 };
 
@@ -326,6 +371,30 @@ export const useDeleteCategory = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
     },
+  });
+};
+
+// React Query hooks for subcategories
+export const useSubcategories = () => {
+  return useQuery({
+    queryKey: ["subcategories"],
+    queryFn: subcategoriesApi.getAllSubcategories,
+  });
+};
+
+export const useSubcategory = (id: string) => {
+  return useQuery({
+    queryKey: ["subcategories", id],
+    queryFn: () => subcategoriesApi.getSubcategoryById(id),
+    enabled: !!id,
+  });
+};
+
+export const useSubcategoriesByCategory = (categoryId: string) => {
+  return useQuery({
+    queryKey: ["subcategories", "category", categoryId],
+    queryFn: () => subcategoriesApi.getSubcategoriesByCategory(categoryId),
+    enabled: !!categoryId,
   });
 };
 

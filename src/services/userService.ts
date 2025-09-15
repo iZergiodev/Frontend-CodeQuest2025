@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { User, UserDto, CreateUserDto, UserLoginDto } from "../types/blog";
+import { User, CreateUserDto } from "../types/blog";
 import apiClient from "../lib/api-client";
 
 class UserService {

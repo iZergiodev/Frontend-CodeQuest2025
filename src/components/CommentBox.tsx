@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Button } from "@/shared/components/ui/button";
-import { Textarea } from "@/shared/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
-} from "@/shared/components/ui/tooltip";
+} from "@/components/ui/tooltip";
 import { Image as ImageIcon, Sticker, Type } from "lucide-react";
 
 type CommentBoxProps = {

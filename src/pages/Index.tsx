@@ -1,7 +1,8 @@
-import { PostCard } from "@/features/post/components/PostCard";
-import { BlogFilters } from "@/shared/components/Filters";
+import Header from "@/components/Header";
+import Hero from "@/components/Hero";
+import { PostCard } from "@/components/PostCard";
+import { BlogFilters } from "@/components/Filters";
 import { useBlogData } from "@/hooks/useBlogData";
-import Hero from "../components/Hero";
 
 const Index = () => {
   const { posts, featuredPosts, categories, filters, setFilters, trendingPosts, recentActivity } = useBlogData();

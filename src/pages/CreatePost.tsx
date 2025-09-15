@@ -1,11 +1,11 @@
 import { useRef, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
-import { Label } from "@/shared/components/ui/label";
-import { Textarea } from "@/shared/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import MDEditor from '@uiw/react-md-editor';
-import { Badge } from "@/shared/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { useTheme } from "next-themes";
 import {
   Save,
@@ -18,9 +18,9 @@ import {
   Calendar,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useOpen } from "@/hooks/useOpen";
-import { FloatingEdgeButton } from "@/shared/components/FloatingEdgeButton";
+import { FloatingEdgeButton } from "@/components/FloatingEdgeButton";
 
 const CreatePost = () => {
   const { isOpen } = useOpen();

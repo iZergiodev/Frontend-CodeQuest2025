@@ -1,7 +1,5 @@
 // components/comments/CommentsList.tsx
-
-import { CommentRow, FlatComment } from "./CommentRow";
-
+import { FlatComment, CommentRow } from "./CommentRow";
 
 type CommentsListProps = {
   comments: FlatComment[];

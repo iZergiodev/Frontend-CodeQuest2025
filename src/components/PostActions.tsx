@@ -9,13 +9,13 @@ import {
   BookmarkCheck,
   Flag,
 } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/shared/components/ui/tooltip";
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -23,7 +23,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from "@/shared/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 
 type Size = "sm" | "md" | "lg";
 type Variant = "pill" | "ghost"; // pill = con fondo/borde; ghost = solo en hover

@@ -1,5 +1,5 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
-import { PostActions } from "@/features/post/components/PostActions";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PostActions } from "@/components/PostActions";
 import { User } from "lucide-react";
 
 export type FlatComment = {

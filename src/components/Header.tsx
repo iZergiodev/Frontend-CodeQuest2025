@@ -1,17 +1,16 @@
 import { Search, Menu, User, PenTool, Trophy, Crown } from "lucide-react";
-
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import ThemeToggle from "@/app/layout/components/ThemeToggle";
-import AuthModal from "@/shared/components/AuthModal";
-import UserMenu from "@/shared/components/UserMenu";
+import ThemeToggle from "@/components/ThemeToggle";
+import AuthModal from "@/components/AuthModal";
+import UserMenu from "@/components/UserMenu";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import logoDark from "@/assets/logo_d.svg?url";
 import logoLight from "@/assets/logo_l.svg?url";
 import nameLogo from "@/assets/name_logo.svg?url";
-import { Input } from "@/shared/components/ui/input";
-import { Button } from "@/shared/components/ui/button";
 
 const Header = () => {
   const { user } = useAuth();

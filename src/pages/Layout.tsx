@@ -1,5 +1,5 @@
-import Header from "@/app/layout/components/Header"
-import { Sidebar } from "@/app/layout/components/Sidebar"
+import Header from "@/components/Header"
+import { Sidebar } from "@/components/Sidebar"
 import { useOpen } from "@/hooks/useOpen";
 import { Outlet } from "react-router-dom"
 

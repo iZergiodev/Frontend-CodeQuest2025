@@ -15,6 +15,11 @@ interface PostDto {
   authorName: string;
   categoryId?: number;
   categoryName?: string;
+  categoryColor?: string;
+  subcategoryId?: number;
+  subcategoryName?: string;
+  subcategoryColor?: string;
+  tags: string[];
   likesCount: number;
   commentsCount: number;
 }
@@ -25,6 +30,8 @@ interface CreatePostDto {
   summary?: string;
   imageUrl?: string;
   categoryId?: number;
+  subcategoryId?: number;
+  tags?: string[];
 }
 
 interface CategoryDto {
@@ -62,11 +69,22 @@ const transformPostDto = (dto: PostDto): Post => {
       slug:
         dto.categoryName?.toLowerCase().replace(/\s+/g, "-") || "sin-categoria",
       description: "",
-      color: "#6366f1",
+      color: dto.categoryColor || "#6366f1",
     },
-    tags: [], // Not provided in DTO
+    subcategory: dto.subcategoryId
+      ? {
+          id: dto.subcategoryId.toString(),
+          name: dto.subcategoryName || "",
+          slug: dto.subcategoryName?.toLowerCase().replace(/\s+/g, "-") || "",
+          description: "",
+          color: dto.subcategoryColor || "#6366f1",
+          categoryId: dto.categoryId?.toString() || "",
+          categoryName: dto.categoryName || "",
+        }
+      : undefined,
+    tags: dto.tags, // Direct string array from backend
     likes: dto.likesCount,
-    comments: [], // Not provided in DTO
+    comments: [], // Not provided in DTO - would need separate endpoint to fetch comments
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,
     slug: dto.title.toLowerCase().replace(/\s+/g, "-"),

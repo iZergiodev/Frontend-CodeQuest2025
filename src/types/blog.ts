@@ -5,6 +5,7 @@ export interface Post {
   excerpt: string;
   author: AuthUser;
   category: Category;
+  subcategory?: Subcategory;
   tags: string[];
   likes: number;
   comments: Comment[];
@@ -95,6 +96,16 @@ export interface Category {
   description?: string;
   color: string;
   icon?: string;
+}
+
+export interface Subcategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  color: string;
+  categoryId: string;
+  categoryName?: string;
 }
 
 export interface Comment {

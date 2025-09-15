@@ -25,10 +25,10 @@ export function PostCard({ post, onTagClick }: PostCardProps) {
             alt={post.title}
             className="h-48 w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
-          <div className="absolute top-4 left-4">
+          <div className="absolute top-4 left-4 flex flex-col gap-2">
             <Badge 
               variant="secondary" 
-              className="bg-background/90 text-foreground backdrop-blur-sm border border-border/50"
+              className="bg-background/90 text-foreground backdrop-blur-sm border border-border/50 text-sm font-medium"
             >
               <div
                 className="w-2 h-2 rounded-full mr-2"
@@ -36,6 +36,18 @@ export function PostCard({ post, onTagClick }: PostCardProps) {
               />
               {post.category.name}
             </Badge>
+            {post.subcategory && (
+              <Badge 
+                variant="outline" 
+                className="bg-background/90 text-foreground backdrop-blur-sm border border-border/50 text-xs"
+              >
+                <div
+                  className="w-1.5 h-1.5 rounded-full mr-1.5"
+                  style={{ backgroundColor: post.subcategory.color }}
+                />
+                {post.subcategory.name}
+              </Badge>
+            )}
           </div>
           {post.featured && (
             <div className="absolute top-4 right-4">
@@ -80,36 +92,38 @@ export function PostCard({ post, onTagClick }: PostCardProps) {
 
       <CardContent className="space-y-4">
         {/* Tags */}
-        <div className="flex flex-wrap gap-1">
-          {(showAllTags ? post.tags : post.tags.slice(0, 3)).map((tag) => (
-            <Badge
-              key={tag}
-              variant="outline"
-              className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-              onClick={() => onTagClick?.(tag)}
-            >
-              {tag}
-            </Badge>
-          ))}
-          {post.tags.length > 3 && !showAllTags && (
-            <Badge 
-              variant="outline" 
-              className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-              onClick={() => setShowAllTags(true)}
-            >
-              +{post.tags.length - 3}
-            </Badge>
-          )}
-          {post.tags.length > 3 && showAllTags && (
-            <Badge 
-              variant="outline" 
-              className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-              onClick={() => setShowAllTags(false)}
-            >
-              Ver menos
-            </Badge>
-          )}
-        </div>
+        {post.tags && post.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {(showAllTags ? post.tags : post.tags.slice(0, 3)).map((tag) => (
+              <Badge
+                key={tag}
+                variant="outline"
+                className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                onClick={() => onTagClick?.(tag)}
+              >
+                {tag}
+              </Badge>
+            ))}
+            {post.tags.length > 3 && !showAllTags && (
+              <Badge 
+                variant="outline" 
+                className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                onClick={() => setShowAllTags(true)}
+              >
+                +{post.tags.length - 3}
+              </Badge>
+            )}
+            {post.tags.length > 3 && showAllTags && (
+              <Badge 
+                variant="outline" 
+                className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                onClick={() => setShowAllTags(false)}
+              >
+                Ver menos
+              </Badge>
+            )}
+          </div>
+        )}
       </CardContent>
 
       <CardFooter className="flex items-center justify-between pt-4 border-t">
@@ -121,7 +135,7 @@ export function PostCard({ post, onTagClick }: PostCardProps) {
           </div>
           <div className="flex items-center space-x-1">
             <MessageSquare className="h-4 w-4" />
-            <span>{post.comments.length}</span>
+            <span>{post.comments?.length || 0}</span>
           </div>
         </div>
 

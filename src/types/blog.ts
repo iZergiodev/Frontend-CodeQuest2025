@@ -3,7 +3,8 @@ export interface Post {
   title: string;
   content: string;
   excerpt: string;
-  author: AuthUser;
+  author: number;
+  authorName: string;
   category: Category;
   subcategory?: Subcategory;
   tags: string[];
@@ -36,23 +37,15 @@ export interface User {
   starDustPoints: number;
 }
 
-// User with computed properties for frontend display
-export interface AuthUser extends User {
-  // Computed properties for display
-  displayName: string;
-  bio?: string;
-}
-
 export interface AuthResponse {
   token: string;
-  user: AuthUser;
+  user: User;
 }
 
 export interface DiscordLoginUrlResponse {
   authUrl: string;
 }
 
-// Backend DTOs
 export interface CreateUserDto {
   username?: string;
   password: string;
@@ -65,7 +58,6 @@ export interface UserLoginDto {
   password: string;
 }
 
-// Backend DTO (includes password for API calls)
 export interface UserDto extends User {
   password?: string;
 }
@@ -111,7 +103,7 @@ export interface Subcategory {
 export interface Comment {
   id: string;
   content: string;
-  author: AuthUser;
+  author: User;
   postId: string;
   parentId?: string;
   replies?: Comment[];
@@ -131,7 +123,7 @@ export interface BlogFilters {
 export interface TrendingPost {
   id: string;
   title: string;
-  author: AuthUser;
+  author: User;
   views: number;
   slug: string;
 }
@@ -142,5 +134,5 @@ export interface RecentActivity {
   title: string;
   description: string;
   timestamp: string;
-  user?: AuthUser;
+  user?: User;
 }

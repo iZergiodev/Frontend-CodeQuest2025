@@ -63,13 +63,13 @@ export function PostCard({ post, onTagClick }: PostCardProps) {
         {/* Author info */}
         <div className="flex items-center space-x-3">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={post.author.avatar} alt={post.author.displayName} />
-            <AvatarFallback>
-              <User className="h-4 w-4" />
+            <AvatarImage src="" alt={post.authorName} />
+            <AvatarFallback className="bg-primary text-primary-foreground">
+              {post.authorName?.charAt(0) || <User className="h-4 w-4" />}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{post.author.displayName}</p>
+            <p className="text-sm font-medium truncate">{post.authorName}</p>
             <div className="flex items-center space-x-2 text-xs text-muted-foreground">
               <Calendar className="h-3 w-3" />
               <span>{new Date(post.createdAt).toLocaleDateString("es-ES")}</span>

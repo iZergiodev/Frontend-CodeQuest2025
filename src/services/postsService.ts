@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "../lib/api-client";
 import type { Post, Category } from "../types/blog";
 
-// Backend DTOs that match the C# backend
 interface PostDto {
   id: number;
   title: string;
@@ -41,28 +40,14 @@ interface CategoryDto {
   color?: string;
 }
 
-// Transform backend DTO to frontend Post type
 const transformPostDto = (dto: PostDto): Post => {
   return {
     id: dto.id.toString(),
     title: dto.title,
     content: dto.content,
     excerpt: dto.summary || "",
-    author: {
-      id: dto.authorId,
-      username: dto.authorName,
-      email: "", // Not provided in DTO
-      name: dto.authorName,
-      avatar: "",
-      biography: "",
-      role: "user",
-      discordId: "",
-      birthDate: "",
-      createdAt: "",
-      starDustPoints: 0,
-      displayName: dto.authorName,
-      bio: "",
-    },
+    author: dto.authorId,
+    authorName: dto.authorName,
     category: {
       id: dto.categoryId?.toString() || "",
       name: dto.categoryName || "Sin categoría",
@@ -82,9 +67,9 @@ const transformPostDto = (dto: PostDto): Post => {
           categoryName: dto.categoryName || "",
         }
       : undefined,
-    tags: dto.tags, // Direct string array from backend
+    tags: dto.tags,
     likes: dto.likesCount,
-    comments: [], // Not provided in DTO - would need separate endpoint to fetch comments
+    comments: [],
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,
     slug: dto.title.toLowerCase().replace(/\s+/g, "-"),
@@ -110,11 +95,15 @@ const transformCategoryDto = (dto: CategoryDto): Category => {
 const postsApi = {
   getAllPosts: async (): Promise<Post[]> => {
     const response = await apiClient.get<PostDto[]>("/api/posts");
+    console.log("📡 Posts API Response:", response.data);
+    console.log("📝 Transformed Posts:", response.data.map(transformPostDto));
     return response.data.map(transformPostDto);
   },
 
   getPostById: async (id: string): Promise<Post> => {
     const response = await apiClient.get<PostDto>(`/api/posts/${id}`);
+    console.log("📡 Single Post API Response:", response.data);
+    console.log("📝 Transformed Single Post:", transformPostDto(response.data));
     return transformPostDto(response.data);
   },
 

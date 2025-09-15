@@ -114,6 +114,7 @@ export interface Comment {
 
 export interface BlogFilters {
   category?: string;
+  subcategory?: string;
   search?: string;
   tag?: string;
   author?: string;

@@ -20,8 +20,9 @@ export default function WritePostButton({ to = "/create-post", className, icon =
       <Button
         onClick={() => navigate(to)}
         variant="outline"
+        size="lg"
         className={cn(
-          "hidden md:inline-flex items-center gap-2 rounded-full h-10 px-4",
+          "hidden md:inline-flex items-center gap-2 rounded-xl h-10 px-4",
           className
         )}
       >

@@ -59,14 +59,14 @@ const Header = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 placeholder="Buscar posts..."
-                className="pl-10 rounded-full bg-muted/50"
+                className="pl-10 rounded-xl bg-muted/50"
               />
             </div>
           </div>
         )}
 
         {/* Acciones */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {user ? (
             <>
               {/* Admin link si aplica */}
@@ -75,7 +75,7 @@ const Header = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate("/admin/users")}
-                  className="hidden md:inline-flex items-center gap-2 rounded-full"
+                  className="hidden md:inline-flex items-center gap-2 rounded-xl"
                 >
                   <Crown className="h-4 w-4" />
                   Admin
@@ -96,7 +96,7 @@ const Header = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="hidden md:inline-flex rounded-full"
+                className="hidden md:inline-flex rounded-xl"
                 onClick={handleOpenLoginModal}
               >
                 <User className="h-4 w-4 mr-2" />
@@ -105,7 +105,7 @@ const Header = () => {
 
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-blue-600 to-violet-500 text-white rounded-full"
+                className="bg-devtalles-gradient hover:opacity-90 text-white rounded-xl"
                 onClick={handleOpenRegisterModal}
               >
                 Unirse
@@ -114,7 +114,7 @@ const Header = () => {
           )}
 
           {/* Menú móvil */}
-          <Button variant="ghost" size="icon" className="md:hidden rounded-full">
+          <Button variant="ghost" size="icon" className="md:hidden rounded-xl">
             <Menu className="h-5 w-5" />
           </Button>
         </div>

@@ -31,7 +31,7 @@ export default function NotificationBell({ count = 0, onOpenAll, size = "lg" }: 
           size="icon"
           aria-label="Notificaciones"
           className={cn(
-            "group relative rounded-full transition-[background,box-shadow,transform,color] duration-150",
+            "group relative rounded-xl transition-[background,box-shadow,transform,color] duration-150",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
             "hover:bg-accent hover:text-accent-foreground active:scale-95",
             sz.btn
@@ -41,7 +41,7 @@ export default function NotificationBell({ count = 0, onOpenAll, size = "lg" }: 
           {hasUnread && (
             <span
               className={cn(
-                "absolute -top-0.5 -right-0.5 inline-flex items-center justify-center px-1 rounded-full",
+                "absolute -top-0.5 -right-0.5 inline-flex items-center justify-center px-1 rounded-xl",
                 "bg-red-500 text-white font-semibold shadow",
                 "transition-transform group-active:scale-95",
                 sz.badge

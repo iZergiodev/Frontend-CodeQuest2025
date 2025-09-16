@@ -7,12 +7,12 @@ import { Separator } from "@/components/ui/separator";
 import { Mail, Lock, User, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { AuthUser } from "@/types/blog";
+import { User as UserModel } from "@/types/blog";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (user: AuthUser) => void;
+  onLogin: (user: UserModel) => void;
   initialMode?: 'login' | 'register';
 }
 
@@ -30,9 +30,6 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }: AuthModa
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    username: "",
-    name: "",
-    role: "User",
   });
   const [isDiscordLoading, setIsDiscordLoading] = useState(false);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
@@ -45,9 +42,6 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }: AuthModa
       setFormData({
         email: "",
         password: "",
-        username: "",
-        name: "",
-        role: "User",
       });
     }
   }, [isOpen, initialMode]);
@@ -85,7 +79,7 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }: AuthModa
         await loginWithEmail(formData.email, formData.password);
         onClose(); // Close modal on successful login
       } else {
-        await registerWithEmail(formData.email, formData.password, formData.username, formData.role);
+        await registerWithEmail(formData.email, formData.password,  "User");
         onClose(); // Close modal on successful registration
       }
     } catch (error) {
@@ -127,42 +121,7 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }: AuthModa
           </div>
           
           {/* Email Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLoginMode && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="username">Nombre de usuario</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input
-                      id="username"
-                      name="username"
-                      placeholder="tu_usuario"
-                      value={formData.username}
-                      onChange={handleInputChange}
-                      className="pl-10"
-                      required={!isLoginMode}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nombre completo</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input
-                      id="name"
-                      name="name"
-                      placeholder="Tu nombre completo"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className="pl-10"
-                      required={!isLoginMode}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-            
+          <form onSubmit={handleSubmit} className="space-y-4">            
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">

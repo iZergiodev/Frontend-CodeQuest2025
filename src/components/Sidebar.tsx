@@ -258,7 +258,7 @@ export const Sidebar = () => {
         aria-label="Abrir/cerrar sidebar"
         variant="default"
         size="icon"
-        className={`fixed top-1/2 -translate-y-1/2 ${isOpen ? 'left-[21.5rem]' : 'left-[4rem]'} -translate-x-1/2 z-50 rounded-full shadow-lg ring-1 ring-black/5 p-0 bg-white text-gray-800 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700 dark:ring-white/10 transition-all duration-300 ease-in-out hidden md:flex`}
+        className={`fixed top-30 -translate-y-1/2 ${isOpen ? 'left-[21.5rem]' : 'left-[4rem]'} -translate-x-1/2 z-50 rounded-full ring-1 ring-border p-0 bg-background text-foreground hover:bg-accent transition-all duration-300 ease-in-out hidden md:flex`}
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? (

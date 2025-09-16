@@ -201,7 +201,7 @@ sin escribir una clase.
         label="Volver"
         hideBelow="lg"      
         topPx={126}           
-        offsetMain={12}      
+        offsetMain={30}      
         watch={isOpen}       
         className="cursor-pointer"         
       >

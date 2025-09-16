@@ -4,10 +4,11 @@ import NotFound from "@/pages/NotFound";
 import PostDetail from "@/pages/PostDetail";
 import CreatePost from "@/pages/CreatePost";
 import CategoryPage from "@/pages/CategoryPage";
-import Profile from "@/pages/Profile";
+import {Profile} from "@/pages/Profile";
 import AdminDashboard from "@/pages/AdminDashboard";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createBrowserRouter } from "react-router-dom";
+import Settings from "@/pages/Settings";
 
 export const appRouter = createBrowserRouter([
     {
@@ -39,6 +40,14 @@ export const appRouter = createBrowserRouter([
                 element: (
                     <ProtectedRoute>
                         <Profile />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "/settings",
+                element: (
+                    <ProtectedRoute>
+                        <Settings />
                     </ProtectedRoute>
                 ),
             },

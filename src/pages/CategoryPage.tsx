@@ -3,12 +3,15 @@ import { PostCard } from "@/components/PostCard";
 import { useCategory, useSubcategoriesByCategory, usePosts, useCategories } from "@/services/postsService";
 import { BlogFilters } from "@/components/Filters";
 import { Button } from "@/components/ui/button";
-import { useState, useMemo, useEffect } from "react";
-import { ChevronLeft } from "lucide-react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { ArrowLeft, ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { BlogFilters as BlogFiltersType } from "@/types/blog";
+import { FloatingEdgeButton } from "@/components/FloatingEdgeButton";
 
 const CategoryPage = () => {
+  const contentRef = useRef();
+  const navigation = useNavigate();
   const { categorySlug } = useParams<{ categorySlug: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -19,6 +22,8 @@ const CategoryPage = () => {
     subcategory: searchParams.get('subcategory') || undefined,
     sortBy: "latest"
   });
+
+  const handleBackClick = () => navigation(-1)
 
   const category = posts.find(post => 
     post.category.slug === categorySlug
@@ -99,17 +104,9 @@ const CategoryPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-12">
+      <div ref={contentRef} className="container mx-auto px-4 py-12">
         {/* Header */}
         <div className="mb-8">
-          <Button 
-            onClick={() => navigate("/")} 
-            variant="ghost" 
-            className="mb-4"
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Volver al inicio
-          </Button>
           
           <div className="flex items-center gap-3 mb-4">
             <div
@@ -194,6 +191,19 @@ const CategoryPage = () => {
           Cargar más posts
         </button>
       </div>
+
+      <FloatingEdgeButton
+        referenceRef={contentRef}
+        onClick={handleBackClick}
+        label="Volver"
+        hideBelow="md"
+        topPx={140}
+        offsetMain={10}
+        placement="left-start"
+        className="cursor-pointer"
+      >
+        <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+      </FloatingEdgeButton>
     </div>
   );
 };

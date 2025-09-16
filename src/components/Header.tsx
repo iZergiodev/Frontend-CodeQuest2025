@@ -1,9 +1,8 @@
-import { Search, Menu, User, PenTool, Trophy, Crown } from "lucide-react";
+import { Search, Menu, User, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import ThemeToggle from "@/components/ThemeToggle";
 import AuthModal from "@/components/AuthModal";
 import UserMenu from "@/components/UserMenu";
 import { useNavigate } from "react-router-dom";
@@ -12,91 +11,84 @@ import logoDark from "@/assets/logo_d.svg?url";
 import logoLight from "@/assets/logo_l.svg?url";
 import nameLogo from "@/assets/name_logo.svg?url";
 
+// nuevos
+import NotificationBell from "@/components/NotificationBell";
+import WritePostButton from "@/components/WritePostButton";
+
 const Header = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
+  const [authModalMode, setAuthModalMode] = useState<"login" | "register">("login");
   const navigate = useNavigate();
 
   const handleOpenLoginModal = () => {
-    setAuthModalMode('login');
+    setAuthModalMode("login");
     setIsAuthModalOpen(true);
   };
-
   const handleOpenRegisterModal = () => {
-    setAuthModalMode('register');
+    setAuthModalMode("register");
     setIsAuthModalOpen(true);
   };
+  const handleCloseAuthModal = () => setIsAuthModalOpen(false);
 
-  const handleCloseAuthModal = () => {
-    setIsAuthModalOpen(false);
-  };
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pb-1 pt-1">
-      <div className="px-4 py-4 flex items-center justify-between">
-        <div onClick={() => navigate("/")} className="flex items-center space-x-2 pl-4 cursor-pointer">
+      <div className="px-4 py-3 flex items-center justify-between gap-3">
+        {/* Logo + nombre */}
+        <div onClick={() => navigate("/")} className="flex items-center gap-2 pl-2 cursor-pointer">
           <img
             src={theme === "dark" ? logoLight : logoDark}
             alt="Logo"
-            className="h-11 w-11"
+            className="h-9 w-9"
           />
-
           <img
             src={nameLogo}
             alt="DevBlog"
-            className="h-8 w-auto hidden md:block"
+            className="h-7 w-auto hidden md:block"
             style={{
               filter: theme === "dark" ? "brightness(0) invert(1)" : "brightness(0) invert(0)"
             }}
           />
         </div>
 
+        {/* Search (centrado y liviano) */}
         {user && (
-          <>
-            {/* Search Bar - Hidden on mobile */}
-            <div className="hidden md:flex flex-1 max-w-md">
-              {/* <div> */}
-              <div className="relative w-full">
-                <Search className="absolute -left-25 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-                <Input
-                  placeholder="Buscar posts..."
-                  className="pl-14 bg-muted/50 w-200 -ml-30"
-                />
-              </div>
+          <div className="hidden md:flex flex-1 justify-center">
+            <div className="relative w-full max-w-2xl">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Buscar posts..."
+                className="pl-10 rounded-full bg-muted/50"
+              />
             </div>
-          </>
+          </div>
         )}
 
-        {/* Navigation & Actions */}
-        <div className="flex items-center space-x-4">
-          <ThemeToggle />
-
+        {/* Acciones */}
+        <div className="flex items-center gap-2">
           {user ? (
             <>
-              {/* Navigation Links */}
-              <div className="hidden md:flex items-center space-x-2">                
-                {user.role?.toLowerCase() === 'admin' && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => navigate("/admin/users")}
-                    className="flex items-center gap-2"
-                  >
-                    <Crown className="h-4 w-4" />
-                    Admin
-                  </Button>
-                )}
-              </div>
+              {/* Admin link si aplica */}
+              {user.role?.toLowerCase() === "admin" && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/admin/users")}
+                  className="hidden md:inline-flex items-center gap-2 rounded-full"
+                >
+                  <Crown className="h-4 w-4" />
+                  Admin
+                </Button>
+              )}
 
-              <Button 
-                size="lg" 
-                className="bg-devtalles-gradient hover:opacity-90 hidden md:flex rounded-xl"
-                onClick={() => navigate("/create-post")}
-              >
-                <PenTool className="h-4 w-4 mr-2" />
-                Escribir Post
-              </Button>
+              {/* Campanita */}
+              <NotificationBell count={2} size="md" />
+
+              {/* Escribir Post (rediseñado) */}
+              <WritePostButton icon="pen" />
+
+              {/* User menu */}
               <UserMenu />
             </>
           ) : (
@@ -104,7 +96,7 @@ const Header = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="hidden md:flex rounded-xl"
+                className="hidden md:inline-flex rounded-full"
                 onClick={handleOpenLoginModal}
               >
                 <User className="h-4 w-4 mr-2" />
@@ -113,7 +105,7 @@ const Header = () => {
 
               <Button
                 size="lg"
-                className="bg-devtalles-gradient hover:opacity-90 rounded-xl"
+                className="bg-gradient-to-r from-blue-600 to-violet-500 text-white rounded-full"
                 onClick={handleOpenRegisterModal}
               >
                 Unirse
@@ -121,7 +113,8 @@ const Header = () => {
             </>
           )}
 
-          <Button variant="ghost" size="sm" className="md:hidden">
+          {/* Menú móvil */}
+          <Button variant="ghost" size="icon" className="md:hidden rounded-full">
             <Menu className="h-5 w-5" />
           </Button>
         </div>
@@ -130,7 +123,7 @@ const Header = () => {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={handleCloseAuthModal}
-        onLogin={() => { }}
+        onLogin={() => {}}
         initialMode={authModalMode}
       />
     </header>

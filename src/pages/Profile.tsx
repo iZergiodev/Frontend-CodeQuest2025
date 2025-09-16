@@ -1,199 +1,377 @@
-import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+} from "@/components/ui/card";
+import { motion, AnimatePresence } from "framer-motion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Mail, Stars, User, Shield } from "lucide-react";
-import Header from "@/components/Header";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Shield, Stars, User, Bookmark, MessageSquare, FileText, Sparkles, ArrowLeft, Calendar,
+} from "lucide-react";
+import { useRef, useState } from "react";
+import { FloatingEdgeButton } from "@/components/FloatingEdgeButton";
+import { Button } from "@/components/ui/button";
 
-const Profile = () => {
+/* Tipos y mocks igual que antes */
+type Post = { id: string; title: string; createdAt: string; upvotes: number; comments: number };
+type Comment = { id: string; body: string; createdAt: string; postTitle: string; upvotes: number };
+
+const mockPosts: Post[] = [
+  { id: "p1", title: "Mi setup de React 2025", createdAt: "hace 3 d", upvotes: 42, comments: 12 },
+  { id: "p2", title: "Patrones útiles con Zustand", createdAt: "hace 1 sem", upvotes: 31, comments: 6 },
+];
+
+const mockComments: Comment[] = [
+  { id: "c1", body: "Buen tip, también se puede con useMemo…", createdAt: "hace 2 d", postTitle: "Optimizar renders", upvotes: 8 },
+  { id: "c2", body: "Me encantó el enfoque de los hooks!", createdAt: "hace 5 d", postTitle: "Hooks avanzados", upvotes: 5 },
+];
+
+const mockSaved: Post[] = [
+  { id: "s1", title: "Guía de testing en React", createdAt: "hace 4 d", upvotes: 120, comments: 34 },
+];
+
+export const Profile = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [showPublicForm, setShowPublicForm] = useState(false);
+
+  const handleBackClick = () => navigate(-1);
 
   if (!user) {
     navigate("/");
     return null;
   }
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  };
+  const provider =
+    user.discordId
+      ? { name: "Discord", dot: "bg-[#5865F2]", text: "text-[#5865F2]" }
+      : { name: "Email", dot: "bg-blue-500", text: "text-blue-500" };
 
-  const getProviderInfo = (provider: "email" | "discord") => {
-    return provider === "discord" 
-      ? { name: "Discord", color: "bg-[#5865F2]", textColor: "text-[#5865F2]" }
-      : { name: "Email", color: "bg-blue-500", textColor: "text-blue-500" };
-  };
+  const initials = (user.name ?? "User")
+    .split(" ")
+    .map(n => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
-  const providerInfo = getProviderInfo(user.provider);
+  const joinedAt = formatJoined(user.createdAt ?? user.created_at ?? user?.metadata?.creationTime);
+
+  /* Handlers para el formulario de Perfil público */
+  const handleSavePublic = () => {
+    // aquí iría tu lógica real de guardado
+    setShowPublicForm(false);
+  };
+  const handleCancelPublic = () => setShowPublicForm(false);
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="mb-6">
-          <Button 
-            variant="ghost" 
-            className="mb-4 hover:bg-muted"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver
-          </Button>
-          
-          <div className="flex items-center gap-4 mb-6">
-            <h1 className="text-3xl font-bold">Mi Perfil</h1>
-          </div>
-        </div>
+      <motion.main className="container mx-auto max-w-6xl px-4 py-6">
+        {/* HEADER LIMPIO */}
+        <div ref={contentRef} className="mb-4">
+          <div className="flex items-start justify-between gap-4">
+            {/* Izquierda: avatar + info */}
+            <div className="flex items-start gap-4 min-w-0">
+              <Avatar className="h-16 w-16 ring-4 ring-background shadow">
+                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarFallback className="bg-primary text-primary-foreground">{initials}</AvatarFallback>
+              </Avatar>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {/* Profile Card */}
-          <Card className="md:col-span-1">
-            <CardHeader className="text-center pb-4">
-              <div className="flex justify-center mb-4">
-                <Avatar className="h-24 w-24 border-4 border-primary/10">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-lg font-semibold">
-                    {getInitials(user.name)}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-              <CardTitle className="text-xl">{user.name}</CardTitle>
-              <CardDescription className="flex items-center justify-center gap-2">
-                <Badge variant="outline" className={`${providerInfo.textColor} border-current`}>
-                  <Shield className="h-3 w-3 mr-1" />
-                  {providerInfo.name}
-                </Badge>
-              </CardDescription>
-            </CardHeader>
-            
-            <CardContent className="pt-0">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 text-sm">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="break-all">{user.email}</span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl font-bold leading-tight truncate">{user.name}</h1>
+                  <Badge variant="outline" className={`${provider.text} border-current`}>
+                    <Shield className="mr-1 h-3.5 w-3.5" />
+                    {provider.name}
+                  </Badge>
                 </div>
-                
-                {user.stardustPoints !== undefined && (
-                  <div className="flex items-center gap-3 text-sm">
+
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+                  <Chip>
                     <Stars className="h-4 w-4 text-yellow-500" />
-                    <span className="font-medium">{user.stardustPoints.toLocaleString()} Stardust Points</span>
-                  </div>
-                )}
+                    <span>{user.starDustPoints?.toLocaleString() ?? 0} Stardust</span>
+                  </Chip>
 
-                <div className="flex items-center gap-3 text-sm">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span>ID: {user.id}</span>
+                  <Chip>
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span>Miembro desde: {joinedAt}</span>
+                  </Chip>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Stats and Info */}
-          <div className="md:col-span-2 space-y-6">
-            {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-2">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Stars className="h-5 w-5 text-yellow-500" />
-                    Stardust Points
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-yellow-600">
-                    {user.stardustPoints?.toLocaleString() || "0"}
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Puntos acumulados por tu actividad
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">Método de Acceso</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${providerInfo.color}`}></div>
-                    <span className="font-medium">{providerInfo.name}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {user.provider === "discord" ? "Conectado a través de Discord" : "Acceso con email y contraseña"}
-                  </p>
-                </CardContent>
-              </Card>
             </div>
 
-            {/* Profile Details */}
+            {/* Derecha: acción */}
+            <div className="shrink-0">
+              <Button variant="secondary" className="rounded-full" onClick={() => setShowPublicForm(v => !v)}>
+                {showPublicForm ? "Ocultar" : "Editar perfil"}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* PERFIL PÚBLICO (colapsable bajo el header) */}
+        <AnimatePresence initial={false}>
+          {showPublicForm && (
+            <motion.section
+              key="public-profile"
+              className="mb-6"
+              initial={{ height: 0, opacity: 0, y: -8 }}
+              animate={{ height: "auto", opacity: 1, y: 0 }}
+              exit={{ height: 0, opacity: 0, y: -8 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              style={{ overflow: "hidden" }} // evita desbordes durante la animación de altura
+            >
+              <motion.div layout>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Perfil público</CardTitle>
+                    <CardDescription>Controla cómo te ve la comunidad</CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Nombre para mostrar</Label>
+                      <Input defaultValue={user.name} placeholder="Tu nombre" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Nombre de usuario</Label>
+                      <Input defaultValue={user.username ?? ""} placeholder="usuario" />
+                    </div>
+                    <div className="sm:col-span-2 space-y-2">
+                      <Label>Bio</Label>
+                      <Textarea placeholder="Cuéntanos algo sobre ti…" />
+                    </div>
+                    <div className="sm:col-span-2 flex items-center gap-2">
+                      <Button className="rounded-full" onClick={handleSavePublic}>Guardar cambios</Button>
+                      <Button variant="ghost" className="rounded-full" onClick={handleCancelPublic}>Cancelar</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </motion.section>
+          )}
+        </AnimatePresence>
+
+        {/* GRID 12: contenido + sidebar */}
+        <motion.div className="grid gap-6 lg:grid-cols-12">
+          {/* CONTENIDO (tabs) */}
+          <div className="lg:col-span-8 space-y-4">
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="h-10 gap-1 rounded-full bg-muted/50 p-1">
+                <TabsTrigger className="rounded-full px-4 data-[state=active]:bg-background" value="overview">
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger className="rounded-full px-4 data-[state=active]:bg-background" value="posts">
+                  Posts
+                </TabsTrigger>
+                <TabsTrigger className="rounded-full px-4 data-[state=active]:bg-background" value="comments">
+                  Comments
+                </TabsTrigger>
+                <TabsTrigger className="rounded-full px-4 data-[state=active]:bg-background" value="saved">
+                  Saved
+                </TabsTrigger>
+              </TabsList>
+
+              {/* OVERVIEW */}
+              <TabsContent value="overview" className="space-y-4">
+                {mockPosts.slice(0, 1).map(p => (
+                  <PostRow key={p.id} p={p} />
+                ))}
+                {mockComments.slice(0, 2).map(c => (
+                  <CommentRow key={c.id} c={c} />
+                ))}
+                {mockPosts.length === 0 && mockComments.length === 0 && (
+                  <EmptyState icon={<Sparkles className="h-6 w-6" />} title="Aún no hay actividad">
+                    Cuando publiques o comentes, verás tu actividad aquí.
+                  </EmptyState>
+                )}
+              </TabsContent>
+
+              {/* POSTS */}
+              <TabsContent value="posts" className="space-y-3">
+                {mockPosts.length ? mockPosts.map(p => <PostRow key={p.id} p={p} />) : (
+                  <EmptyState icon={<FileText className="h-6 w-6" />} title="Sin posts aún">
+                    Crea tu primer post y compártelo con la comunidad.
+                  </EmptyState>
+                )}
+              </TabsContent>
+
+              {/* COMMENTS */}
+              <TabsContent value="comments" className="space-y-3">
+                {mockComments.length ? mockComments.map(c => <CommentRow key={c.id} c={c} />) : (
+                  <EmptyState icon={<MessageSquare className="h-6 w-6" />} title="Sin comentarios">
+                    Comenta en algún post para empezar a participar.
+                  </EmptyState>
+                )}
+              </TabsContent>
+
+              {/* SAVED */}
+              <TabsContent value="saved" className="space-y-3">
+                {mockSaved.length ? mockSaved.map(s => <SavedRow key={s.id} p={s} />) : (
+                  <EmptyState icon={<Bookmark className="h-6 w-6" />} title="Nada guardado">
+                    Guarda tus posts favoritos para verlos después.
+                  </EmptyState>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* SIDEBAR STICKY */}
+          <div className="lg:col-span-4 space-y-4 lg:sticky lg:top-24 self-start">
             <Card>
-              <CardHeader>
-                <CardTitle>Información de la Cuenta</CardTitle>
-                <CardDescription>
-                  Detalles de tu perfil de DevTalles Community
-                </CardDescription>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Métricas</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Nombre Completo</label>
-                    <p className="mt-1 text-sm">{user.name}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Email</label>
-                    <p className="mt-1 text-sm break-all">{user.email}</p>
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">ID de Usuario</label>
-                    <p className="mt-1 text-sm font-mono text-xs bg-muted px-2 py-1 rounded">
-                      {user.id}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Proveedor</label>
-                    <p className="mt-1 text-sm capitalize">{user.provider}</p>
-                  </div>
-                </div>
+              <CardContent className="grid gap-3">
+                <MetricRow icon={<Stars className="h-5 w-5 text-yellow-500" />} label="Stardust points" value={user.starDustPoints?.toLocaleString() ?? "0"} />
+                <MetricRow icon={<User className="h-5 w-5 text-muted-foreground" />} label="Nivel de perfil" value="Básico" />
               </CardContent>
             </Card>
 
-            {/* Actions */}
             <Card>
-              <CardHeader>
-                <CardTitle>Acciones de Perfil</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Conexión</CardTitle>
+                <CardDescription>Método de acceso</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-3">
-                  <Button variant="outline" disabled>
-                    Editar Perfil
-                  </Button>
-                  <Button variant="outline" disabled>
-                    Configuración de Privacidad
-                  </Button>
-                  <Button variant="outline" disabled>
-                    Historial de Actividad
-                  </Button>
+              <CardContent className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className={`h-3 w-3 rounded-full ${provider.dot}`} />
+                  <span className="font-medium">{provider.name}</span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-3">
-                  Estas funciones estarán disponibles próximamente
-                </p>
+                <Button size="sm" variant="outline" disabled>Cambiar</Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Acciones rápidas</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" disabled>Personalizar perfil</Button>
+                <Button size="sm" variant="outline" disabled>Privacidad</Button>
+                <Button size="sm" variant="outline" disabled>Actividad</Button>
               </CardContent>
             </Card>
           </div>
-        </div>
-      </main>
+        </motion.div>
+      </motion.main>
+
+      <FloatingEdgeButton
+        referenceRef={contentRef}
+        onClick={handleBackClick}
+        label="Volver"
+        hideBelow="md"
+        topPx={126}
+        offsetMain={30}
+        placement="left-start"
+        className="cursor-pointer"
+      >
+        <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+      </FloatingEdgeButton>
     </div>
   );
 };
 
-export default Profile;
+/* ---------- Helpers & subcomponentes ---------- */
+
+function formatJoined(dateLike: any): string {
+  try {
+    const d = new Date(dateLike);
+    if (isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString(undefined, { year: "numeric", month: "short" });
+  } catch {
+    return "—";
+  }
+}
+
+function Chip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1 bg-background/60">
+      {children}
+    </span>
+  );
+}
+
+function MetricRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between rounded-lg border p-3">
+      <div className="flex items-center gap-2">
+        {icon}
+        <span className="text-sm">{label}</span>
+      </div>
+      <span className="text-right text-lg font-semibold">{value}</span>
+    </div>
+  );
+}
+
+function PostRow({ p }: { p: Post }) {
+  return (
+    <Card className="hover:bg-muted/30 transition-colors">
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="mt-1 rounded-lg border px-2 py-1 text-xs text-muted-foreground">Post</div>
+          <div className="min-w-0 flex-1">
+            <p className="font-medium truncate">{p.title}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{p.createdAt} • {p.upvotes} upvotes • {p.comments} comentarios</p>
+          </div>
+          <Button variant="ghost" size="sm">Ver</Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CommentRow({ c }: { c: Comment }) {
+  return (
+    <Card className="hover:bg-muted/30 transition-colors">
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="mt-1 rounded-lg border px-2 py-1 text-xs text-muted-foreground">Comment</div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm">{c.body}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              En: <span className="font-medium">{c.postTitle}</span> • {c.createdAt} • {c.upvotes} upvotes
+            </p>
+          </div>
+          <Button variant="ghost" size="sm">Ir al post</Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function SavedRow({ p }: { p: Post }) {
+  return (
+    <Card className="hover:bg-muted/30 transition-colors">
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="mt-1 rounded-lg border px-2 py-1 text-xs text-muted-foreground">Saved</div>
+          <div className="min-w-0 flex-1">
+            <p className="font-medium truncate">{p.title}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{p.createdAt} • {p.upvotes} upvotes • {p.comments} comentarios</p>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" variant="ghost">Ver</Button>
+            <Button size="sm" variant="outline">Quitar</Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function EmptyState({ icon, title, children }: { icon: React.ReactNode; title: string; children?: React.ReactNode }) {
+  return (
+    <Card>
+      <CardContent className="p-10 text-center">
+        <div className="mx-auto mb-3 grid h-10 w-10 place-items-center rounded-full bg-muted">{icon}</div>
+        <p className="font-medium">{title}</p>
+        <p className="text-sm text-muted-foreground">{children}</p>
+      </CardContent>
+    </Card>
+  );
+}

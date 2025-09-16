@@ -1,94 +1,218 @@
-import { LogOut, Settings, BookOpen, Heart, Star, User, Crown, UserCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
+import {
+  LogOut,
+  Settings,
+  User2,
+  Crown,
+  Moon,
+  Star,
+  BadgeCheck,
+} from "lucide-react";
+import { useMemo } from "react";
+
+type MenuRowProps = {
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+  right?: React.ReactNode; // para el switch del dark mode
+  asItem?: boolean;        // usa DropdownMenuItem (true) o un <div> custom
+};
+
+const MenuRow = ({ icon, label, onClick, right, asItem = true }: MenuRowProps) => {
+  const base =
+    "mx-1 rounded-xl px-3 py-2 h-10 flex items-center justify-between gap-3";
+  const left =
+    "flex min-w-0 items-center gap-2 text-sm leading-none text-foreground";
+  const rightCls = "shrink-0 ml-2";
+
+  if (asItem) {
+    return (
+      <DropdownMenuItem
+        onClick={onClick}
+        className={`${base} cursor-pointer hover:bg-muted focus:bg-muted`}
+      >
+        <div className={left}>
+          <span className="shrink-0">{icon}</span>
+          <span className="truncate">{label}</span>
+        </div>
+        {right && <div className={rightCls}>{right}</div>}
+      </DropdownMenuItem>
+    );
+  }
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick?.()}
+      className={`${base} cursor-pointer hover:bg-muted focus:bg-muted focus:outline-none`}
+    >
+      <div className={left}>
+        <span className="shrink-0">{icon}</span>
+        <span className="truncate">{label}</span>
+      </div>
+      {right && <div className={rightCls}>{right}</div>}
+    </div>
+  );
+};
 
 const UserMenu = () => {
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { theme, resolvedTheme, setTheme } = useTheme();
 
   if (!user) return null;
 
+  const isDark = (resolvedTheme ?? theme) === "dark";
+
+  const initials = useMemo(() => {
+    const name = user.displayName || "User";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  }, [user.displayName]);
+
   const handleLogout = () => {
     logout();
-    toast({
-      title: "Sesión cerrada",
-      description: "Has cerrado sesión exitosamente.",
-    });
-  };
-
-  const getInitials = (name: string | undefined) => {
-    if (!name) return 'U';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    toast({ title: "Sesión cerrada", description: "Has cerrado sesión exitosamente." });
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+        <Button
+          variant="ghost"
+          className="relative h-10 w-10 rounded-full hover:bg-muted/60"
+          aria-label="Abrir menú de usuario"
+        >
           <Avatar className="h-10 w-10">
-            <AvatarImage src={user.avatar} alt={user.displayName || 'User'} />
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              {getInitials(user.displayName)}
+            <AvatarImage src={user.avatar} alt={user.displayName || "User"} />
+            <AvatarFallback className="bg-primary/90 text-primary-foreground">
+              {initials}
             </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
-              {user.role?.toLowerCase() === 'admin' && (
-                <Crown className="h-3 w-3 text-red-500" />
-              )}
-            </div>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user.email || 'No email'}
-            </p>
-            <div className="flex items-center gap-2 text-xs">
-              <div className="flex items-center gap-1 text-yellow-600">
-                <Star className="h-3 w-3" />
-                <span>{user.starDustPoints} StarDust</span>
+
+      <DropdownMenuContent
+        align="end"
+        sideOffset={15}
+        forceMount
+        className="w-70 p-0 overflow-hidden rounded-2xl shadow-xl ring-1 ring-border/60 bg-popover"
+      >
+        {/* Header */}
+        <div className="relative">
+          <div
+            aria-hidden
+            className="h-10 w-full bg-[radial-gradient(120%_100%_at_0%_0%,hsl(var(--primary)/.25),transparent_60%)] dark:bg-[radial-gradient(120%_100%_at_0%_0%,hsl(var(--primary)/.35),transparent_60%)]"
+          />
+          <div className="px-4 pb-3 pt-8">
+            <div className="flex items-start gap-3">
+              <div className="-mt-10">
+                <Avatar className="h-14 w-14 ring-2 ring-background shadow-sm">
+                  <AvatarImage src={user.avatar} alt={user.displayName || "User"} />
+                  <AvatarFallback className="bg-primary/90 text-primary-foreground">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
               </div>
-              {user.discordId && (
-                <span className="text-[#5865F2]">• Discord</span>
-              )}
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm font-semibold leading-none truncate">
+                    {user.displayName || "User"}
+                  </p>
+                  {user.role?.toLowerCase() === "admin" && (
+                    <Crown className="h-3.5 w-3.5 text-yellow-500" />
+                  )}
+                  {user.emailVerified && (
+                    <BadgeCheck className="h-3.5 w-3.5 text-primary" />
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground truncate">
+                  {user.email || "sin correo"}
+                </p>
+
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]">
+                    <Star className="h-3 w-3 text-yellow-600" />
+                    <span className="font-medium">
+                      {user.starDustPoints ?? 0} StarDust
+                    </span>
+                  </span>
+                  {!!user.discordId && (
+                    <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]">
+                      <span className="h-2.5 w-2.5 rounded-full bg-[#5865F2]" />
+                      <span>Discord</span>
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </DropdownMenuLabel>
+        </div>
+
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate("/profile")}>
-          <UserCircle className="mr-2 h-4 w-4" />
-          <span>Mi Perfil</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <BookOpen className="mr-2 h-4 w-4" />
-          <span>Mis Posts</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Heart className="mr-2 h-4 w-4" />
-          <span>Posts Guardados</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Configuración</span>
-        </DropdownMenuItem>
+
+        {/* Filas alineadas: Mi Perfil / Dark Mode / Configuración */}
+        <MenuRow
+          icon={<User2 className="h-4 w-4" />}
+          label="Mi Perfil"
+          onClick={() => navigate("/profile")}
+        />
+
+        {/* Dark Mode: mantenemos mismo alto/estructura con right element */}
+        <MenuRow
+          icon={<Moon className="h-4 w-4" />}
+          label="Dark Mode"
+          asItem={false} // usamos <div> para no disparar onClick en el switch
+          right={
+            <Switch
+              checked={isDark}
+              onCheckedChange={(v) => setTheme(v ? "dark" : "light")}
+              aria-label="Cambiar tema"
+            />
+          }
+          // click en la fila también toggles el switch
+          onClick={() => setTheme(isDark ? "light" : "dark")}
+        />
+
+        <MenuRow
+          icon={<Settings className="h-4 w-4" />}
+          label="Configuración"
+          onClick={() => navigate("/settings")}
+        />
+
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Cerrar Sesión</span>
+
+        <DropdownMenuItem
+          onClick={() => {
+            handleLogout()
+            navigate("/");
+          }}
+          className="mx-1 my-1.5 rounded-xl px-3 py-2 h-10 text-red-600 focus:text-red-600 hover:bg-red-600/10 cursor-pointer"
+        >
+          <div className="flex items-center gap-2">
+            <LogOut className="h-4 w-4" />
+            <span>Cerrar Sesión</span>
+          </div>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

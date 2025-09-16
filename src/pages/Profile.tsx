@@ -60,7 +60,7 @@ export const Profile = () => {
     .slice(0, 2)
     .toUpperCase();
 
-  const joinedAt = formatJoined(user.createdAt ?? user.created_at ?? user?.metadata?.creationTime);
+  const joinedAt = formatJoined(user.createdAt);
 
   /* Handlers para el formulario de Perfil público */
   const handleSavePublic = () => {
@@ -70,8 +70,8 @@ export const Profile = () => {
   const handleCancelPublic = () => setShowPublicForm(false);
 
   return (
-    <div className="min-h-screen bg-background">
-      <motion.main className="container mx-auto max-w-6xl px-4 py-6">
+    <div className="bg-background">
+      <motion.main className="container mx-auto px-4 py-6">
         {/* HEADER LIMPIO */}
         <div ref={contentRef} className="mb-4">
           <div className="flex items-start justify-between gap-4">

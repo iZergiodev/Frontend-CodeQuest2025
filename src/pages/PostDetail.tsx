@@ -73,10 +73,10 @@ sin escribir una clase.
   }, [comments, sortBy]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <main className="container mx-auto px-4 py-8">
         {/* Wrapper principal del post: referencia para Floating UI */}
-        <div ref={postRef} className="mx-auto max-w-5xl">
+        <div ref={postRef} className="mx-auto">
           {/* Header autor */}
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-3">

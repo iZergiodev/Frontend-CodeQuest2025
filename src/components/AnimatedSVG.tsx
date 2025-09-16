@@ -1,12 +1,22 @@
 import { useEffect, useRef } from "react";
-import DEVIHERO from "@/assets/DEVI_hero.svg?raw";
+import DEVI_hero from "@/assets/DEVI_hero.svg?raw";
+import DEVI_laptop from "@/assets/DEVI_laptop.svg?raw";
 
-export default function AnimatedDev() {
+interface AnimatedSVGProps {
+  svg: string;
+}
+
+const SVGs = {
+  hero: DEVI_hero,
+  laptop: DEVI_laptop,
+}
+
+export default function AnimatedSVG({ svg }: AnimatedSVGProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (containerRef.current) {
-      containerRef.current.innerHTML = DEVIHERO;
+      containerRef.current.innerHTML = SVGs[svg];
     
       const script = containerRef.current.querySelector('script');
       if (script) {

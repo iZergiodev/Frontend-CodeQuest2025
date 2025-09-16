@@ -7,6 +7,7 @@ import CategoryPage from "@/pages/CategoryPage";
 import Profile from "@/pages/Profile";
 import AdminDashboard from "@/pages/AdminDashboard";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import ConditionalRoute from "@/components/ConditionalRoute";
 import { createBrowserRouter } from "react-router-dom";
 
 export const appRouter = createBrowserRouter([
@@ -16,7 +17,7 @@ export const appRouter = createBrowserRouter([
         children: [
             {
                 index: true,
-                element: <Index />,
+                element: <ConditionalRoute />,
             },
             {
                 path: "/post/:id",

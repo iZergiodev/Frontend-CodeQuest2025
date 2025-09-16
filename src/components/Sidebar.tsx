@@ -200,7 +200,7 @@ export const Sidebar = () => {
   return (
     <>
         <aside 
-          className={`${isOpen ? "w-86" : "w-16"} fixed top-20 left-0 h-[calc(100dvh-5rem)] overflow-y-auto p-4 border-r bg-background transition-all duration-300 ease-in-out sidebar-scroll hidden md:block`}
+          className={`${isOpen ? "w-86" : "w-16"} fixed top-20 left-0 h-[calc(100dvh-5rem)] overflow-y-auto p-4 border-r bg-background/95 backdrop-blur-sm z-40 transition-all duration-300 ease-in-out sidebar-scroll hidden md:block`}
         >
         {isOpen && <div className="space-y-6">
           {/* Navigation */}

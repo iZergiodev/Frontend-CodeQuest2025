@@ -48,7 +48,7 @@ export default function Settings() {
           </div>
 
           <div className="sm:col-span-2">
-            <Button variant="outline" className="rounded-full">Actualizar contraseña</Button>
+            <Button variant="outline" className="rounded-xl">Actualizar contraseña</Button>
           </div>
         </CardContent>
       </Card>
@@ -66,7 +66,7 @@ export default function Settings() {
           <NotifyRow label="Boletín y novedades" />
           <Separator />
           <div className="flex justify-end">
-            <Button className="rounded-full">
+            <Button className="rounded-xl">
               <Bell className="mr-2 h-4 w-4" /> Guardar preferencias
             </Button>
           </div>

@@ -57,8 +57,8 @@ export function CommentBox({
                 className={[
                     "transition-all",
                     expanded
-                        ? "rounded-2xl border bg-accent/20 p-3"
-                        : "rounded-xl border px-5 py-2 hover:bg-muted/40",
+                        ? "rounded-xl border bg-accent/20 p-3"
+                        : "rounded-xl order px-5 py-2 hover:bg-muted/40",
                 ].join(" ")}
                 onClick={() => setExpanded(true)}
             >
@@ -94,7 +94,7 @@ export function CommentBox({
                                             type="button"
                                             size="icon"
                                             variant="ghost"
-                                            className="h-8 w-8 rounded-full"
+                                            className="h-8 w-8 rounded-xl"
                                         // onClick={() => ... abrir file picker}
                                         >
                                             <ImageIcon className="h-4 w-4" />
@@ -109,7 +109,7 @@ export function CommentBox({
                                             type="button"
                                             size="icon"
                                             variant="ghost"
-                                            className="h-8 w-8 rounded-full"
+                                            className="h-8 w-8 rounded-xl"
                                         // onClick={() => ... selector GIF}
                                         >
                                             {/* No hay icono "GIF" nativo en lucide; usamos Sticker o puedes reemplazar por texto */}
@@ -125,7 +125,7 @@ export function CommentBox({
                                             type="button"
                                             size="icon"
                                             variant="ghost"
-                                            className="h-8 w-8 rounded-full"
+                                            className="h-8 w-8 rounded-xl"
                                         >
                                             <Type className="h-4 w-4" />
                                         </Button>
@@ -139,7 +139,7 @@ export function CommentBox({
                                 <Button
                                     type="button"
                                     variant="secondary"
-                                    className="rounded-full bg-accent/60 hover:bg-accent"
+                                    className="rounded-xl bg-accent/60 hover:bg-accent"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setText("");
@@ -155,7 +155,7 @@ export function CommentBox({
                                         e.stopPropagation();
                                         handleSubmit();
                                     }}
-                                    className="rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+                                    className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
                                 >
                                     Comment
                                 </Button>

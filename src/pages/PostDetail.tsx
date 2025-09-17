@@ -15,6 +15,8 @@ import { usePost, usePostIdFromSlug } from "@/services/postsService";
 import { useCommentsByPost, useCreateComment } from "@/services/commentsService";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 
 type SortKey = "top" | "new" | "old" | "controversial";
@@ -32,7 +34,7 @@ const PostDetail = () => {
   const handleBackClick = () => navigate(-1);
 
 
-  const { postId, isLoading: slugLoading } = usePostIdFromSlug(slug || ""); 
+  const { postId, isLoading: slugLoading } = usePostIdFromSlug(slug || "");
 
   const { data: post, isLoading: postLoading, error: postError } = usePost(postId || "");
   
@@ -203,10 +205,67 @@ const PostDetail = () => {
             </div>
           )}
 
-          <div className="prose prose-lg max-w-none mb-12">
-            <div className="whitespace-pre-line text-foreground leading-relaxed">
+          <div className="prose prose-lg max-w-none mb-12 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-pre:text-foreground prose-blockquote:text-muted-foreground prose-a:text-primary hover:prose-a:text-primary/80">
+            <ReactMarkdown 
+              remarkPlugins={[remarkGfm]}
+              components={{
+                h1: ({ children }) => <h1 className="text-3xl font-bold mb-4 text-foreground">{children}</h1>,
+                h2: ({ children }) => <h2 className="text-2xl font-bold mb-3 text-foreground">{children}</h2>,
+                h3: ({ children }) => <h3 className="text-xl font-bold mb-2 text-foreground">{children}</h3>,
+                h4: ({ children }) => <h4 className="text-lg font-bold mb-2 text-foreground">{children}</h4>,
+                p: ({ children }) => <p className="mb-4 text-foreground leading-relaxed">{children}</p>,
+                ul: ({ children }) => <ul className="mb-4 ml-6 list-disc text-foreground">{children}</ul>,
+                ol: ({ children }) => <ol className="mb-4 ml-6 list-decimal text-foreground">{children}</ol>,
+                li: ({ children }) => <li className="mb-1 text-foreground">{children}</li>,
+                code: ({ children, className }) => {
+                  const isInline = !className;
+                  return isInline ? (
+                    <code className="bg-muted px-1 py-0.5 rounded text-sm font-mono text-foreground">{children}</code>
+                  ) : (
+                    <code className={className}>{children}</code>
+                  );
+                },
+                pre: ({ children }) => (
+                  <pre className="bg-muted p-4 rounded-lg overflow-x-auto mb-4 text-foreground">
+                    {children}
+                  </pre>
+                ),
+                blockquote: ({ children }) => (
+                  <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground mb-4">
+                    {children}
+                  </blockquote>
+                ),
+                a: ({ children, href }) => (
+                  <a 
+                    href={href} 
+                    className="text-primary hover:text-primary/80 underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {children}
+                  </a>
+                ),
+                table: ({ children }) => (
+                  <div className="overflow-x-auto mb-4">
+                    <table className="min-w-full border border-border rounded-lg">
+                      {children}
+                    </table>
+                  </div>
+                ),
+                th: ({ children }) => (
+                  <th className="border border-border px-4 py-2 bg-muted text-left font-semibold text-foreground">
+                    {children}
+                  </th>
+                ),
+                td: ({ children }) => (
+                  <td className="border border-border px-4 py-2 text-foreground">
+                    {children}
+                  </td>
+                ),
+              }}
+            >
               {post.content}
-            </div>
+            </ReactMarkdown>
           </div>
 
           <PostActions

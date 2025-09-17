@@ -56,7 +56,7 @@ const transformPostDto = (dto: PostDto): Post => {
     id: dto.id.toString(),
     title: dto.title,
     content: dto.content,
-    excerpt: dto.summary || "",
+    excerpt: dto.summary || "Sin resumen",
     author: dto.authorId,
     authorId: dto.authorId,
     authorAvatar: dto.authorAvatar,
@@ -409,9 +409,12 @@ export const useSubcategoriesByCategory = (categoryId: string) => {
 export const generateSlug = (title: string): string => {
   return title
     .toLowerCase()
+    .normalize("NFD") // Normalize to decomposed form
+    .replace(/[\u0300-\u036f]/g, "") // Remove diacritical marks (accents)
     .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
     .replace(/\s+/g, "-") // Replace spaces with hyphens
     .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+    .replace(/^-+|-+$/g, "") // Remove leading/trailing hyphens
     .trim();
 };
 
@@ -419,7 +422,24 @@ export const findPostBySlug = (
   posts: Post[],
   slug: string
 ): Post | undefined => {
-  return posts.find((post) => generateSlug(post.title) === slug);
+  return posts.find((post) => {
+    const generatedSlug = generateSlug(post.title);
+    // Try exact match first
+    if (generatedSlug === slug) return true;
+
+    // Try normalizing the input slug (in case it has accents)
+    const normalizedSlug = slug
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .trim();
+
+    return generatedSlug === normalizedSlug;
+  });
 };
 
 export const findPostIdBySlug = (
@@ -434,9 +454,22 @@ export const findPostIdBySlug = (
 export const usePostIdFromSlug = (slug: string) => {
   const { data: posts = [] } = usePosts();
 
+  const postId = findPostIdBySlug(posts, slug);
+  const post = findPostBySlug(posts, slug);
+
+  // Debug logging
+  console.log("Slug mapping debug:", {
+    slug,
+    postsCount: posts.length,
+    postTitles: posts.map((p) => p.title),
+    generatedSlugs: posts.map((p) => generateSlug(p.title)),
+    foundPostId: postId,
+    foundPost: post?.title,
+  });
+
   return {
-    postId: findPostIdBySlug(posts, slug),
-    post: findPostBySlug(posts, slug),
+    postId,
+    post,
     isLoading: !posts.length,
   };
 };

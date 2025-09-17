@@ -100,7 +100,7 @@ export function PostCard({ post, onTagClick, layout = 'default' }: PostCardProps
   const AuthorInfo = () => (
     <div className="flex items-center space-x-3">
       <Avatar className="h-8 w-8">
-        <AvatarImage src="" alt={post.authorName} />
+        <AvatarImage src={post.authorAvatar} alt={post.authorName} />
         <AvatarFallback className="bg-primary text-primary-foreground">
           {post.authorName?.charAt(0) || <User className="h-4 w-4" />}
         </AvatarFallback>

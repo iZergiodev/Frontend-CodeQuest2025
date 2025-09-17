@@ -22,11 +22,17 @@ export function useBlogData() {
   const filteredPosts = useMemo(() => {
     let result = [...posts];
 
-    if (user && followedSubcategories.size > 0) {
-      result = result.filter(
-        (post) =>
-          post.subcategory && followedSubcategories.has(post.subcategory.id)
-      );
+    // If user is logged in, only show posts from followed subcategories
+    if (user) {
+      if (followedSubcategories.size > 0) {
+        result = result.filter(
+          (post) =>
+            post.subcategory && followedSubcategories.has(post.subcategory.id)
+        );
+      } else {
+        // If user follows no subcategories, show no posts
+        result = [];
+      }
     }
 
     if (filters.category) {

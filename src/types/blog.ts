@@ -4,12 +4,15 @@ export interface Post {
   content: string;
   excerpt: string;
   author: number;
+  authorId: number;
+  authorAvatar?: string;
   authorName: string;
   category: Category;
   subcategory?: Subcategory;
   tags: string[];
-  likes: number;
-  comments: Comment[];
+  likesCount: number;
+  commentsCount: number;
+  visitsCount: number;
   createdAt: string;
   updatedAt: string;
   slug: string;
@@ -161,4 +164,26 @@ export interface SubcategoryWithFollowerCountDto {
 
 export interface UserFollowsDto {
   followedSubcategories: Subcategory[];
+}
+
+export interface BookmarkDto {
+  id: number;
+  userId: number;
+  postId: number;
+  createdAt: string;
+  post?: Post;
+}
+
+export interface CreateBookmarkDto {
+  postId: number;
+}
+
+export interface BookmarkResponseDto {
+  isBookmarked: boolean;
+  bookmarkCount: number;
+}
+
+export interface UserBookmarksDto {
+  bookmarks: BookmarkDto[];
+  totalCount: number;
 }

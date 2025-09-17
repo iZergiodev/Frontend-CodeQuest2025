@@ -3,16 +3,19 @@ import { authService, useDiscordLoginUrl, useDiscordCallback, useEmailLogin, use
 import { User } from '../types/blog';
 import { useToast } from './use-toast';
 import { followService } from '../services/followService';
+import { bookmarkService } from '../services/bookmarkService';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   followedSubcategories: Set<string>;
+  bookmarkedPosts: Set<string>;
   loginWithDiscord: () => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<void>;
   registerWithEmail: (email: string, password: string, username: string, role?: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshFollows: () => Promise<void>;
+  refreshBookmarks: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,6 +28,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [followedSubcategories, setFollowedSubcategories] = useState<Set<string>>(new Set());
+  const [bookmarkedPosts, setBookmarkedPosts] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -48,6 +52,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             if (refreshData) {
               authService.storeAuthData(refreshData.token, refreshData.user);
               setUser(refreshData.user);
+              await refreshFollows();
+              await refreshBookmarks();
               
               toast({
                 title: "Sesión actualizada",
@@ -63,6 +69,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               if (verifiedUser) {
                 setUser(verifiedUser);
                 await refreshFollows();
+                await refreshBookmarks();
                 toast({
                   title: "¡Bienvenid@ de vuelta!",
                   description: `Hola ${verifiedUser.name}, tu sesión ha sido restaurada.`,
@@ -74,6 +81,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                   authService.storeAuthData(refreshData.token, refreshData.user);
                   setUser(refreshData.user);
                   await refreshFollows();
+                  await refreshBookmarks();
                   toast({
                     title: "Sesión actualizada",
                     description: "Tu sesión ha sido renovada automáticamente.",
@@ -109,8 +117,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     if (user) {
       refreshFollows();
+      refreshBookmarks();
     } else {
       setFollowedSubcategories(new Set());
+      setBookmarkedPosts(new Set());
     }
   }, [user]);
 
@@ -163,6 +173,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const storedUser = authService.getStoredUser();
       setUser(storedUser);
       await refreshFollows();
+      await refreshBookmarks();
       
       toast({
         title: "¡Bienvenid@!",
@@ -189,6 +200,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const storedUser = authService.getStoredUser();
       setUser(storedUser);
       await refreshFollows();
+      await refreshBookmarks();
       
       toast({
         title: "¡Cuenta creada!",
@@ -215,6 +227,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const storedUser = authService.getStoredUser();
       setUser(storedUser);
       await refreshFollows();
+      await refreshBookmarks();
       
       toast({
         title: "¡Bienvenid@!",
@@ -239,6 +252,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       await logoutMutation.mutateAsync();
       setUser(null);
       setFollowedSubcategories(new Set());
+      setBookmarkedPosts(new Set());
 
       toast({
         title: "Sesión cerrada",
@@ -255,6 +269,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       authService.clearAuthData();
       setUser(null);
       setFollowedSubcategories(new Set());
+      setBookmarkedPosts(new Set());
       
       toast({
         title: "Sesión cerrada",
@@ -279,15 +294,32 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const refreshBookmarks = async () => {
+    if (!user) {
+      setBookmarkedPosts(new Set());
+      return;
+    }
+    try {
+      const userBookmarks = await bookmarkService.getUserBookmarks(1, 1000);
+      const bookmarkedIds = new Set(userBookmarks.bookmarks.map(bookmark => bookmark.postId.toString()));
+      setBookmarkedPosts(bookmarkedIds);
+      console.log('Refreshed bookmarks:', bookmarkedIds);
+    } catch (error) {
+      console.error('Error fetching user bookmarks:', error);
+    }
+  };
+
   const value = {
     user,
     loading,
     followedSubcategories,
+    bookmarkedPosts,
     loginWithDiscord,
     loginWithEmail,
     registerWithEmail,
     logout,
     refreshFollows,
+    refreshBookmarks,
   };
 
 

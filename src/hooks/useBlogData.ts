@@ -52,13 +52,13 @@ export function useBlogData() {
 
     // Sort posts
     if (filters.sortBy === "popular") {
-      result.sort((a, b) => b.likes - a.likes);
+      result.sort((a, b) => b.likesCount - a.likesCount);
     } else if (filters.sortBy === "trending") {
       result.sort(
         (a, b) =>
-          b.likes +
-          (b.comments?.length || 0) -
-          (a.likes + (a.comments?.length || 0))
+          b.likesCount +
+          (b.commentsCount || 0) -
+          (a.likesCount + (a.commentsCount || 0))
       );
     } else {
       // Default: sort by creation date (newest first)

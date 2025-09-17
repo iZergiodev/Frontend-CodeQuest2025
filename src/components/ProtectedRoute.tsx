@@ -13,20 +13,22 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  if (loading) {
-    return <LoadingScreen message="Authenticating..." />;
-  }
-
-  if (!user) {
-    useEffect(() => {
+  useEffect(() => {
+    if (!loading && !user) {
       toast({
         title: "Authentication required",
         description: "Please log in to access this page.",
         variant: "destructive",
       });
       navigate('/', { replace: true });
-    }, [navigate, toast]);
+    }
+  }, [loading, user, navigate, toast]);
 
+  if (loading) {
+    return <LoadingScreen message="Authenticating..." />;
+  }
+
+  if (!user) {
     return <LoadingScreen message="Redirecting to home..." />;
   }
 

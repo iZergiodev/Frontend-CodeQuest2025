@@ -21,6 +21,7 @@ interface PostDto {
   tags: string[];
   likesCount: number;
   commentsCount: number;
+  visitsCount: number;
 }
 
 interface CreatePostDto {
@@ -56,6 +57,7 @@ const transformPostDto = (dto: PostDto): Post => {
     content: dto.content,
     excerpt: dto.summary || "",
     author: dto.authorId,
+    authorId: dto.authorId,
     authorName: dto.authorName,
     category: {
       id: dto.categoryId?.toString() || "",
@@ -77,8 +79,9 @@ const transformPostDto = (dto: PostDto): Post => {
         }
       : undefined,
     tags: dto.tags,
-    likes: dto.likesCount,
-    comments: [],
+    likesCount: dto.likesCount,
+    commentsCount: dto.commentsCount,
+    visitsCount: dto.visitsCount,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,
     slug: dto.title.toLowerCase().replace(/\s+/g, "-"),
@@ -307,6 +310,8 @@ export const useCategories = () => {
   return useQuery({
     queryKey: ["categories"],
     queryFn: categoriesApi.getAllCategories,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 };
 
@@ -375,6 +380,8 @@ export const useSubcategories = () => {
   return useQuery({
     queryKey: ["subcategories"],
     queryFn: subcategoriesApi.getAllSubcategories,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 };
 
@@ -391,6 +398,8 @@ export const useSubcategoriesByCategory = (categoryId: string) => {
     queryKey: ["subcategories", "category", categoryId],
     queryFn: () => subcategoriesApi.getSubcategoriesByCategory(categoryId),
     enabled: !!categoryId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 };
 

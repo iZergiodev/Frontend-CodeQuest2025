@@ -18,8 +18,7 @@ import {
   User2,
   Crown,
   Moon,
-  Star,
-  BadgeCheck,
+  Stars,
 } from "lucide-react";
 import { useMemo } from "react";
 
@@ -80,14 +79,14 @@ const UserMenu = () => {
   const isDark = (resolvedTheme ?? theme) === "dark";
 
   const initials = useMemo(() => {
-    const name = user.displayName || "User";
+    const name = user.name || "User";
     return name
       .split(" ")
       .map((n) => n[0])
       .join("")
       .toUpperCase()
       .slice(0, 2);
-  }, [user.displayName]);
+  }, [user.name]);
 
   const handleLogout = () => {
     logout();
@@ -103,7 +102,7 @@ const UserMenu = () => {
           aria-label="Abrir menú de usuario"
         >
           <Avatar className="h-10 w-10">
-            <AvatarImage src={user.avatar} alt={user.displayName || "User"} />
+            <AvatarImage src={user.avatar} alt={user.name || "User"} />
             <AvatarFallback className="bg-primary/90 text-primary-foreground">
               {initials}
             </AvatarFallback>
@@ -123,11 +122,11 @@ const UserMenu = () => {
             aria-hidden
             className="h-10 w-full bg-[radial-gradient(120%_100%_at_0%_0%,hsl(var(--primary)/.25),transparent_60%)] dark:bg-[radial-gradient(120%_100%_at_0%_0%,hsl(var(--primary)/.35),transparent_60%)]"
           />
-          <div className="px-4 pb-3 pt-8">
-            <div className="flex items-start gap-3">
-              <div className="-mt-10">
+          <div className="px-4 pb-3">
+            <div className="flex items-center gap-3">
+              <div>
                 <Avatar className="h-14 w-14 ring-2 ring-background shadow-sm">
-                  <AvatarImage src={user.avatar} alt={user.displayName || "User"} />
+                  <AvatarImage src={user.avatar} alt={user.name || "User"} />
                   <AvatarFallback className="bg-primary/90 text-primary-foreground">
                     {initials}
                   </AvatarFallback>
@@ -137,24 +136,21 @@ const UserMenu = () => {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <p className="text-sm font-semibold leading-none truncate">
-                    {user.displayName || "User"}
+                    {user.name || "User"}
                   </p>
                   {user.role?.toLowerCase() === "admin" && (
                     <Crown className="h-3.5 w-3.5 text-yellow-500" />
                   )}
-                  {user.emailVerified && (
-                    <BadgeCheck className="h-3.5 w-3.5 text-primary" />
-                  )}
                 </div>
                 <p className="text-xs text-muted-foreground truncate">
-                  {user.email || "sin correo"}
+                  {user.discordId ? user.discordUsername : user.email}
                 </p>
 
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]">
-                    <Star className="h-3 w-3 text-yellow-600" />
+                    <Stars className="h-3 w-3 text-yellow-500" />
                     <span className="font-medium">
-                      {user.starDustPoints ?? 0} StarDust
+                      {user.starDustPoints ?? 0} Stardust
                     </span>
                   </span>
                   {!!user.discordId && (

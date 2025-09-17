@@ -13,35 +13,80 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Shield, Stars, User, Bookmark, MessageSquare, FileText, Sparkles, ArrowLeft, Calendar,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { FloatingEdgeButton } from "@/components/FloatingEdgeButton";
 import { Button } from "@/components/ui/button";
+import { bookmarkService } from "@/services/bookmarkService";
+import { commentsService, CommentDto } from "@/services/commentsService";
+import { usePostsByAuthor } from "@/services/postsService";
+import { Post } from "@/types/blog";
+import { useToast } from "@/hooks/use-toast";
 
-/* Tipos y mocks igual que antes */
-type Post = { id: string; title: string; createdAt: string; upvotes: number; comments: number };
-type Comment = { id: string; body: string; createdAt: string; postTitle: string; upvotes: number };
 
-const mockPosts: Post[] = [
-  { id: "p1", title: "Mi setup de React 2025", createdAt: "hace 3 d", upvotes: 42, comments: 12 },
-  { id: "p2", title: "Patrones útiles con Zustand", createdAt: "hace 1 sem", upvotes: 31, comments: 6 },
-];
-
-const mockComments: Comment[] = [
-  { id: "c1", body: "Buen tip, también se puede con useMemo…", createdAt: "hace 2 d", postTitle: "Optimizar renders", upvotes: 8 },
-  { id: "c2", body: "Me encantó el enfoque de los hooks!", createdAt: "hace 5 d", postTitle: "Hooks avanzados", upvotes: 5 },
-];
-
-const mockSaved: Post[] = [
-  { id: "s1", title: "Guía de testing en React", createdAt: "hace 4 d", upvotes: 120, comments: 34 },
-];
 
 export const Profile = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const contentRef = useRef<HTMLDivElement>(null);
   const [showPublicForm, setShowPublicForm] = useState(false);
+  const [bookmarkedPosts, setBookmarkedPosts] = useState<Post[]>([]);
+  const [bookmarksLoading, setBookmarksLoading] = useState(false);
+  const [userComments, setUserComments] = useState<CommentDto[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const { toast } = useToast();
+
+  // Fetch user posts using the existing hook
+  const { data: userPosts = [], isLoading: postsLoading, error: postsError } = usePostsByAuthor(user?.id || 0);
 
   const handleBackClick = () => navigate(-1);
+
+  // Fetch bookmarked posts
+  useEffect(() => {
+    const fetchBookmarks = async () => {
+      if (!user) return;
+      
+      setBookmarksLoading(true);
+      try {
+        const response = await bookmarkService.getUserBookmarks(1, 50); // Get first 50 bookmarks
+        setBookmarkedPosts(response.bookmarks.map(bookmark => bookmark.post!).filter(Boolean));
+      } catch (error) {
+        console.error('Error fetching bookmarks:', error);
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar los posts guardados",
+          variant: "destructive",
+        });
+      } finally {
+        setBookmarksLoading(false);
+      }
+    };
+
+    fetchBookmarks();
+  }, [user, toast]);
+
+  // Fetch user comments
+  useEffect(() => {
+    const fetchComments = async () => {
+      if (!user) return;
+      
+      setCommentsLoading(true);
+      try {
+        const comments = await commentsService.getCommentsByAuthor(user.id.toString());
+        setUserComments(comments);
+      } catch (error) {
+        console.error('Error fetching comments:', error);
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar los comentarios",
+          variant: "destructive",
+        });
+      } finally {
+        setCommentsLoading(false);
+      }
+    };
+
+    fetchComments();
+  }, [user, toast]);
 
   if (!user) {
     navigate("/");
@@ -163,37 +208,61 @@ export const Profile = () => {
             <Tabs defaultValue="overview" className="w-full">
               <TabsList className="h-10 gap-1 rounded-full dark:bg-muted/70 bg-violet-200 p-1">
                 <TabsTrigger className="rounded-full px-4 data-[state=active]:bg-background" value="overview">
-                  Overview
+                  Actividad
                 </TabsTrigger>
                 <TabsTrigger className="rounded-full px-4 data-[state=active]:bg-background" value="posts">
-                  Posts
+                  Publicaciones
                 </TabsTrigger>
                 <TabsTrigger className="rounded-full px-4 data-[state=active]:bg-background" value="comments">
-                  Comments
+                  Comentarios
                 </TabsTrigger>
                 <TabsTrigger className="rounded-full px-4 data-[state=active]:bg-background" value="saved">
-                  Saved
+                  Guardados
                 </TabsTrigger>
               </TabsList>
 
               {/* OVERVIEW */}
               <TabsContent value="overview" className="space-y-4">
-                {mockPosts.slice(0, 1).map(p => (
-                  <PostRow key={p.id} p={p} />
-                ))}
-                {mockComments.slice(0, 2).map(c => (
-                  <CommentRow key={c.id} c={c} />
-                ))}
-                {mockPosts.length === 0 && mockComments.length === 0 && (
-                  <EmptyState icon={<Sparkles className="h-6 w-6" />} title="Aún no hay actividad">
-                    Cuando publiques o comentes, verás tu actividad aquí.
-                  </EmptyState>
+                {postsLoading || commentsLoading ? (
+                  <Card>
+                    <CardContent className="p-10 text-center">
+                      <div className="mx-auto mb-3 grid h-10 w-10 place-items-center rounded-full bg-muted">
+                        <Sparkles className="h-6 w-6 animate-pulse" />
+                      </div>
+                      <p className="font-medium">Cargando actividad...</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <>
+                    {userPosts.slice(0, 1).map(p => (
+                      <PostRow key={p.id} p={p} />
+                    ))}
+                    {userComments.slice(0, 2).map(c => (
+                      <CommentRow key={c.id} c={c} />
+                    ))}
+                    {userPosts.length === 0 && userComments.length === 0 && (
+                      <EmptyState icon={<Sparkles className="h-6 w-6" />} title="Aún no hay actividad">
+                        Cuando publiques o comentes, verás tu actividad aquí.
+                      </EmptyState>
+                    )}
+                  </>
                 )}
               </TabsContent>
 
               {/* POSTS */}
               <TabsContent value="posts" className="space-y-3">
-                {mockPosts.length ? mockPosts.map(p => <PostRow key={p.id} p={p} />) : (
+                {postsLoading ? (
+                  <Card>
+                    <CardContent className="p-10 text-center">
+                      <div className="mx-auto mb-3 grid h-10 w-10 place-items-center rounded-full bg-muted">
+                        <FileText className="h-6 w-6 animate-pulse" />
+                      </div>
+                      <p className="font-medium">Cargando posts...</p>
+                    </CardContent>
+                  </Card>
+                ) : userPosts.length ? (
+                  userPosts.map(p => <PostRow key={p.id} p={p} />)
+                ) : (
                   <EmptyState icon={<FileText className="h-6 w-6" />} title="Sin posts aún">
                     Crea tu primer post y compártelo con la comunidad.
                   </EmptyState>
@@ -202,7 +271,18 @@ export const Profile = () => {
 
               {/* COMMENTS */}
               <TabsContent value="comments" className="space-y-3">
-                {mockComments.length ? mockComments.map(c => <CommentRow key={c.id} c={c} />) : (
+                {commentsLoading ? (
+                  <Card>
+                    <CardContent className="p-10 text-center">
+                      <div className="mx-auto mb-3 grid h-10 w-10 place-items-center rounded-full bg-muted">
+                        <MessageSquare className="h-6 w-6 animate-pulse" />
+                      </div>
+                      <p className="font-medium">Cargando comentarios...</p>
+                    </CardContent>
+                  </Card>
+                ) : userComments.length ? (
+                  userComments.map(c => <CommentRow key={c.id} c={c} />)
+                ) : (
                   <EmptyState icon={<MessageSquare className="h-6 w-6" />} title="Sin comentarios">
                     Comenta en algún post para empezar a participar.
                   </EmptyState>
@@ -211,7 +291,20 @@ export const Profile = () => {
 
               {/* SAVED */}
               <TabsContent value="saved" className="space-y-3">
-                {mockSaved.length ? mockSaved.map(s => <SavedRow key={s.id} p={s} />) : (
+                {bookmarksLoading ? (
+                  <Card>
+                    <CardContent className="p-10 text-center">
+                      <div className="mx-auto mb-3 grid h-10 w-10 place-items-center rounded-full bg-muted">
+                        <Bookmark className="h-6 w-6 animate-pulse" />
+                      </div>
+                      <p className="font-medium">Cargando posts guardados...</p>
+                    </CardContent>
+                  </Card>
+                ) : bookmarkedPosts.length ? (
+                  bookmarkedPosts.map(post => <BookmarkedPostRow key={post.id} post={post} onRemove={() => {
+                    setBookmarkedPosts(prev => prev.filter(p => p.id !== post.id));
+                  }} />)
+                ) : (
                   <EmptyState icon={<Bookmark className="h-6 w-6" />} title="Nada guardado">
                     Guarda tus posts favoritos para verlos después.
                   </EmptyState>
@@ -308,6 +401,22 @@ function MetricRow({ icon, label, value }: { icon: React.ReactNode; label: strin
 }
 
 function PostRow({ p }: { p: Post }) {
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (diffInDays === 0) return "hoy";
+      if (diffInDays === 1) return "hace 1 día";
+      if (diffInDays < 7) return `hace ${diffInDays} días`;
+      if (diffInDays < 30) return `hace ${Math.floor(diffInDays / 7)} sem`;
+      return `hace ${Math.floor(diffInDays / 30)} mes`;
+    } catch {
+      return "—";
+    }
+  };
+
   return (
     <Card className="hover:bg-muted/30 transition-colors">
       <CardContent className="p-4">
@@ -315,7 +424,7 @@ function PostRow({ p }: { p: Post }) {
           <div className="mt-1 rounded-lg border px-2 py-1 text-xs text-muted-foreground">Post</div>
           <div className="min-w-0 flex-1">
             <p className="font-medium truncate">{p.title}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{p.createdAt} • {p.upvotes} upvotes • {p.comments} comentarios</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{formatDate(p.createdAt)} • {p.likesCount} likes • {p.commentsCount} comentarios</p>
           </div>
           <Button variant="ghost" size="sm">Ver</Button>
         </div>
@@ -324,19 +433,41 @@ function PostRow({ p }: { p: Post }) {
   );
 }
 
-function CommentRow({ c }: { c: Comment }) {
+function CommentRow({ c }: { c: CommentDto }) {
+  const navigate = useNavigate();
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (diffInDays === 0) return "hoy";
+      if (diffInDays === 1) return "hace 1 día";
+      if (diffInDays < 7) return `hace ${diffInDays} días`;
+      if (diffInDays < 30) return `hace ${Math.floor(diffInDays / 7)} sem`;
+      return `hace ${Math.floor(diffInDays / 30)} mes`;
+    } catch {
+      return "—";
+    }
+  };
+
+  const handleGoToPost = () => {
+    navigate(`/post/${c.postId}`);
+  };
+
   return (
     <Card className="hover:bg-muted/30 transition-colors">
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <div className="mt-1 rounded-lg border px-2 py-1 text-xs text-muted-foreground">Comment</div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm">{c.body}</p>
+            <p className="text-sm">{c.content}</p>
             <p className="text-xs text-muted-foreground mt-1">
-              En: <span className="font-medium">{c.postTitle}</span> • {c.createdAt} • {c.upvotes} upvotes
+              En: <span className="font-medium">{c.postTitle}</span> • {formatDate(c.createdAt)}
             </p>
           </div>
-          <Button variant="ghost" size="sm">Ir al post</Button>
+          <Button variant="ghost" size="sm" onClick={handleGoToPost}>Ir al post</Button>
         </div>
       </CardContent>
     </Card>
@@ -351,11 +482,93 @@ function SavedRow({ p }: { p: Post }) {
           <div className="mt-1 rounded-lg border px-2 py-1 text-xs text-muted-foreground">Saved</div>
           <div className="min-w-0 flex-1">
             <p className="font-medium truncate">{p.title}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{p.createdAt} • {p.upvotes} upvotes • {p.comments} comentarios</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{p.createdAt} • {p.likesCount} likes • {p.commentsCount} comentarios</p>
           </div>
           <div className="flex gap-2">
             <Button size="sm" variant="ghost">Ver</Button>
             <Button size="sm" variant="outline">Quitar</Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function BookmarkedPostRow({ post, onRemove }: { post: Post; onRemove: () => void }) {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isRemoving, setIsRemoving] = useState(false);
+
+  const handleRemoveBookmark = async () => {
+    setIsRemoving(true);
+    try {
+      await bookmarkService.toggleBookmark(post.id);
+      onRemove();
+      toast({
+        title: "Post eliminado",
+        description: "Se ha quitado de tus guardados",
+      });
+    } catch (error) {
+      console.error('Error removing bookmark:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo quitar el post de guardados",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRemoving(false);
+    }
+  };
+
+  const handleViewPost = () => {
+    navigate(`/post/${post.id}`);
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (diffInDays === 0) return "hoy";
+      if (diffInDays === 1) return "hace 1 día";
+      if (diffInDays < 7) return `hace ${diffInDays} días`;
+      if (diffInDays < 30) return `hace ${Math.floor(diffInDays / 7)} sem`;
+      return `hace ${Math.floor(diffInDays / 30)} mes`;
+    } catch {
+      return "—";
+    }
+  };
+
+  return (
+    <Card className="hover:bg-muted/30 transition-colors">
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="mt-1 rounded-lg border px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">
+            <Bookmark className="h-3 w-3 inline mr-1" />
+            Guardado
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-medium truncate">{post.title}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {formatDate(post.createdAt)} • {post.likesCount} likes • {post.commentsCount} comentarios
+            </p>
+            {post.excerpt && (
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{post.excerpt}</p>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" variant="ghost" onClick={handleViewPost}>
+              Ver
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={handleRemoveBookmark}
+              disabled={isRemoving}
+            >
+              {isRemoving ? "..." : "Quitar"}
+            </Button>
           </div>
         </div>
       </CardContent>

@@ -107,7 +107,7 @@ export const Profile = () => {
 
             {/* Derecha: acción */}
             <div className="shrink-0">
-              <Button variant="secondary" className="rounded-full" onClick={() => setShowPublicForm(v => !v)}>
+              <Button className="rounded-xl" onClick={() => setShowPublicForm(v => !v)}>
                 {showPublicForm ? "Ocultar" : "Editar perfil"}
               </Button>
             </div>
@@ -146,8 +146,8 @@ export const Profile = () => {
                       <Textarea placeholder="Cuéntanos algo sobre ti…" />
                     </div>
                     <div className="sm:col-span-2 flex items-center gap-2">
-                      <Button className="rounded-full" onClick={handleSavePublic}>Guardar cambios</Button>
-                      <Button variant="ghost" className="rounded-full" onClick={handleCancelPublic}>Cancelar</Button>
+                      <Button className="rounded-xl" onClick={handleSavePublic}>Guardar cambios</Button>
+                      <Button variant="ghost" className="rounded-xl" onClick={handleCancelPublic}>Cancelar</Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -161,7 +161,7 @@ export const Profile = () => {
           {/* CONTENIDO (tabs) */}
           <div className="lg:col-span-8 space-y-4">
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="h-10 gap-1 rounded-full bg-muted/50 p-1">
+              <TabsList className="h-10 gap-1 rounded-full dark:bg-muted/70 bg-violet-200 p-1">
                 <TabsTrigger className="rounded-full px-4 data-[state=active]:bg-background" value="overview">
                   Overview
                 </TabsTrigger>
@@ -251,7 +251,6 @@ export const Profile = () => {
                 <CardTitle className="text-base">Acciones rápidas</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" disabled>Personalizar perfil</Button>
                 <Button size="sm" variant="outline" disabled>Privacidad</Button>
                 <Button size="sm" variant="outline" disabled>Actividad</Button>
               </CardContent>

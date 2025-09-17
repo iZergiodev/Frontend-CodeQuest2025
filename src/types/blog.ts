@@ -98,6 +98,8 @@ export interface Subcategory {
   color: string;
   categoryId: string;
   categoryName?: string;
+  followerCount?: number;
+  isFollowing?: boolean;
 }
 
 export interface Comment {
@@ -136,4 +138,27 @@ export interface RecentActivity {
   description: string;
   timestamp: string;
   user?: User;
+}
+
+export interface FollowSubcategoryDto {
+  subcategoryId: number;
+}
+
+export interface FollowAllSubcategoriesDto {
+  categoryId: number;
+}
+
+export interface SubcategoryWithFollowerCountDto {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  color: string;
+  categoryId: string;
+  categoryName?: string;
+  followerCount: number;
+}
+
+export interface UserFollowsDto {
+  followedSubcategories: Subcategory[];
 }

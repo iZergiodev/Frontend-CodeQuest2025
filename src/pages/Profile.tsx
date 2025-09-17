@@ -18,7 +18,7 @@ import { FloatingEdgeButton } from "@/components/FloatingEdgeButton";
 import { Button } from "@/components/ui/button";
 import { bookmarkService } from "@/services/bookmarkService";
 import { commentsService, CommentDto } from "@/services/commentsService";
-import { usePostsByAuthor } from "@/services/postsService";
+import { usePostsByAuthor, usePostSlugFromId } from "@/services/postsService";
 import { Post } from "@/types/blog";
 import { useToast } from "@/hooks/use-toast";
 
@@ -36,7 +36,7 @@ export const Profile = () => {
   const { toast } = useToast();
 
   // Fetch user posts using the existing hook
-  const { data: userPosts = [], isLoading: postsLoading, error: postsError } = usePostsByAuthor(user?.id || 0);
+  const { data: userPosts = [], isLoading: postsLoading, error: postsError } = usePostsByAuthor(user?.id ?? 0);
 
   const handleBackClick = () => navigate(-1);
 
@@ -234,10 +234,10 @@ export const Profile = () => {
                   </Card>
                 ) : (
                   <>
-                    {userPosts.slice(0, 1).map(p => (
+                    {userPosts.map(p => (
                       <PostRow key={p.id} p={p} />
                     ))}
-                    {userComments.slice(0, 2).map(c => (
+                    {userComments.map(c => (
                       <CommentRow key={c.id} c={c} />
                     ))}
                     {userPosts.length === 0 && userComments.length === 0 && (
@@ -435,6 +435,7 @@ function PostRow({ p }: { p: Post }) {
 
 function CommentRow({ c }: { c: CommentDto }) {
   const navigate = useNavigate();
+  const { slug } = usePostSlugFromId(c.postId.toString());
 
   const formatDate = (dateString: string) => {
     try {
@@ -453,7 +454,12 @@ function CommentRow({ c }: { c: CommentDto }) {
   };
 
   const handleGoToPost = () => {
-    navigate(`/post/${c.postId}`);
+    if (slug) {
+      navigate(`/post/${slug}`);
+    } else {
+      // Fallback to ID if slug not found
+      navigate(`/post/${c.postId}`);
+    }
   };
 
   return (
@@ -521,7 +527,7 @@ function BookmarkedPostRow({ post, onRemove }: { post: Post; onRemove: () => voi
   };
 
   const handleViewPost = () => {
-    navigate(`/post/${post.id}`);
+    navigate(`/post/${post.slug}`);
   };
 
   const formatDate = (dateString: string) => {

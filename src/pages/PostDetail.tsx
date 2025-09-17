@@ -4,52 +4,67 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { PostActions } from "@/components/PostActions";
 import { CommentBox } from "@/components/CommentBox";
 import { CommentsList } from "@/components/comments/CommentList";
 import type { FlatComment } from "@/components/comments/CommentRow";
 import { useOpen } from "@/hooks/useOpen";
 import { FloatingEdgeButton } from "@/components/FloatingEdgeButton";
+import { usePost, usePostIdFromSlug } from "@/services/postsService";
+import { useCommentsByPost, useCreateComment } from "@/services/commentsService";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 
 type SortKey = "top" | "new" | "old" | "controversial";
 
-const TOP_PX = 128; // top fijo (≈ top-24). Ajusta para alinearlo a tu avatar/título
 
 const PostDetail = () => {
   const navigate = useNavigate();
+  const { slug } = useParams<{ slug: string }>();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [sortBy, setSortBy] = useState<SortKey>("top");
   const { isOpen } = useOpen(); 
   const postRef = useRef<HTMLDivElement>(null);
 
   const handleBackClick = () => navigate(-1);
 
-  const post = {
-    title: "Guía Completa de React Hooks: De useState a Hooks Personalizados",
-    content: `
-Los React Hooks revolucionaron la forma en que escribimos componentes en React. En esta guía completa, 
-exploraremos desde los hooks básicos hasta la creación de hooks personalizados que pueden transformar 
-tu código.
 
-## ¿Qué son los React Hooks?
+  const { postId, isLoading: slugLoading } = usePostIdFromSlug(slug || ""); 
 
-Los hooks son funciones especiales que te permiten "engancharte" a las características de React. 
-Fueron introducidos en React 16.8 y nos permiten usar estado y otras características de React 
-sin escribir una clase.
-    `,
-    author: "Fernando Herrera",
-    category: "React",
-    tags: ["React", "Hooks", "JavaScript", "Frontend"],
-    image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=400&fit=crop",
-    authorAvatar: null as string | null,
-    createdAt: "Hoy",
+  const { data: post, isLoading: postLoading, error: postError } = usePost(postId || "");
+  
+  const { data: comments = [], isLoading: commentsLoading } = useCommentsByPost(postId || "");
+  
+  const createCommentMutation = useCreateComment();
+
+  const formatTimeAgo = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+      
+      if (diffInMinutes < 1) return "ahora";
+      if (diffInMinutes < 60) return `hace ${diffInMinutes} min`;
+      if (diffInMinutes < 1440) return `hace ${Math.floor(diffInMinutes / 60)} h`;
+      if (diffInMinutes < 10080) return `hace ${Math.floor(diffInMinutes / 1440)} d`;
+      return `hace ${Math.floor(diffInMinutes / 10080)} sem`;
+    } catch {
+      return "—";
+    }
   };
 
-  const comments: FlatComment[] = [
-    { id: "1", author: "Aggressive_Pitch6623", timeAgo: "hace 40 min", content: "Un desastre absoluto Sommer desde ese partido contra el Barça...", dust: 1, repliesCount: 0 },
-    { id: "2", author: "Vyphr", timeAgo: "hace 2 h", content: "Nuestra defensa está bien jodida y mentalmente no somos fuertes...", dust: 3, repliesCount: 3 },
-  ];
+  const flatComments: FlatComment[] = useMemo(() => {
+    return comments.map(comment => ({
+      id: comment.id.toString(),
+      author: comment.authorName,
+      avatarUrl: comment.authorAvatar,
+      timeAgo: formatTimeAgo(comment.createdAt),
+      content: comment.content,
+    }));
+  }, [comments]);
 
   const sortMeta: Record<SortKey, { label: string; Icon: any }> = {
     top: { label: "Top", Icon: Trophy },
@@ -59,10 +74,18 @@ sin escribir una clase.
   };
 
   const score = (c: FlatComment) => (c.dust ?? 0) + (c.repliesCount ?? 0) * 2;
-  const toTime = (c: FlatComment) => (c as any).timestamp ?? 0;
+  const toTime = (c: FlatComment) => {
+    const timeAgo = c.timeAgo;
+    if (timeAgo.includes("ahora")) return Date.now();
+    if (timeAgo.includes("min")) return Date.now() - parseInt(timeAgo.match(/\d+/)?.[0] || "0") * 60000;
+    if (timeAgo.includes("h")) return Date.now() - parseInt(timeAgo.match(/\d+/)?.[0] || "0") * 3600000;
+    if (timeAgo.includes("d")) return Date.now() - parseInt(timeAgo.match(/\d+/)?.[0] || "0") * 86400000;
+    if (timeAgo.includes("sem")) return Date.now() - parseInt(timeAgo.match(/\d+/)?.[0] || "0") * 604800000;
+    return 0;
+  };
 
   const sortedComments = useMemo(() => {
-    const arr = [...comments];
+    const arr = [...flatComments];
     switch (sortBy) {
       case "new": return arr.sort((a, b) => toTime(b) - toTime(a));
       case "old": return arr.sort((a, b) => toTime(a) - toTime(b));
@@ -70,7 +93,66 @@ sin escribir una clase.
       case "top":
       default: return arr.sort((a, b) => score(b) - score(a));
     }
-  }, [comments, sortBy]);
+  }, [flatComments, sortBy]);
+
+  const handleCommentSubmit = async (content: string) => {
+    if (!user || !postId) {
+      toast({
+        title: "Error",
+        description: "Debes iniciar sesión para comentar",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await createCommentMutation.mutateAsync({
+        content,
+        postId: parseInt(postId),
+      });
+      
+      toast({
+        title: "Comentario publicado",
+        description: "Tu comentario se ha publicado correctamente",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "No se pudo publicar el comentario",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (slugLoading || postLoading) {
+    return (
+      <div className="bg-background">
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Cargando post...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!postId || postError || !post) {
+    return (
+      <div className="bg-background">
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <h1 className="text-2xl font-bold mb-4">Post no encontrado</h1>
+            <p className="text-muted-foreground mb-6">El post que buscas no existe o ha sido eliminado.</p>
+            <Button onClick={handleBackClick} variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background">
@@ -82,7 +164,7 @@ sin escribir una clase.
             <div className="flex items-center gap-3 mb-3">
               <Avatar className="h-12 w-12">
                 {post.authorAvatar ? (
-                  <AvatarImage src={post.authorAvatar} alt={post.author} />
+                  <AvatarImage src={post.authorAvatar} alt={post.authorName} />
                 ) : (
                   <AvatarFallback className="bg-muted">
                     <User className="h-6 w-6" />
@@ -91,12 +173,12 @@ sin escribir una clase.
               </Avatar>
 
               <div className="flex-1 min-w-0 leading-tight">
-                <p className="text-sm font-medium truncate">{post.author}</p>
+                <p className="text-sm font-medium truncate">{post.authorName}</p>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Calendar className="h-3 w-3" />
-                  <span>{post.createdAt}</span>
+                  <span>{new Date(post.createdAt).toLocaleDateString("es-ES")}</span>
                   <Clock className="h-3 w-3" />
-                  <span>5 min</span>
+                  <span>{post.readTime} min</span>
                 </div>
               </div>
             </div>
@@ -106,7 +188,7 @@ sin escribir una clase.
             </h1>
 
             <div className="flex flex-wrap gap-2">
-              <Badge className="bg-primary/10 text-primary">{post.category}</Badge>
+              <Badge className="bg-primary/10 text-primary">{post.category.name}</Badge>
               {post.tags.map((t, i) => (
                 <Badge key={i} variant="outline">
                   {t}
@@ -115,9 +197,9 @@ sin escribir una clase.
             </div>
           </div>
 
-          {post.image && (
+          {post.coverImage && (
             <div className="mb-8 rounded-lg overflow-hidden">
-              <img src={post.image} alt={post.title} className="w-full h-96 object-cover" />
+              <img src={post.coverImage} alt={post.title} className="w-full h-96 object-cover" />
             </div>
           )}
 
@@ -133,10 +215,10 @@ sin escribir una clase.
             showShare
             variant="pill"
             size="md"
-            initialStartDust={172}
-            initialComments={43}
-            initialSaves={25}
-            initialShares={12}
+            initialStartDust={post.likesCount}
+            initialComments={post.commentsCount}
+            initialSaves={0} // TODO: Add saves count when implemented
+            initialShares={0} // TODO: Add shares count when implemented
             onCommentClick={() =>
               document.getElementById("comments")?.scrollIntoView({ behavior: "smooth" })
             }
@@ -144,7 +226,10 @@ sin escribir una clase.
           />
 
           <div className="pt-8" id="comments">
-            <CommentBox onSubmit={() => console.log("comentario enviado")} />
+            <CommentBox 
+              onSubmit={handleCommentSubmit}
+              placeholder="Escribe tu comentario..."
+            />
 
             <div className="mt-4 flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Ordenar por:</span>
@@ -183,13 +268,25 @@ sin escribir una clase.
               </DropdownMenu>
             </div>
 
-            <CommentsList
-              comments={sortedComments}
-              onReply={() => {
-                document.getElementById("comment-box")?.scrollIntoView({ behavior: "smooth" });
-              }}
-              onReport={(c) => console.log("Denunciar comentario:", c.id)}
-            />
+            {commentsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Cargando comentarios...</p>
+              </div>
+            ) : sortedComments.length > 0 ? (
+              <CommentsList
+                comments={sortedComments}
+                onReply={() => {
+                  document.getElementById("comment-box")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                onReport={(c) => console.log("Denunciar comentario:", c.id)}
+              />
+            ) : (
+              <div className="text-center py-8">
+                <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No hay comentarios aún. ¡Sé el primero en comentar!</p>
+              </div>
+            )}
           </div>
         </div>
       </main>

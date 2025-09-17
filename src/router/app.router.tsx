@@ -21,7 +21,7 @@ export const appRouter = createBrowserRouter([
                 element: <ConditionalRoute />,
             },
             {
-                path: "/post/:id",
+                path: "/post/:slug",
                 element: <PostDetail />,
             },
             {

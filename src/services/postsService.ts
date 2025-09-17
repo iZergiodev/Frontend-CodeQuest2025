@@ -11,6 +11,7 @@ interface PostDto {
   createdAt: string;
   updatedAt: string;
   authorId: number;
+  authorAvatar?: string;
   authorName: string;
   categoryId?: number;
   categoryName?: string;
@@ -58,6 +59,7 @@ const transformPostDto = (dto: PostDto): Post => {
     excerpt: dto.summary || "",
     author: dto.authorId,
     authorId: dto.authorId,
+    authorAvatar: dto.authorAvatar,
     authorName: dto.authorName,
     category: {
       id: dto.categoryId?.toString() || "",
@@ -401,6 +403,55 @@ export const useSubcategoriesByCategory = (categoryId: string) => {
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
+};
+
+// Slug to ID mapping utilities
+export const generateSlug = (title: string): string => {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+    .trim();
+};
+
+export const findPostBySlug = (
+  posts: Post[],
+  slug: string
+): Post | undefined => {
+  return posts.find((post) => generateSlug(post.title) === slug);
+};
+
+export const findPostIdBySlug = (
+  posts: Post[],
+  slug: string
+): string | undefined => {
+  const post = findPostBySlug(posts, slug);
+  return post?.id;
+};
+
+// Hook to get post ID from slug using all posts
+export const usePostIdFromSlug = (slug: string) => {
+  const { data: posts = [] } = usePosts();
+
+  return {
+    postId: findPostIdBySlug(posts, slug),
+    post: findPostBySlug(posts, slug),
+    isLoading: !posts.length,
+  };
+};
+
+// Hook to get post slug from ID using all posts
+export const usePostSlugFromId = (id: string) => {
+  const { data: posts = [] } = usePosts();
+
+  const post = posts.find((p) => p.id === id);
+
+  return {
+    slug: post?.slug,
+    post,
+    isLoading: !posts.length,
+  };
 };
 
 export { postsApi, categoriesApi };

@@ -47,7 +47,7 @@ const Hero = () => {
 
   // Conditional content based on auth status
   const title = user 
-    ? "Bienvenido a la" 
+    ? "Bienvenid@ a la" 
     : "Comparte tu conocimiento con la";
   
   const subtitle = user

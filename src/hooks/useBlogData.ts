@@ -1,9 +1,11 @@
 import { useState, useMemo } from "react";
 import type { BlogFilters } from "@/types/blog";
 import { usePosts, useCategories } from "@/services/postsService";
+import { useAuth } from "@/hooks/useAuth";
 
 export function useBlogData() {
   const [filters, setFilters] = useState<BlogFilters>({});
+  const { user, followedSubcategories } = useAuth();
 
   // Fetch real data from API
   const {
@@ -19,6 +21,13 @@ export function useBlogData() {
 
   const filteredPosts = useMemo(() => {
     let result = [...posts];
+
+    if (user && followedSubcategories.size > 0) {
+      result = result.filter(
+        (post) =>
+          post.subcategory && followedSubcategories.has(post.subcategory.id)
+      );
+    }
 
     if (filters.category) {
       result = result.filter((post) => post.category.slug === filters.category);
@@ -60,7 +69,7 @@ export function useBlogData() {
     }
 
     return result;
-  }, [posts, filters]);
+  }, [posts, filters, user, followedSubcategories]);
 
   const featuredPosts = posts.filter((post) => post.featured);
 

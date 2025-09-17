@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { FollowButton } from "@/components/FollowButton";
 
 import {
   Home,
@@ -173,23 +174,30 @@ export const Sidebar = () => {
         {isExpanded && subcategories.length > 0 && (
           <div className="ml-4 mt-1 space-y-1">
             {subcategories.map((subcategory) => (
-              <Button
-                key={subcategory.id}
-                variant={selectedSubcategory === subcategory.slug ? "secondary" : "ghost"}
-                size="sm"
-                className={`w-full justify-start gap-2 text-sm transition-smooth ${
-                  selectedSubcategory === subcategory.slug 
-                    ? 'bg-primary/10 text-primary hover:bg-primary/15' 
-                    : 'hover:bg-accent'
-                }`}
-                onClick={() => handleSubcategoryClick(subcategory.slug, category.slug)}
-              >
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: subcategory.color }}
+              <div key={subcategory.id} className="flex items-center gap-2">
+                <Button
+                  variant={selectedSubcategory === subcategory.slug ? "secondary" : "ghost"}
+                  size="sm"
+                  className={`flex-1 justify-start gap-2 text-sm transition-smooth ${
+                    selectedSubcategory === subcategory.slug 
+                      ? 'bg-primary/10 text-primary hover:bg-primary/15' 
+                      : 'hover:bg-accent'
+                  }`}
+                  onClick={() => handleSubcategoryClick(subcategory.slug, category.slug)}
+                >
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: subcategory.color }}
+                  />
+                  <span className="flex-1 text-left">{subcategory.name}</span>
+                </Button>
+                <FollowButton
+                  subcategoryId={subcategory.id}
+                  followerCount={subcategory.followerCount}
+                  size="sm"
+                  variant="ghost"
                 />
-                <span className="flex-1 text-left">{subcategory.name}</span>
-              </Button>
+              </div>
             ))}
           </div>
         )}

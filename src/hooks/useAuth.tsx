@@ -2,14 +2,17 @@ import { useState, useEffect, createContext, useContext, ReactNode, useRef } fro
 import { authService, useDiscordLoginUrl, useDiscordCallback, useEmailLogin, useEmailRegister, useLogout, useTokenVerification } from '../services/authService';
 import { User } from '../types/blog';
 import { useToast } from './use-toast';
+import { followService } from '../services/followService';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  followedSubcategories: Set<string>;
   loginWithDiscord: () => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<void>;
   registerWithEmail: (email: string, password: string, username: string, role?: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshFollows: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +24,7 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [followedSubcategories, setFollowedSubcategories] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -58,8 +62,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               const verifiedUser = await authService.verifyToken(storedToken);
               if (verifiedUser) {
                 setUser(verifiedUser);
+                await refreshFollows();
                 toast({
-                  title: "¡Bienvenido de vuelta!",
+                  title: "¡Bienvenid@ de vuelta!",
                   description: `Hola ${verifiedUser.name}, tu sesión ha sido restaurada.`,
                 });
               } else {
@@ -68,6 +73,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 if (refreshData) {
                   authService.storeAuthData(refreshData.token, refreshData.user);
                   setUser(refreshData.user);
+                  await refreshFollows();
                   toast({
                     title: "Sesión actualizada",
                     description: "Tu sesión ha sido renovada automáticamente.",
@@ -99,6 +105,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     initializeAuth();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      refreshFollows();
+    } else {
+      setFollowedSubcategories(new Set());
+    }
+  }, [user]);
 
   useEffect(() => {
     refreshIntervalRef.current = setInterval(async () => {
@@ -148,9 +162,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       const storedUser = authService.getStoredUser();
       setUser(storedUser);
+      await refreshFollows();
       
       toast({
-        title: "¡Bienvenido!",
+        title: "¡Bienvenid@!",
         description: `Hola ${storedUser?.name}, has iniciado sesión exitosamente.`,
       });
     } catch (error: any) {
@@ -173,6 +188,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       const storedUser = authService.getStoredUser();
       setUser(storedUser);
+      await refreshFollows();
       
       toast({
         title: "¡Cuenta creada!",
@@ -198,6 +214,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       const storedUser = authService.getStoredUser();
       setUser(storedUser);
+      await refreshFollows();
       
       toast({
         title: "¡Bienvenid@!",
@@ -221,6 +238,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       await logoutMutation.mutateAsync();
       setUser(null);
+      setFollowedSubcategories(new Set());
 
       toast({
         title: "Sesión cerrada",
@@ -236,6 +254,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       authService.clearAuthData();
       setUser(null);
+      setFollowedSubcategories(new Set());
       
       toast({
         title: "Sesión cerrada",
@@ -244,13 +263,31 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const refreshFollows = async () => {
+    if (!user) {
+      setFollowedSubcategories(new Set());
+      return;
+    }
+
+    try {
+      const userFollows = await followService.getUserFollows();
+      const followedIds = new Set(userFollows.followedSubcategories.map(sub => sub.id.toString()));
+      setFollowedSubcategories(followedIds);
+      console.log('Refreshed follows:', followedIds);
+    } catch (error) {
+      console.error('Error fetching user follows:', error);
+    }
+  };
+
   const value = {
     user,
     loading,
+    followedSubcategories,
     loginWithDiscord,
     loginWithEmail,
     registerWithEmail,
     logout,
+    refreshFollows,
   };
 
 

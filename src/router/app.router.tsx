@@ -6,6 +6,7 @@ import CreatePost from "@/pages/CreatePost";
 import CategoryPage from "@/pages/CategoryPage";
 import {Profile} from "@/pages/Profile";
 import AdminDashboard from "@/pages/AdminDashboard";
+import PostRanking from "@/pages/PostRanking";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import ConditionalRoute from "@/components/ConditionalRoute";
 import { createBrowserRouter } from "react-router-dom";
@@ -59,6 +60,14 @@ export const appRouter = createBrowserRouter([
                         <AdminDashboard />
                     </ProtectedRoute>
                 ),
+            },
+            {
+                path: "/trending",
+                element: <PostRanking />,
+            },
+            {
+                path: "/popular",
+                element: <PostRanking />,
             },
         ]
     },

@@ -1,5 +1,6 @@
 import Hero from "@/components/Hero";
 import { PostCard } from "@/components/PostCard";
+import { LoadMoreButton } from "@/components/LoadMoreButton";
 import { BlogFilters } from "@/components/Filters";
 import { useBlogData } from "@/hooks/useBlogData";
 
@@ -12,6 +13,11 @@ const Index = () => {
     isLoading,
     error 
   } = useBlogData();
+
+  const handleLoadMore = () => {
+    // TODO: Implement load more logic
+    console.log('Load more posts clicked');
+  };
 
   if (isLoading) {
     return (
@@ -73,11 +79,7 @@ const Index = () => {
             </div>
             
             {/* Load More */}
-            <div className="text-center mt-12">
-              <button className="px-8 py-3 bg-devtalles-gradient text-white rounded-lg hover:opacity-90 transition-opacity">
-                Cargar más posts
-              </button>
-            </div>
+            <LoadMoreButton onClick={handleLoadMore} />
           </div>
           
         </div>

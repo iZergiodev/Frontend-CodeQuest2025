@@ -2,7 +2,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar, Clock, Heart, MessageSquare, User, Bookmark, Share2 } from "lucide-react";
+import { Calendar, Clock, Heart, MessageSquare, User, Bookmark, Share2, TrendingUp, Star, Eye } from "lucide-react";
 import type { Post } from "@/types/blog";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -14,9 +14,29 @@ interface PostCardProps {
   post: Post;
   onTagClick?: (tag: string) => void;
   layout?: 'default' | 'horizontal';
+  compact?: boolean;
+  showTrendingMetrics?: boolean;
+  showPopularityMetrics?: boolean;
+  trendingScore?: number;
+  popularityScore?: number;
+  recentActivity?: {
+    likes: number;
+    comments: number;
+    views: number;
+    lastActivity: string;
+  };
 }
 
-export function PostCard({ post, onTagClick, layout = 'default' }: PostCardProps) {
+export function PostCard({ 
+  post, 
+  onTagClick, 
+  layout = 'default', 
+  compact = false,
+  showTrendingMetrics = false,
+  showPopularityMetrics = false,
+  trendingScore = 0,
+  popularityScore = 0,
+}: PostCardProps) {
   const navigate = useNavigate();
   const [showAllTags, setShowAllTags] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -206,50 +226,80 @@ export function PostCard({ post, onTagClick, layout = 'default' }: PostCardProps
     )
   );
 
-  const Footer = () => (
-    <div className="flex items-center justify-between px-6 py-4 border-t">
-      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-        <div className="flex items-center space-x-1">
-          <Heart className="h-4 w-4" />
-          <span>{post.likesCount}</span>
-        </div>
-        <div className="flex items-center space-x-1">
-          <MessageSquare className="h-4 w-4" />
-          <span>{post.commentsCount}</span>
-        </div>
-      </div>
-      
-      <div className="flex items-center space-x-2">
-        {user && (
-          <>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2 h-8 w-8"
-              onClick={handleBookmark}
-              disabled={bookmarkLoading}
-            >
-              <Bookmark 
-                className={`h-4 w-4 transition-colors ${
-                  isBookmarked 
-                    ? "fill-current text-primary" 
-                    : "text-muted-foreground hover:text-foreground"
-                } ${bookmarkLoading ? "opacity-50" : ""}`} 
-              />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2 h-8 w-8"
-              onClick={handleShare}
-            >
-              <Share2 className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-            </Button>
-          </>
+  const EngagementMetrics = () => {
+    if (!showTrendingMetrics && !showPopularityMetrics) return null;
+
+    return (
+      <div className="space-y-2">
+        {showTrendingMetrics && (
+          <div className="flex items-center gap-1 text-orange-600 text-xs">
+            <TrendingUp className="h-3 w-3" />
+            <span className="font-medium">Trending: {trendingScore.toFixed(1)}</span>
+          </div>
         )}
-        <Button variant="ghost" size="sm" onClick={() => navigate(`/post/${post.slug}`)}>
-          Leer más →
-        </Button>
+        
+        {showPopularityMetrics && (
+          <div className="flex items-center gap-1 text-yellow-600 text-xs">
+            <Star className="h-3 w-3" />
+            <span className="font-medium">Popularity: {popularityScore.toFixed(1)}</span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const Footer = () => (
+    <div className="flex flex-col space-y-3 px-6 py-4 border-t">
+      <EngagementMetrics />
+      
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+          <div className="flex items-center space-x-1">
+            <Heart className="h-4 w-4" />
+            <span>{post.likesCount}</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <MessageSquare className="h-4 w-4" />
+            <span>{post.commentsCount}</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <Eye className="h-4 w-4" />
+            <span>{post.visitsCount}</span>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          {user && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 h-8 w-8"
+                onClick={handleBookmark}
+                disabled={bookmarkLoading}
+              >
+                <Bookmark 
+                  className={`h-4 w-4 transition-colors ${
+                    isBookmarked 
+                      ? "fill-current text-primary" 
+                      : "text-muted-foreground hover:text-foreground"
+                  } ${bookmarkLoading ? "opacity-50" : ""}`} 
+                />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 h-8 w-8"
+                onClick={handleShare}
+              >
+                <Share2 className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+              </Button>
+            </>
+          )}
+          <Button variant="ghost" size="sm" onClick={() => navigate(`/post/${post.slug}`)}>
+            {compact ? "Ver →" : "Leer más →"}
+          </Button>
+        </div>
       </div>
     </div>
   );

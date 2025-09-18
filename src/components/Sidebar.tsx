@@ -9,13 +9,12 @@ import {
   Smartphone,
   Brain,
   Users,
-  BookOpen,
-  Trophy,
-  Calendar,
   ChevronRight,
   ChevronLeft,
   ChevronDown,
-  Terminal
+  Terminal,
+  TrendingUp,
+  Star
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -23,12 +22,6 @@ import { useOpen } from "@/hooks/useOpen";
 import { useCategories, useSubcategoriesByCategory } from "@/services/postsService";
 import type { Category } from "@/types/blog";
 
-
-const quickLinks = [
-  { icon: BookOpen, label: "Guías" },
-  { icon: Trophy, label: "Challenges" },
-  { icon: Calendar, label: "Eventos" },
-];
 
 export const Sidebar = () => {
   const { isOpen, setIsOpen } = useOpen();
@@ -39,23 +32,33 @@ export const Sidebar = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [selectedHome, setSelectedHome] = useState<boolean>(true);
+  const [selectedTrending, setSelectedTrending] = useState<boolean>(false);
+  const [selectedPopular, setSelectedPopular] = useState<boolean>(false);
 
   // Update selected states based on current URL
   useEffect(() => {
     const pathname = location.pathname;
     const searchParams = new URLSearchParams(location.search);
     
+    // Reset all selections
+    setSelectedHome(false);
+    setSelectedCategory(null);
+    setSelectedSubcategory(null);
+    setSelectedTrending(false);
+    setSelectedPopular(false);
+    
     if (pathname === '/') {
       setSelectedHome(true);
-      setSelectedCategory(null);
-      setSelectedSubcategory(null);
+    } else if (pathname === '/trending') {
+      setSelectedTrending(true);
+    } else if (pathname === '/popular') {
+      setSelectedPopular(true);
     } else if (pathname.startsWith('/category/')) {
       const categorySlug = pathname.split('/category/')[1];
       const category = categories.find(c => c.slug === categorySlug);
       
       if (category) {
         setSelectedCategory(category.id);
-        setSelectedHome(false);
         
         // Check for subcategory in URL
         const subcategorySlug = searchParams.get('subcategory');
@@ -67,10 +70,6 @@ export const Sidebar = () => {
           setSelectedSubcategory(null);
         }
       }
-    } else {
-      setSelectedHome(false);
-      setSelectedCategory(null);
-      setSelectedSubcategory(null);
     }
   }, [location, categories]);
 
@@ -100,7 +99,27 @@ export const Sidebar = () => {
     setSelectedHome(true);
     setSelectedCategory(null);
     setSelectedSubcategory(null);
+    setSelectedTrending(false);
+    setSelectedPopular(false);
     navigate('/');
+  };
+
+  const handleTrendingClick = () => {
+    setSelectedTrending(true);
+    setSelectedHome(false);
+    setSelectedCategory(null);
+    setSelectedSubcategory(null);
+    setSelectedPopular(false);
+    navigate('/trending');
+  };
+
+  const handlePopularClick = () => {
+    setSelectedPopular(true);
+    setSelectedHome(false);
+    setSelectedCategory(null);
+    setSelectedSubcategory(null);
+    setSelectedTrending(false);
+    navigate('/popular');
   };
 
   const handleCategoryClick = (categoryId: string, categorySlug: string) => {
@@ -109,6 +128,8 @@ export const Sidebar = () => {
     setSelectedCategory(categoryId);
     setSelectedSubcategory(null);
     setSelectedHome(false);
+    setSelectedTrending(false);
+    setSelectedPopular(false);
   };
 
   const toggleCategoryDropdown = (categoryId: string, event: React.MouseEvent) => {
@@ -129,6 +150,8 @@ export const Sidebar = () => {
       setSelectedCategory(category.id);
       setSelectedSubcategory(subcategorySlug);
       setSelectedHome(false);
+      setSelectedTrending(false);
+      setSelectedPopular(false);
       // Expand the category to show subcategories
       setExpandedCategories(prev => new Set([...prev, category.id]));
     }
@@ -227,6 +250,30 @@ export const Sidebar = () => {
               >
                 <Home className="h-4 w-4" />
                 <span className="flex-1 text-left">Inicio</span>
+              </Button>
+
+              {/* Trending Button */}
+              <Button
+                variant={selectedTrending ? "secondary" : "ghost"}
+                className={`w-full justify-start gap-3 transition-smooth ${
+                  selectedTrending ? 'bg-primary/10 text-primary hover:bg-primary/15' : 'hover:bg-accent'
+                }`}
+                onClick={handleTrendingClick}
+              >
+                <TrendingUp className="h-4 w-4" />
+                <span className="flex-1 text-left">Trending</span>
+              </Button>
+
+              {/* Popular Button */}
+              <Button
+                variant={selectedPopular ? "secondary" : "ghost"}
+                className={`w-full justify-start gap-3 transition-smooth ${
+                  selectedPopular ? 'bg-primary/10 text-primary hover:bg-primary/15' : 'hover:bg-accent'
+                }`}
+                onClick={handlePopularClick}
+              >
+                <Star className="h-4 w-4" />
+                <span className="flex-1 text-left">Popular</span>
               </Button>
 
               {categoriesLoading ? (

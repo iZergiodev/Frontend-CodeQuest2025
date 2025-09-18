@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Filter, TrendingUp, Clock, Heart } from "lucide-react";
+import { Filter, TrendingUp, Star, Clock, Calendar } from "lucide-react";
 import type { Category, BlogFilters } from "@/types/blog";
 import { useSubcategoriesByCategory } from "@/services/postsService";
 import { useEffect, useState } from "react";
@@ -11,15 +11,16 @@ interface BlogFiltersProps {
   filters: BlogFilters;
   onFiltersChange: (filters: BlogFilters) => void;
   categoryPage?: boolean;
+  rankingType?: boolean;
 }
 
-export function BlogFilters({ categories, filters, onFiltersChange, categoryPage = false }: BlogFiltersProps) {
+export function BlogFilters({ categories, filters, onFiltersChange, categoryPage = false, rankingType = false }: BlogFiltersProps) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   
   const sortOptions = [
     { value: "latest", label: "Más Recientes", icon: Clock },
-    { value: "popular", label: "Más Populares", icon: Heart },
-    { value: "trending", label: "Trending", icon: TrendingUp },
+    { value: "popular", label: "Más Populares", icon: Star },
+    { value: "trending", label: "Más Tendencia", icon: TrendingUp },
   ];
 
   const selectedCategory = categories.find(c => c.slug === filters.category);
@@ -42,35 +43,37 @@ export function BlogFilters({ categories, filters, onFiltersChange, categoryPage
   }, []);
 
   return (
-    <div className={`space-y-6 ${categoryPage ? 'px-0' : 'px-8'}`}>
+    <div className={`space-y-6 ${categoryPage || rankingType ? 'px-0' : 'px-8'}`}>
       {/* Sort and main filters */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <span className="font-medium">Filtros</span>
+      {!rankingType && 
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium">Filtros</span>
+          </div>
+          
+          <div className="flex gap-2">
+            <Select
+              value={filters.sortBy || "latest"}
+              onValueChange={(value) => onFiltersChange({ ...filters, sortBy: value as any })}
+            >
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Ordenar por" />
+              </SelectTrigger>
+              <SelectContent>
+                {sortOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <div className="flex items-center gap-2">
+                      <option.icon className="h-4 w-4" />
+                      {option.label}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        
-        <div className="flex gap-2">
-          <Select
-            value={filters.sortBy || "latest"}
-            onValueChange={(value) => onFiltersChange({ ...filters, sortBy: value as any })}
-          >
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Ordenar por" />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  <div className="flex items-center gap-2">
-                    <option.icon className="h-4 w-4" />
-                    {option.label}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      }
 
       {/* Categories - Only show if not on category page */}
       {!categoryPage && (

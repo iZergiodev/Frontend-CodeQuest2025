@@ -24,7 +24,7 @@ export function BlogFilters({ categories, filters, onFiltersChange, categoryPage
   ];
 
   const selectedCategory = categories.find(c => c.slug === filters.category);
-  const { data: subcategories = [] } = useSubcategoriesByCategory(selectedCategory?.id || "");
+  const { data: subcategories = [] } = useSubcategoriesByCategory(selectedCategory?.id || 0);
 
   useEffect(() => {
     const checkDarkMode = () => {

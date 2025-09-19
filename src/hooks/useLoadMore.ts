@@ -39,27 +39,34 @@ export function useLoadMore<T>({
       if (currentPage === 1) {
         // First load - replace data
         setDataState(result.data);
+        isAppendingRef.current = false;
       } else {
         // Load more - append data and preserve scroll position
-        scrollPositionRef.current = window.scrollY;
-        isAppendingRef.current = true;
         setDataState((prev) => [...prev, ...result.data]);
 
-        const restoreScroll = () => {
-          if (isAppendingRef.current) {
-            window.scrollTo(0, scrollPositionRef.current);
-          }
-        };
+        // Restore scroll position after state update
+        if (isAppendingRef.current && scrollPositionRef.current !== undefined) {
+          // Use multiple attempts to ensure scroll position is maintained
+          const restoreScroll = () => {
+            window.scrollTo({
+              top: scrollPositionRef.current,
+              behavior: "instant",
+            });
+          };
 
-        setTimeout(restoreScroll, 0);
-        setTimeout(restoreScroll, 10);
-        setTimeout(restoreScroll, 50);
-        setTimeout(restoreScroll, 100);
-
-        requestAnimationFrame(() => {
+          // Immediate restoration
           restoreScroll();
-          isAppendingRef.current = false;
-        });
+
+          // Additional attempts with different timings
+          requestAnimationFrame(restoreScroll);
+          setTimeout(restoreScroll, 0);
+          setTimeout(restoreScroll, 10);
+          setTimeout(restoreScroll, 50);
+          setTimeout(() => {
+            restoreScroll();
+            isAppendingRef.current = false;
+          }, 100);
+        }
       }
       setHasMore(result.hasNextPage);
     },
@@ -72,6 +79,9 @@ export function useLoadMore<T>({
 
   const loadMore = useCallback(() => {
     if (hasMore && !isLoading) {
+      // Capture scroll position right when load more is clicked
+      scrollPositionRef.current = window.scrollY;
+      isAppendingRef.current = true;
       setCurrentPage((prev) => prev + 1);
     }
   }, [hasMore, isLoading]);
@@ -86,19 +96,28 @@ export function useLoadMore<T>({
   }, []);
 
   useEffect(() => {
+    if (!isAppendingRef.current) return;
+
     const handleScroll = () => {
-      if (isAppendingRef.current) {
-        window.scrollTo(0, scrollPositionRef.current);
+      if (isAppendingRef.current && scrollPositionRef.current !== undefined) {
+        // Prevent any scrolling during append operation
+        window.scrollTo({
+          top: scrollPositionRef.current,
+          behavior: "instant",
+        });
       }
     };
 
-    if (isAppendingRef.current) {
-      window.addEventListener("scroll", handleScroll, { passive: false });
-      return () => {
-        window.removeEventListener("scroll", handleScroll);
-      };
-    }
-  }, [data.length]);
+    // Add scroll listener with high priority
+    window.addEventListener("scroll", handleScroll, {
+      passive: false,
+      capture: true,
+    });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll, { capture: true });
+    };
+  }, [data.length, isAppendingRef.current]);
 
   return {
     data,

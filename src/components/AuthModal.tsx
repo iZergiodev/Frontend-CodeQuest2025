@@ -30,6 +30,7 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }: AuthModa
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    username: "",
   });
   const [isDiscordLoading, setIsDiscordLoading] = useState(false);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
@@ -42,6 +43,7 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }: AuthModa
       setFormData({
         email: "",
         password: "",
+        username: "",
       });
     }
   }, [isOpen, initialMode]);
@@ -75,13 +77,13 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }: AuthModa
     try {
       setIsEmailLoading(true);
       
-      if (isLoginMode) {
-        await loginWithEmail(formData.email, formData.password);
-        onClose(); // Close modal on successful login
-      } else {
-        await registerWithEmail(formData.email, formData.password,  "User");
-        onClose(); // Close modal on successful registration
-      }
+       if (isLoginMode) {
+         await loginWithEmail(formData.email, formData.password);
+         onClose(); // Close modal on successful login
+       } else {
+         await registerWithEmail(formData.email, formData.password, formData.username, "User");
+         onClose(); // Close modal on successful registration
+       }
     } catch (error) {
       // Error handling is done in the useAuth hook
       console.error('Email auth error:', error);
@@ -120,10 +122,29 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }: AuthModa
             <Separator className="flex-1" />
           </div>
           
-          {/* Email Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+           {/* Email Form */}
+           <form onSubmit={handleSubmit} className="space-y-4">
+             {!isLoginMode && (
+               <div className="space-y-2">
+                 <Label htmlFor="username">Nombre de usuario</Label>
+                 <div className="relative">
+                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                   <Input
+                     id="username"
+                     name="username"
+                     type="text"
+                     placeholder="Ingresa tu nombre de usuario"
+                     value={formData.username}
+                     onChange={handleInputChange}
+                     className="pl-10"
+                     required
+                   />
+                 </div>
+               </div>
+             )}
+             
+             <div className="space-y-2">
+               <Label htmlFor="email">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
@@ -192,3 +213,4 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }: AuthModa
 };
 
 export default AuthModal;
+

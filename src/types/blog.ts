@@ -50,7 +50,7 @@ export interface DiscordLoginUrlResponse {
 }
 
 export interface CreateUserDto {
-  username?: string;
+  username: string;
   password: string;
   email: string;
   role?: string;
@@ -85,24 +85,27 @@ export interface UserLoginResponseDto {
 }
 
 export interface Category {
-  id: string;
+  id: number;
   name: string;
   slug: string;
   description?: string;
   color: string;
-  icon?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Subcategory {
-  id: string;
+  id: number;
   name: string;
   slug: string;
   description?: string;
   color: string;
-  categoryId: string;
+  categoryId: number;
   categoryName?: string;
   followerCount?: number;
   isFollowing?: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Comment {
@@ -186,4 +189,39 @@ export interface BookmarkResponseDto {
 export interface UserBookmarksDto {
   bookmarks: BookmarkDto[];
   totalCount: number;
+}
+
+// Pagination types
+export interface PaginationParams {
+  page: number;
+  pageSize: number;
+}
+
+export interface PaginatedResult<T> {
+  data: T[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+// Notification types
+export interface Notification {
+  id: number;
+  userId: number;
+  type: string;
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  relatedPostId?: number;
+  relatedUserId?: number;
+}
+
+export interface NotificationStreamMessage {
+  type: "notification" | "unreadCount";
+  data?: Notification;
+  count?: number;
 }

@@ -1,6 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "../lib/api-client";
-import type { Post, Category, Subcategory } from "../types/blog";
+import type {
+  Post,
+  Category,
+  Subcategory,
+  PaginatedResult,
+  PaginationParams,
+} from "../types/blog";
 
 interface PostDto {
   id: number;
@@ -40,6 +46,8 @@ interface CategoryDto {
   name: string;
   description?: string;
   color?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface SubcategoryDto {
@@ -49,6 +57,8 @@ interface SubcategoryDto {
   color?: string;
   categoryId: number;
   categoryName?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const transformPostDto = (dto: PostDto): Post => {
@@ -62,22 +72,26 @@ const transformPostDto = (dto: PostDto): Post => {
     authorAvatar: dto.authorAvatar,
     authorName: dto.authorName,
     category: {
-      id: dto.categoryId?.toString() || "",
+      id: dto.categoryId || 0,
       name: dto.categoryName || "Sin categoría",
       slug:
         dto.categoryName?.toLowerCase().replace(/\s+/g, "-") || "sin-categoria",
       description: "",
       color: dto.categoryColor || "#6366f1",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     },
     subcategory: dto.subcategoryId
       ? {
-          id: dto.subcategoryId.toString(),
+          id: dto.subcategoryId,
           name: dto.subcategoryName || "",
           slug: dto.subcategoryName?.toLowerCase().replace(/\s+/g, "-") || "",
           description: "",
           color: dto.subcategoryColor || "#6366f1",
-          categoryId: dto.categoryId?.toString() || "",
+          categoryId: dto.categoryId || 0,
           categoryName: dto.categoryName || "",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         }
       : undefined,
     tags: dto.tags,
@@ -96,23 +110,27 @@ const transformPostDto = (dto: PostDto): Post => {
 
 const transformCategoryDto = (dto: CategoryDto): Category => {
   return {
-    id: dto.id.toString(),
+    id: dto.id,
     name: dto.name,
     slug: dto.name.toLowerCase().replace(/\s+/g, "-"),
     description: dto.description || "",
     color: dto.color || "#6366f1",
+    createdAt: dto.createdAt,
+    updatedAt: dto.updatedAt,
   };
 };
 
 const transformSubcategoryDto = (dto: SubcategoryDto): Subcategory => {
   return {
-    id: dto.id.toString(),
+    id: dto.id,
     name: dto.name,
     slug: dto.name.toLowerCase().replace(/\s+/g, "-"),
     description: dto.description || "",
     color: dto.color || "#6366f1",
-    categoryId: dto.categoryId.toString(),
+    categoryId: dto.categoryId,
     categoryName: dto.categoryName || "",
+    createdAt: dto.createdAt,
+    updatedAt: dto.updatedAt,
   };
 };
 
@@ -169,7 +187,7 @@ const categoriesApi = {
     return response.data.map(transformCategoryDto);
   },
 
-  getCategoryById: async (id: string): Promise<Category> => {
+  getCategoryById: async (id: number): Promise<Category> => {
     const response = await apiClient.get<CategoryDto>(`/api/categories/${id}`);
     return transformCategoryDto(response.data);
   },
@@ -194,7 +212,7 @@ const categoriesApi = {
   },
 
   updateCategory: async (
-    id: string,
+    id: number,
     categoryData: { name?: string; description?: string; color?: string }
   ): Promise<Category> => {
     const response = await apiClient.put<CategoryDto>(
@@ -204,7 +222,7 @@ const categoriesApi = {
     return transformCategoryDto(response.data);
   },
 
-  deleteCategory: async (id: string): Promise<void> => {
+  deleteCategory: async (id: number): Promise<void> => {
     await apiClient.delete(`/api/categories/${id}`);
   },
 };
@@ -217,7 +235,7 @@ const subcategoriesApi = {
     return response.data.map(transformSubcategoryDto);
   },
 
-  getSubcategoryById: async (id: string): Promise<Subcategory> => {
+  getSubcategoryById: async (id: number): Promise<Subcategory> => {
     const response = await apiClient.get<SubcategoryDto>(
       `/api/subcategories/${id}`
     );
@@ -225,7 +243,7 @@ const subcategoriesApi = {
   },
 
   getSubcategoriesByCategory: async (
-    categoryId: string
+    categoryId: number
   ): Promise<Subcategory[]> => {
     const response = await apiClient.get<SubcategoryDto[]>(
       `/api/subcategories/category/${categoryId}`
@@ -387,7 +405,7 @@ export const useSubcategories = () => {
   });
 };
 
-export const useSubcategory = (id: string) => {
+export const useSubcategory = (id: number) => {
   return useQuery({
     queryKey: ["subcategories", id],
     queryFn: () => subcategoriesApi.getSubcategoryById(id),
@@ -395,7 +413,7 @@ export const useSubcategory = (id: string) => {
   });
 };
 
-export const useSubcategoriesByCategory = (categoryId: string) => {
+export const useSubcategoriesByCategory = (categoryId: number) => {
   return useQuery({
     queryKey: ["subcategories", "category", categoryId],
     queryFn: () => subcategoriesApi.getSubcategoriesByCategory(categoryId),
@@ -485,6 +503,46 @@ export const usePostSlugFromId = (id: string) => {
     post,
     isLoading: !posts.length,
   };
+};
+
+// Paginated API functions
+export const getPaginatedPosts = async (
+  params: PaginationParams
+): Promise<PaginatedResult<Post>> => {
+  const response = await apiClient.get(
+    `/api/Posts/paginated?page=${params.page}&pageSize=${params.pageSize}`
+  );
+  return response.data;
+};
+
+export const getPaginatedPostsByAuthor = async (
+  authorId: number,
+  params: PaginationParams
+): Promise<PaginatedResult<Post>> => {
+  const response = await apiClient.get(
+    `/api/Posts/author/${authorId}/paginated?page=${params.page}&pageSize=${params.pageSize}`
+  );
+  return response.data;
+};
+
+export const getPaginatedPostsByCategory = async (
+  categoryId: number,
+  params: PaginationParams
+): Promise<PaginatedResult<Post>> => {
+  const response = await apiClient.get(
+    `/api/Posts/category/${categoryId}/paginated?page=${params.page}&pageSize=${params.pageSize}`
+  );
+  return response.data;
+};
+
+export const getPaginatedPostsBySubcategory = async (
+  subcategoryId: number,
+  params: PaginationParams
+): Promise<PaginatedResult<Post>> => {
+  const response = await apiClient.get(
+    `/api/Posts/subcategory/${subcategoryId}/paginated?page=${params.page}&pageSize=${params.pageSize}`
+  );
+  return response.data;
 };
 
 export { postsApi, categoriesApi };

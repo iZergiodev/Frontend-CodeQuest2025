@@ -61,7 +61,7 @@ const PostDetail = () => {
   const flatComments: FlatComment[] = useMemo(() => {
     return comments.map(comment => ({
       id: comment.id.toString(),
-      author: comment.authorName,
+      author: comment.authorName?.trim() || "Usuario",
       avatarUrl: comment.authorAvatar,
       timeAgo: formatTimeAgo(comment.createdAt),
       content: comment.content,

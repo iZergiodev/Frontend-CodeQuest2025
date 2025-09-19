@@ -31,7 +31,7 @@ const CategoryPage = () => {
 
 
   const { data: subcategories = [] } = useSubcategoriesByCategory(category?.id || 0);
-  const { isLoading: categoryLoading } = useCategory(category?.id?.toString() || "");
+  const { isLoading: categoryLoading } = useCategory(category?.id || 0);
 
 
   useEffect(() => {

@@ -335,7 +335,7 @@ export const useCategories = () => {
   });
 };
 
-export const useCategory = (id: string) => {
+export const useCategory = (id: number) => {
   return useQuery({
     queryKey: ["categories", id],
     queryFn: () => categoriesApi.getCategoryById(id),
@@ -374,7 +374,7 @@ export const useUpdateCategory = () => {
       id,
       categoryData,
     }: {
-      id: string;
+      id: number;
       categoryData: { name?: string; description?: string; color?: string };
     }) => categoriesApi.updateCategory(id, categoryData),
     onSuccess: (data, variables) => {
@@ -388,7 +388,7 @@ export const useDeleteCategory = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => categoriesApi.deleteCategory(id),
+    mutationFn: (id: number) => categoriesApi.deleteCategory(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
     },

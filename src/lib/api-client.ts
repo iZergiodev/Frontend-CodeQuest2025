@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5110";
 
 // Create axios instance with base configuration
 const apiClient: AxiosInstance = axios.create({
@@ -41,7 +41,7 @@ apiClient.interceptors.response.use(
         if (token) {
           // Try to refresh the token
           const refreshResponse = await axios.post(
-            `${BACKEND_URL}/auth/discord/refresh`,
+            `${BACKEND_URL}/api/auth/refresh`,
             { token },
             {
               headers: {

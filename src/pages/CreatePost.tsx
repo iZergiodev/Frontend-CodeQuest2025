@@ -44,7 +44,7 @@ const CreatePost = () => {
   });
 
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
-  const { data: subcategories = [], isLoading: subcategoriesLoading } = useSubcategoriesByCategory(formData.categoryId);
+  const { data: subcategories = [], isLoading: subcategoriesLoading } = useSubcategoriesByCategory(Number(formData.categoryId));
   
   const createPostMutation = useCreatePost();
 

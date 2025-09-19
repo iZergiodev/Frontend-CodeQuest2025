@@ -16,7 +16,7 @@ import NotificationBell from "@/components/NotificationBell";
 import WritePostButton from "@/components/WritePostButton";
 
 const Header = () => {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const { theme } = useTheme();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<"login" | "register">("login");
@@ -31,6 +31,11 @@ const Header = () => {
     setIsAuthModalOpen(true);
   };
   const handleCloseAuthModal = () => setIsAuthModalOpen(false);
+
+  const handleLogin = (user: any) => {
+    setUser(user);
+    setIsAuthModalOpen(false);
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pb-1 pt-1">
@@ -83,7 +88,7 @@ const Header = () => {
               )}
 
               {/* Campanita */}
-              <NotificationBell count={2} size="md" />
+              <NotificationBell size="md" />
 
               {/* Escribir Post (rediseñado) */}
               <WritePostButton icon="pen" />
@@ -123,7 +128,7 @@ const Header = () => {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={handleCloseAuthModal}
-        onLogin={() => {}}
+        onLogin={handleLogin}
         initialMode={authModalMode}
       />
     </header>

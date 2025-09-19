@@ -58,14 +58,14 @@ export const Sidebar = () => {
       const category = categories.find(c => c.slug === categorySlug);
       
       if (category) {
-        setSelectedCategory(category.id);
+        setSelectedCategory(category.id.toString());
         
         // Check for subcategory in URL
         const subcategorySlug = searchParams.get('subcategory');
         if (subcategorySlug) {
           setSelectedSubcategory(subcategorySlug);
           // Expand the category to show subcategories
-          setExpandedCategories(prev => new Set([...prev, category.id]));
+          setExpandedCategories(prev => new Set([...prev, category.id.toString()]));
         } else {
           setSelectedSubcategory(null);
         }
@@ -147,13 +147,13 @@ export const Sidebar = () => {
   const handleSubcategoryClick = (subcategorySlug: string, categorySlug: string) => {
     const category = categories.find(c => c.slug === categorySlug);
     if (category) {
-      setSelectedCategory(category.id);
+      setSelectedCategory(category.id.toString());
       setSelectedSubcategory(subcategorySlug);
       setSelectedHome(false);
       setSelectedTrending(false);
       setSelectedPopular(false);
       // Expand the category to show subcategories
-      setExpandedCategories(prev => new Set([...prev, category.id]));
+      setExpandedCategories(prev => new Set([...prev, category.id.toString()]));
     }
     // Navigate to category page with subcategory filter
     navigate(`/category/${categorySlug}?subcategory=${subcategorySlug}`);
@@ -161,8 +161,8 @@ export const Sidebar = () => {
 
   const CategoryItem = ({ category }: { category: Category }) => {
     const { data: subcategories = [] } = useSubcategoriesByCategory(category.id);
-    const isExpanded = expandedCategories.has(category.id);
-    const isSelected = selectedCategory === category.id;
+    const isExpanded = expandedCategories.has(category.id.toString());
+    const isSelected = selectedCategory === category.id.toString();
     const IconComponent = getCategoryIcon(category.name);
 
     return (
@@ -173,7 +173,7 @@ export const Sidebar = () => {
             className={`flex-1 justify-start gap-3 transition-smooth ${
               isSelected ? 'bg-primary/10 text-primary hover:bg-primary/15' : 'hover:bg-accent'
             }`}
-            onClick={() => handleCategoryClick(category.id, category.slug)}
+            onClick={() => handleCategoryClick(category.id.toString(), category.slug)}
           >
             <IconComponent className="h-4 w-4" style={{ color: category.color }} />
             <span className="flex-1 text-left">{category.name}</span>
@@ -183,7 +183,7 @@ export const Sidebar = () => {
               variant="ghost"
               size="sm"
               className="p-1 h-8 w-8 hover:bg-accent"
-              onClick={(e) => toggleCategoryDropdown(category.id, e)}
+              onClick={(e) => toggleCategoryDropdown(category.id.toString(), e)}
             >
               <ChevronDown
                 className={`h-4 w-4 transition-transform ${
@@ -215,7 +215,7 @@ export const Sidebar = () => {
                   <span className="flex-1 text-left">{subcategory.name}</span>
                 </Button>
                 <FollowButton
-                  subcategoryId={subcategory.id}
+                  subcategoryId={subcategory.id.toString()}
                   followerCount={subcategory.followerCount}
                   size="sm"
                   variant="ghost"

@@ -1,5 +1,5 @@
 // components/NotificationBell.tsx
-import { Bell, Check, MessageSquare, Star } from "lucide-react";
+import { Bell, Check, MessageSquare, Star, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,18 +10,33 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useNotifications } from "@/hooks/useNotifications";
+import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
 
 type BellSize = "md" | "lg";
-type NotificationBellProps = { count?: number; onOpenAll?: () => void; size?: BellSize };
+type NotificationBellProps = { onOpenAll?: () => void; size?: BellSize };
 
 const sizeMap: Record<BellSize, { btn: string; icon: string; badge: string }> = {
   md: { btn: "h-10 w-10", icon: "h-5 w-5", badge: "h-4 min-w-[1rem] text-[10px]" },
   lg: { btn: "h-11 w-11", icon: "h-6 w-6", badge: "h-4 min-w-[1.05rem] text-[10px]" },
 };
 
-export default function NotificationBell({ count = 0, onOpenAll, size = "lg" }: NotificationBellProps) {
-  const hasUnread = count > 0;
+export default function NotificationBell({ onOpenAll, size = "lg" }: NotificationBellProps) {
+  const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
+  const hasUnread = unreadCount > 0;
   const sz = sizeMap[size];
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'like':
+        return <Star className="h-4 w-4 mt-0.5 text-yellow-600" />;
+      case 'comment':
+        return <MessageSquare className="h-4 w-4 mt-0.5 text-blue-600" />;
+      default:
+        return <Bell className="h-4 w-4 mt-0.5 text-muted-foreground" />;
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -47,7 +62,7 @@ export default function NotificationBell({ count = 0, onOpenAll, size = "lg" }: 
                 sz.badge
               )}
             >
-              {count > 9 ? "9+" : count}
+              {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
         </Button>
@@ -55,7 +70,7 @@ export default function NotificationBell({ count = 0, onOpenAll, size = "lg" }: 
 
       <DropdownMenuContent align="end" className="w-80 p-0 overflow-hidden">
         <DropdownMenuLabel className="py-3 px-4 flex items-center justify-between">
-          <span className="text-sm font-medium">Notificaciones</span>
+            <span className="text-sm font-medium">Notificaciones</span>
           {hasUnread && (
             <button onClick={onOpenAll} className="text-xs text-primary hover:underline">
               Ver todo
@@ -63,31 +78,66 @@ export default function NotificationBell({ count = 0, onOpenAll, size = "lg" }: 
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="px-4 py-3">
-          <div className="flex items-start gap-3">
-            <MessageSquare className="h-4 w-4 mt-0.5 text-muted-foreground" />
-            <div className="min-w-0">
-              <p className="text-sm">Nueva respuesta en <span className="font-medium">“Mi setup de React 2025”</span></p>
-              <p className="text-xs text-muted-foreground">hace 5 min</p>
-            </div>
+        
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin" />
           </div>
-        </DropdownMenuItem>
-        <DropdownMenuItem className="px-4 py-3">
-          <div className="flex items-start gap-3">
-            <Star className="h-4 w-4 mt-0.5 text-yellow-600" />
-            <div className="min-w-0">
-              <p className="text-sm">Tu post recibió 10 upvotes</p>
-              <p className="text-xs text-muted-foreground">hace 1 h</p>
-            </div>
+        ) : notifications.length === 0 ? (
+          <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+            No hay notificaciones
           </div>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="px-4 py-3">
-          <div className="flex items-center gap-2 text-sm">
-            <Check className="h-4 w-4" />
-            Marcar todo como leído
+        ) : (
+          <div className="max-h-96 overflow-y-auto">
+            {notifications.slice(0, 10).map((notification) => (
+              <DropdownMenuItem 
+                key={notification.id} 
+                className={`px-4 py-3 ${!notification.isRead ? 'bg-accent' : ''}`}
+                onSelect={() => !notification.isRead && markAsRead(notification.id)}
+              >
+                <div className="flex items-start gap-3 w-full">
+                  {getNotificationIcon(notification.type)}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium">{notification.title}</p>
+                    <p className="text-xs text-muted-foreground">{notification.message}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {formatDistanceToNow(new Date(notification.createdAt), { 
+                        addSuffix: true, 
+                        locale: es 
+                      })}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteNotification(notification.id);
+                    }}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              </DropdownMenuItem>
+            ))}
           </div>
-        </DropdownMenuItem>
+        )}
+        
+        {notifications.length > 0 && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              className="px-4 py-3"
+              onSelect={markAllAsRead}
+            >
+              <div className="flex items-center gap-2 text-sm">
+                <Check className="h-4 w-4" />
+                Marcar todo como leído
+              </div>
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

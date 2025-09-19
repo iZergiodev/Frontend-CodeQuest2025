@@ -193,17 +193,21 @@ const Home = () => {
                           authorName: post.authorName,
                           authorAvatar: post.authorAvatar,
                           category: post.categoryName ? {
-                            id: post.categoryId!.toString(),
+                            id: Number(post.categoryId!),
                             name: post.categoryName,
                             color: post.categoryColor || '#6366f1',
-                            slug: post.categoryName.toLowerCase().replace(/\s+/g, '-')
+                            slug: post.categoryName.toLowerCase().replace(/\s+/g, '-'),
+                            createdAt: post.createdAt,
+                            updatedAt: post.updatedAt
                           } : undefined,
                           subcategory: post.subcategoryName ? {
-                            id: post.subcategoryId!.toString(),
+                            id: Number(post.subcategoryId!),
                             name: post.subcategoryName,
                             color: post.subcategoryColor || '#8b5cf6',
                             slug: post.subcategoryName.toLowerCase().replace(/\s+/g, '-'),
-                            categoryId: post.categoryId!.toString()
+                            categoryId: Number(post.categoryId!),
+                            createdAt: post.createdAt,
+                            updatedAt: post.updatedAt
                           } : undefined,
                           likesCount: post.likesCount,
                           commentsCount: post.commentsCount,
@@ -274,17 +278,21 @@ const Home = () => {
                           authorName: post.authorName,
                           authorAvatar: post.authorAvatar,
                           category: post.categoryName ? {
-                            id: post.categoryId!.toString(),
+                            id: Number(post.categoryId!),
                             name: post.categoryName,
                             color: post.categoryColor || '#6366f1',
-                            slug: post.categoryName.toLowerCase().replace(/\s+/g, '-')
+                            slug: post.categoryName.toLowerCase().replace(/\s+/g, '-'),
+                            createdAt: post.createdAt,
+                            updatedAt: post.updatedAt
                           } : undefined,
                           subcategory: post.subcategoryName ? {
-                            id: post.subcategoryId!.toString(),
+                            id: Number(post.subcategoryId!),
                             name: post.subcategoryName,
                             color: post.subcategoryColor || '#8b5cf6',
                             slug: post.subcategoryName.toLowerCase().replace(/\s+/g, '-'),
-                            categoryId: post.categoryId!.toString()
+                            categoryId: Number(post.categoryId!),
+                            createdAt: post.createdAt,
+                            updatedAt: post.updatedAt
                           } : undefined,
                           likesCount: post.likesCount,
                           commentsCount: post.commentsCount,

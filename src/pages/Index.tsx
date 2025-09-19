@@ -1,23 +1,27 @@
+import React from "react";
 import Hero from "@/components/Hero";
 import { PostCard } from "@/components/PostCard";
 import { LoadMoreButton } from "@/components/LoadMoreButton";
 import { BlogFilters } from "@/components/Filters";
 import { useBlogData } from "@/hooks/useBlogData";
+import { useLoadMorePosts } from "@/hooks/useLoadMorePosts";
 
 const Index = () => {
   const { 
-    posts,
     categories, 
     filters, 
-    setFilters,
-    isLoading,
-    error 
+    setFilters
   } = useBlogData();
 
-  const handleLoadMore = () => {
-    // TODO: Implement load more logic
-    console.log('Load more posts clicked');
-  };
+  const {
+    data: posts,
+    hasMore,
+    isLoading,
+    error,
+    loadMore
+  } = useLoadMorePosts({
+    enabled: true
+  });
 
   if (isLoading) {
     return (
@@ -78,8 +82,14 @@ const Index = () => {
               ))}
             </div>
             
-            {/* Load More */}
-            <LoadMoreButton onClick={handleLoadMore} />
+            {/* Load More Button */}
+            {hasMore && (
+              <LoadMoreButton 
+                onClick={loadMore}
+                loading={isLoading}
+                disabled={!hasMore}
+              />
+            )}
           </div>
           
         </div>

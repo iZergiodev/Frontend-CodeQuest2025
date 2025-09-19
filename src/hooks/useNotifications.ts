@@ -11,6 +11,7 @@ interface UseNotificationsReturn {
   markAsRead: (notificationId: number) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (notificationId: number) => Promise<void>;
+  deleteAllNotifications: () => Promise<void>;
   refreshNotifications: () => Promise<void>;
 }
 
@@ -31,6 +32,7 @@ export function useNotifications(): UseNotificationsReturn {
       const result = await notificationService.getNotifications(user.id);
       setNotifications(result.notifications);
     } catch (err) {
+      console.error("Error loading notifications:", err);
       setError(err as Error);
     } finally {
       setIsLoading(false);
@@ -103,6 +105,23 @@ export function useNotifications(): UseNotificationsReturn {
     [notifications]
   );
 
+  const deleteAllNotifications = useCallback(async () => {
+    if (!user || notifications.length === 0) return;
+
+    try {
+      const deletePromises = notifications.map((notification) =>
+        notificationService.deleteNotification(notification.id)
+      );
+
+      await Promise.all(deletePromises);
+
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch (err) {
+      setError(err as Error);
+    }
+  }, [user, notifications]);
+
   // Refresh notifications
   const refreshNotifications = useCallback(async () => {
     await Promise.all([loadNotifications(), loadUnreadCount()]);
@@ -111,7 +130,16 @@ export function useNotifications(): UseNotificationsReturn {
   // Handle SSE messages
   const handleSSEMessage = useCallback((message: NotificationStreamMessage) => {
     if (message.type === "notification" && message.data) {
-      setNotifications((prev) => [message.data!, ...prev]);
+      // Add new notification to the list immediately
+      setNotifications((prev) => {
+        // Check if notification already exists to avoid duplicates
+        const exists = prev.some((n) => n.id === message.data!.id);
+        if (exists) {
+          return prev;
+        }
+        return [message.data!, ...prev];
+      });
+
       if (!message.data.isRead) {
         setUnreadCount((prev) => prev + 1);
       }
@@ -148,6 +176,7 @@ export function useNotifications(): UseNotificationsReturn {
     markAsRead,
     markAllAsRead,
     deleteNotification,
+    deleteAllNotifications,
     refreshNotifications,
   };
 }

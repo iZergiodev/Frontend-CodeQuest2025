@@ -14,7 +14,8 @@ import {
   ChevronDown,
   Terminal,
   TrendingUp,
-  Star
+  Star,
+  Compass
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -34,6 +35,7 @@ export const Sidebar = () => {
   const [selectedHome, setSelectedHome] = useState<boolean>(true);
   const [selectedTrending, setSelectedTrending] = useState<boolean>(false);
   const [selectedPopular, setSelectedPopular] = useState<boolean>(false);
+  const [selectedExplore, setSelectedExplore] = useState<boolean>(false);
 
   // Update selected states based on current URL
   useEffect(() => {
@@ -46,6 +48,7 @@ export const Sidebar = () => {
     setSelectedSubcategory(null);
     setSelectedTrending(false);
     setSelectedPopular(false);
+    setSelectedExplore(false);
     
     if (pathname === '/') {
       setSelectedHome(true);
@@ -53,6 +56,8 @@ export const Sidebar = () => {
       setSelectedTrending(true);
     } else if (pathname === '/popular') {
       setSelectedPopular(true);
+    } else if (pathname === '/explore') {
+      setSelectedExplore(true);
     } else if (pathname.startsWith('/category/')) {
       const categorySlug = pathname.split('/category/')[1];
       const category = categories.find(c => c.slug === categorySlug);
@@ -101,6 +106,7 @@ export const Sidebar = () => {
     setSelectedSubcategory(null);
     setSelectedTrending(false);
     setSelectedPopular(false);
+    setSelectedExplore(false);
     navigate('/');
   };
 
@@ -110,6 +116,7 @@ export const Sidebar = () => {
     setSelectedCategory(null);
     setSelectedSubcategory(null);
     setSelectedPopular(false);
+    setSelectedExplore(false);
     navigate('/trending');
   };
 
@@ -119,7 +126,18 @@ export const Sidebar = () => {
     setSelectedCategory(null);
     setSelectedSubcategory(null);
     setSelectedTrending(false);
+    setSelectedExplore(false);
     navigate('/popular');
+  };
+
+  const handleExploreClick = () => {
+    setSelectedExplore(true);
+    setSelectedHome(false);
+    setSelectedCategory(null);
+    setSelectedSubcategory(null);
+    setSelectedTrending(false);
+    setSelectedPopular(false);
+    navigate('/explore');
   };
 
   const handleCategoryClick = (categoryId: string, categorySlug: string) => {
@@ -261,7 +279,7 @@ export const Sidebar = () => {
                 onClick={handleTrendingClick}
               >
                 <TrendingUp className="h-4 w-4" />
-                <span className="flex-1 text-left">Trending</span>
+                <span className="flex-1 text-left">Tendencia</span>
               </Button>
 
               {/* Popular Button */}
@@ -274,6 +292,18 @@ export const Sidebar = () => {
               >
                 <Star className="h-4 w-4" />
                 <span className="flex-1 text-left">Popular</span>
+              </Button>
+
+              {/* Explore Button */}
+              <Button
+                variant={selectedExplore ? "secondary" : "ghost"}
+                className={`w-full justify-start gap-3 transition-smooth ${
+                  selectedExplore ? 'bg-primary/10 text-primary hover:bg-primary/15' : 'hover:bg-accent'
+                }`}
+                onClick={handleExploreClick}
+              >
+                <Compass className="h-4 w-4" />
+                <span className="flex-1 text-left">Explorar</span>
               </Button>
 
               {categoriesLoading ? (

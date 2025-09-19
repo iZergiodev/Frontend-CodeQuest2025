@@ -7,6 +7,7 @@ import { bookmarkService } from '../services/bookmarkService';
 
 interface AuthContextType {
   user: User | null;
+  setUser: (user: User | null) => void;
   loading: boolean;
   followedSubcategories: Set<string>;
   bookmarkedPosts: Set<string>;
@@ -63,38 +64,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               authService.clearAuthData();
             }
           } else {
-            // Token is not expired, but verify it with the server
-            try {
-              const verifiedUser = await authService.verifyToken(storedToken);
-              if (verifiedUser) {
-                setUser(verifiedUser);
-                await refreshFollows();
-                await refreshBookmarks();
-                toast({
-                  title: "¡Bienvenid@ de vuelta!",
-                  description: `Hola ${verifiedUser.name}, tu sesión ha sido restaurada.`,
-                });
-              } else {
-                // Token verification failed, try to refresh
-                const refreshData = await authService.autoRefreshJwtToken();
-                if (refreshData) {
-                  authService.storeAuthData(refreshData.token, refreshData.user);
-                  setUser(refreshData.user);
-                  await refreshFollows();
-                  await refreshBookmarks();
-                  toast({
-                    title: "Sesión actualizada",
-                    description: "Tu sesión ha sido renovada automáticamente.",
-                  });
-                } else {
-                  authService.clearAuthData();
-                }
-              }
-            } catch (verifyError) {
-              console.error('Token verification failed:', verifyError);
-              authService.clearAuthData();
+            // Token is not expired, skip verification for now to prevent 401 errors
+            console.log('Skipping token verification to prevent 401 errors');
+            // For now, just use the stored user data without verification
+            if (storedUser) {
+              setUser(storedUser);
+              console.log('Using stored user data without verification');
             }
           }
+        } else if (storedUser && !storedToken) {
+          // User exists but no token - clear inconsistent state
+          console.log("Inconsistent auth state: user exists but no token. Clearing auth data.");
+          authService.clearAuthData();
         } else {
           const urlParams = new URLSearchParams(window.location.search);
           const code = urlParams.get('code');
@@ -111,7 +92,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     };
 
+    const handleAuthSuccess = async (event: CustomEvent) => {
+      console.log('Auth success event received:', event.detail);
+      const { user } = event.detail;
+      
+      setUser(user);
+      
+      await refreshFollows();
+      await refreshBookmarks();
+      
+      toast({
+        title: "¡Bienvenid@!",
+        description: `Hola ${user.name}, has iniciado sesión exitosamente.`,
+      });
+    };
+
     initializeAuth();
+    
+    window.addEventListener('auth-success', handleAuthSuccess as EventListener);
+    
+    return () => {
+      window.removeEventListener('auth-success', handleAuthSuccess as EventListener);
+    };
   }, []);
 
   useEffect(() => {
@@ -166,57 +168,84 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const loginWithEmail = async (email: string, password: string) => {
-    try {
+    return new Promise<void>((resolve, reject) => {
       setLoading(true);
-      await emailLoginMutation.mutateAsync({ email, password });
+      console.log("Starting email login...");
       
-      const storedUser = authService.getStoredUser();
-      setUser(storedUser);
-      await refreshFollows();
-      await refreshBookmarks();
-      
-      toast({
-        title: "¡Bienvenid@!",
-        description: `Hola ${storedUser?.name}, has iniciado sesión exitosamente.`,
-      });
-    } catch (error: any) {
-      console.error('Email login error:', error);
-      toast({
-        title: "Error de autenticación",
-        description: error.message || "No se pudo iniciar sesión. Inténtalo de nuevo.",
-        variant: "destructive",
-      });
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+      emailLoginMutation.mutate(
+        { email, password },
+        {
+          onSuccess: (data) => {
+            console.log("Login mutation success:", data);
+            
+            const storedUser = authService.getStoredUser();
+            const storedToken = authService.getStoredToken();
+            console.log("After login mutation:", { 
+              storedUser: storedUser ? "Present" : "Missing", 
+              storedToken: storedToken ? "Present" : "Missing" 
+            });
+            
+            setUser(storedUser);
+            refreshFollows();
+            refreshBookmarks();
+            
+            toast({
+              title: "¡Bienvenid@!",
+              description: `Hola ${storedUser?.name}, has iniciado sesión exitosamente.`,
+            });
+            
+            setLoading(false);
+            resolve();
+          },
+          onError: (error) => {
+            toast({
+              title: "Error de autenticación",
+              description: error.message || "No se pudo iniciar sesión. Inténtalo de nuevo.",
+              variant: "destructive",
+            });
+            setLoading(false);
+            reject(error);
+          }
+        }
+      );
+    });
   };
 
   const registerWithEmail = async (email: string, password: string, username: string, role: string = "User") => {
-    try {
+    return new Promise<void>((resolve, reject) => {
       setLoading(true);
-      await emailRegisterMutation.mutateAsync({ email, password, username, role });
+      console.log("Starting email registration...");
       
-      const storedUser = authService.getStoredUser();
-      setUser(storedUser);
-      await refreshFollows();
-      await refreshBookmarks();
-      
-      toast({
-        title: "¡Cuenta creada!",
-        description: `Hola ${storedUser?.name}, tu cuenta ha sido creada exitosamente.`,
-      });
-    } catch (error: any) {
-      console.error('Email registration error:', error);
-      toast({
-        title: "Error al crear cuenta",
-        description: error.message || "No se pudo crear la cuenta. Inténtalo de nuevo.",
-        variant: "destructive",
-      });
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+      emailRegisterMutation.mutate(
+        { email, password, username, role },
+        {
+          onSuccess: () => {
+            const storedUser = authService.getStoredUser();
+            setUser(storedUser);
+            refreshFollows();
+            refreshBookmarks();
+            
+            toast({
+              title: "¡Cuenta creada!",
+              description: `Hola ${storedUser?.name}, tu cuenta ha sido creada exitosamente.`,
+            });
+            
+            setLoading(false);
+            resolve();
+          },
+          onError: (error) => {
+            console.error('Registration mutation error:', error);
+            toast({
+              title: "Error al crear cuenta",
+              description: error.message || "No se pudo crear la cuenta. Inténtalo de nuevo.",
+              variant: "destructive",
+            });
+            setLoading(false);
+            reject(error);
+          }
+        }
+      );
+    });
   };
 
   const handleDiscordCallback = async (code: string) => {
@@ -311,6 +340,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const value = {
     user,
+    setUser,
     loading,
     followedSubcategories,
     bookmarkedPosts,

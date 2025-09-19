@@ -28,7 +28,7 @@ export default function PostRanking() {
   const { data: categories = [] } = useCategories();
 
   const selectedCategory = categories.find(c => c.slug === filters.category);
-  const selectedCategoryId = selectedCategory ? parseInt(selectedCategory.id) : undefined;
+  const selectedCategoryId = selectedCategory ? selectedCategory.id : undefined;
 
   const {
     posts,
@@ -243,22 +243,28 @@ export default function PostRanking() {
                         authorName: post.authorName,
                         authorAvatar: post.authorAvatar,
                         category: post.categoryName ? {
-                          id: post.categoryId!.toString(),
+                          id: post.categoryId!,
                           name: post.categoryName,
                           color: post.categoryColor || '#6366f1',
-                          slug: post.categoryName.toLowerCase().replace(/\s+/g, '-')
+                          slug: post.categoryName.toLowerCase().replace(/\s+/g, '-'),
+                          createdAt: new Date().toISOString(),
+                          updatedAt: new Date().toISOString()
                         } : {
-                          id: '1',
+                          id: 1,
                           name: 'General',
                           color: '#6366f1',
-                          slug: 'general'
+                          slug: 'general',
+                          createdAt: new Date().toISOString(),
+                          updatedAt: new Date().toISOString()
                         },
                         subcategory: post.subcategoryName ? {
-                          id: post.subcategoryId!.toString(),
+                          id: post.subcategoryId!,
                           name: post.subcategoryName,
                           color: post.subcategoryColor || '#8b5cf6',
                           slug: post.subcategoryName.toLowerCase().replace(/\s+/g, '-'),
-                          categoryId: post.categoryId!.toString()
+                          categoryId: post.categoryId!,
+                          createdAt: new Date().toISOString(),
+                          updatedAt: new Date().toISOString()
                         } : undefined,
                         likesCount: post.likesCount,
                         commentsCount: post.commentsCount,

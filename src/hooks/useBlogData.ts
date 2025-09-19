@@ -27,7 +27,8 @@ export function useBlogData() {
       if (followedSubcategories.size > 0) {
         result = result.filter(
           (post) =>
-            post.subcategory && followedSubcategories.has(post.subcategory.id)
+            post.subcategory &&
+            followedSubcategories.has(post.subcategory.id.toString())
         );
       } else {
         // If user follows no subcategories, show no posts

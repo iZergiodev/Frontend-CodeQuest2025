@@ -29,8 +29,9 @@ const CategoryPage = () => {
     post.category.slug === categorySlug
   )?.category;
 
-  const { data: subcategories = [] } = useSubcategoriesByCategory(category?.id || "");
-  const { data: categoryData, isLoading: categoryLoading } = useCategory(category?.id || "");
+
+  const { data: subcategories = [] } = useSubcategoriesByCategory(category?.id || 0);
+  const { isLoading: categoryLoading } = useCategory(category?.id?.toString() || "");
 
 
   useEffect(() => {
@@ -62,10 +63,10 @@ const CategoryPage = () => {
     }
 
     if (filters.sortBy === "popular") {
-      result.sort((a, b) => b.likes - a.likes);
+      result.sort((a, b) => b.likesCount - a.likesCount);
     } else if (filters.sortBy === "trending") {
       result.sort((a, b) => 
-        b.likes + (b.comments?.length || 0) - (a.likes + (a.comments?.length || 0))
+        b.likesCount + b.commentsCount - (a.likesCount + a.commentsCount)
       );
     } else {
       result.sort((a, b) =>

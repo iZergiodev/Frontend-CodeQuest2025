@@ -243,8 +243,10 @@ class AuthService {
       );
 
       return {
-        token: response.data.token || "",
-        user: this.transformUserToAuthUser(response.data.user || response.data),
+        token: response.data.Token || response.data.token || "",
+        user: this.transformUserToAuthUser(
+          response.data.User || response.data.user || response.data
+        ),
       };
     } catch (error) {
       console.error("Error with email login:", error);
@@ -264,7 +266,8 @@ class AuthService {
     role: string = "User"
   ): Promise<AuthResponse> {
     try {
-      const response = await axios.post(
+      // First, register the user
+      const registerResponse = await axios.post(
         `${BACKEND_URL}/api/users/register`,
         {
           email,
@@ -279,10 +282,12 @@ class AuthService {
         }
       );
 
-      return {
-        token: response.data.token || "",
-        user: this.transformUserToAuthUser(response.data.user || response.data),
-      };
+      console.log("Registration response:", registerResponse.data);
+
+      // After successful registration, automatically log the user in
+      const loginResponse = await this.loginWithEmail(email, password);
+
+      return loginResponse;
     } catch (error) {
       console.error("Error with email registration:", error);
 
@@ -295,22 +300,49 @@ class AuthService {
   }
 
   private transformUserToAuthUser(user: any): User {
-    return {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      name: user.name,
-      avatar: user.avatar,
-      biography: user.biography,
-      role: user.role,
-      discordId: user.discordId,
-      discordUsername: user.discordUsername,
-      discordDiscriminator: user.discordDiscriminator,
-      discordAvatar: user.discordAvatar,
-      birthDate: user.birthDate,
-      createdAt: user.createdAt,
-      starDustPoints: user.starDustPoints || 0,
+    console.log("authService: Transforming user:", user);
+    console.log("authService: user.id:", user.id);
+    console.log("authService: user.ID:", user.ID);
+    console.log("authService: user.Id:", user.Id);
+    console.log("authService: All user keys:", Object.keys(user));
+    console.log("authService: All user values:", Object.values(user));
+
+    // Try to get the ID from various possible sources
+    let userId = 0;
+    if (user.id) {
+      userId = Number(user.id);
+      console.log("authService: Using user.id:", user.id, "->", userId);
+    } else if (user.ID) {
+      userId = Number(user.ID);
+      console.log("authService: Using user.ID:", user.ID, "->", userId);
+    } else if (user.Id) {
+      userId = Number(user.Id);
+      console.log("authService: Using user.Id:", user.Id, "->", userId);
+    } else {
+      console.log("authService: No ID found in user object");
+    }
+
+    console.log("authService: Final userId:", userId);
+
+    const transformedUser = {
+      id: userId,
+      username: user.username || user.Username,
+      email: user.email || user.Email,
+      name: user.name || user.Name,
+      avatar: user.avatar || user.Avatar,
+      biography: user.biography || user.Biography,
+      role: user.role || user.Role,
+      discordId: user.discordId || user.DiscordId,
+      discordUsername: user.discordUsername || user.DiscordUsername,
+      discordDiscriminator:
+        user.discordDiscriminator || user.DiscordDiscriminator,
+      discordAvatar: user.discordAvatar || user.DiscordAvatar,
+      birthDate: user.birthDate || user.BirthDate,
+      createdAt: user.createdAt || user.CreatedAt,
+      starDustPoints: user.starDustPoints || user.StarDustPoints || 0,
     };
+    console.log("authService: Transformed user:", transformedUser);
+    return transformedUser;
   }
 }
 
@@ -336,10 +368,20 @@ export const useDiscordCallback = () => {
 
 export const useEmailLogin = () => {
   return useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) =>
-      authService.loginWithEmail(email, password),
+    mutationFn: ({ email, password }: { email: string; password: string }) => {
+      console.log("Mutation function called with:", { email });
+      return authService.loginWithEmail(email, password);
+    },
     onSuccess: (data) => {
+      console.log("Email login success, storing auth data:", data);
       authService.storeAuthData(data.token, data.user);
+      console.log(
+        "Auth data stored. Token:",
+        data.token ? "Present" : "Missing"
+      );
+    },
+    onError: (error) => {
+      console.error("Email login mutation error:", error);
     },
   });
 };
@@ -358,7 +400,12 @@ export const useEmailRegister = () => {
       role?: string;
     }) => authService.registerWithEmail(email, password, username, role),
     onSuccess: (data) => {
+      console.log("Email registration success, storing auth data:", data);
       authService.storeAuthData(data.token, data.user);
+      console.log(
+        "Auth data stored. Token:",
+        data.token ? "Present" : "Missing"
+      );
     },
   });
 };

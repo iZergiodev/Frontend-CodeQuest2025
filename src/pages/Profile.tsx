@@ -18,9 +18,11 @@ import { FloatingEdgeButton } from "@/components/FloatingEdgeButton";
 import { Button } from "@/components/ui/button";
 import { bookmarkService } from "@/services/bookmarkService";
 import { commentsService, CommentDto } from "@/services/commentsService";
-import { usePostsByAuthor, usePostSlugFromId } from "@/services/postsService";
+import { usePostSlugFromId } from "@/services/postsService";
+import { usePagination } from "@/hooks/usePagination";
 import { Post } from "@/types/blog";
 import { useToast } from "@/hooks/use-toast";
+import { LoadMoreButton } from "@/components/LoadMoreButton";
 
 
 
@@ -35,8 +37,18 @@ export const Profile = () => {
   const [commentsLoading, setCommentsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Fetch user posts using the existing hook
-  const { data: userPosts = [], isLoading: postsLoading, error: postsError } = usePostsByAuthor(user?.id ?? 0);
+  // Fetch user posts using pagination
+  const {
+    data: userPosts = [],
+    hasMore,
+    isLoading: postsLoading,
+    error: postsError,
+    loadMore
+  } = usePagination({
+    type: 'author',
+    authorId: user?.id ?? 0,
+    enabled: !!user?.id,
+  });
 
   const handleBackClick = () => navigate(-1);
 
@@ -261,7 +273,18 @@ export const Profile = () => {
                     </CardContent>
                   </Card>
                 ) : userPosts.length ? (
-                  userPosts.map(p => <PostRow key={p.id} p={p} />)
+                  <>
+                    {userPosts.map(p => <PostRow key={p.id} p={p} />)}
+                    {hasMore && (
+                      <div className="mt-4">
+                        <LoadMoreButton
+                          onClick={loadMore}
+                          disabled={!hasMore}
+                          loading={postsLoading}
+                        />
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <EmptyState icon={<FileText className="h-6 w-6" />} title="Sin posts aún">
                     Crea tu primer post y compártelo con la comunidad.

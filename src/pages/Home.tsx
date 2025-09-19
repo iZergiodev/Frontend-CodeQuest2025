@@ -1,24 +1,27 @@
 import Hero from "@/components/Hero";
 import { PostCard } from "@/components/PostCard";
 import { LoadMoreButton } from "@/components/LoadMoreButton";
-import { useBlogData } from "@/hooks/useBlogData";
+import { usePagination } from "@/hooks/usePagination";
+import { useCategories } from "@/services/postsService";
 import { useRankingData } from "@/hooks/useRankingData";
 import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrendingUp, Star, Users } from "lucide-react";
 
 const Home = () => {
-  const {
-    posts,
-    isLoading,
-    error 
-  } = useBlogData();
   const { user } = useAuth();
+  const { data: categories = [] } = useCategories();
 
-  const handleLoadMore = () => {
-    // TODO: Implement load more logic
-    console.log('Load more posts clicked');
-  };
+  const {
+    data: posts = [],
+    hasMore,
+    isLoading,
+    error,
+    loadMore
+  } = usePagination({
+    type: 'all',
+    enabled: true
+  });
 
   // Get trending and popular posts
   const {
@@ -140,9 +143,11 @@ const Home = () => {
                 )}
                 
                 {/* Load More */}
-                {posts.length > 0 && (
+                {posts.length > 0 && hasMore && (
                   <LoadMoreButton 
-                    onClick={handleLoadMore}
+                    onClick={loadMore}
+                    disabled={!hasMore}
+                    loading={isLoading}
                   />
                 )}
               </TabsContent>

@@ -1,6 +1,7 @@
 import { useParams, useSearchParams } from "react-router-dom";
 import { PostCard } from "@/components/PostCard";
-import { useCategory, useSubcategoriesByCategory, usePosts, useCategories } from "@/services/postsService";
+import { useCategory, useSubcategoriesByCategory, useCategories } from "@/services/postsService";
+import { usePagination } from "@/hooks/usePagination";
 import { BlogFilters } from "@/components/Filters";
 import { Button } from "@/components/ui/button";
 import { useState, useMemo, useEffect, useRef } from "react";
@@ -8,6 +9,7 @@ import { ArrowLeft, ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { BlogFilters as BlogFiltersType } from "@/types/blog";
 import { FloatingEdgeButton } from "@/components/FloatingEdgeButton";
+import { LoadMoreButton } from "@/components/LoadMoreButton";
 
 const CategoryPage = () => {
   const contentRef = useRef();
@@ -15,7 +17,6 @@ const CategoryPage = () => {
   const { categorySlug } = useParams<{ categorySlug: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { data: posts = [] } = usePosts();
   const { data: categories = [] } = useCategories();
   const [filters, setFilters] = useState<BlogFiltersType>({
     category: categorySlug,
@@ -25,13 +26,23 @@ const CategoryPage = () => {
 
   const handleBackClick = () => navigation(-1)
 
-  const category = posts.find(post => 
-    post.category.slug === categorySlug
-  )?.category;
 
+  const category = categories.find(cat => cat.slug === categorySlug);
 
   const { data: subcategories = [] } = useSubcategoriesByCategory(category?.id || 0);
   const { isLoading: categoryLoading } = useCategory(category?.id || 0);
+
+  const {
+    data: posts = [],
+    hasMore,
+    isLoading: postsLoading,
+    error: postsError,
+    loadMore
+  } = usePagination({
+    type: 'category',
+    categoryId: category?.id || 0,
+    enabled: !!category?.id,
+  });
 
 
   useEffect(() => {
@@ -43,8 +54,7 @@ const CategoryPage = () => {
   }, [categorySlug, searchParams]);
 
   const filteredPosts = useMemo(() => {
-    let result = posts.filter(post => post.category.slug === categorySlug);
-
+    let result = [...posts];
     if (filters.subcategory) {
       result = result.filter(post => post.subcategory?.slug === filters.subcategory);
     }
@@ -75,14 +85,28 @@ const CategoryPage = () => {
     }
 
     return result;
-  }, [posts, categorySlug, filters]);
+  }, [posts, filters]);
 
-  if (categoryLoading) {
+  if (categoryLoading || postsLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Cargando categoría...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (postsError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-2">Error al cargar posts</h2>
+          <p className="text-muted-foreground mb-4">No se pudieron cargar los posts de esta categoría</p>
+          <Button onClick={() => window.location.reload()} variant="outline">
+            Reintentar
+          </Button>
         </div>
       </div>
     );
@@ -187,11 +211,13 @@ const CategoryPage = () => {
         </div>
       </div>
 
-      <div className="text-center mt-12">
-        <button className="px-8 py-3 bg-devtalles-gradient text-white rounded-lg hover:opacity-90 transition-opacity">
-          Cargar más posts
-        </button>
-      </div>
+      {hasMore && (
+        <LoadMoreButton
+          onClick={loadMore}
+          disabled={!hasMore}
+          loading={postsLoading}
+        />
+      )}
 
       <FloatingEdgeButton
         referenceRef={contentRef}

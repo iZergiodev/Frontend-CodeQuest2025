@@ -509,40 +509,56 @@ export const usePostSlugFromId = (id: string) => {
 export const getPaginatedPosts = async (
   params: PaginationParams
 ): Promise<PaginatedResult<Post>> => {
-  const response = await apiClient.get(
+  const response = await apiClient.get<PaginatedResult<PostDto>>(
     `/api/Posts/paginated?page=${params.page}&pageSize=${params.pageSize}`
   );
-  return response.data;
+
+  return {
+    ...response.data,
+    data: response.data.data.map(transformPostDto),
+  };
 };
 
 export const getPaginatedPostsByAuthor = async (
   authorId: number,
   params: PaginationParams
 ): Promise<PaginatedResult<Post>> => {
-  const response = await apiClient.get(
+  const response = await apiClient.get<PaginatedResult<PostDto>>(
     `/api/Posts/author/${authorId}/paginated?page=${params.page}&pageSize=${params.pageSize}`
   );
-  return response.data;
+
+  return {
+    ...response.data,
+    data: response.data.data.map(transformPostDto),
+  };
 };
 
 export const getPaginatedPostsByCategory = async (
   categoryId: number,
   params: PaginationParams
 ): Promise<PaginatedResult<Post>> => {
-  const response = await apiClient.get(
+  const response = await apiClient.get<PaginatedResult<PostDto>>(
     `/api/Posts/category/${categoryId}/paginated?page=${params.page}&pageSize=${params.pageSize}`
   );
-  return response.data;
+
+  return {
+    ...response.data,
+    data: response.data.data.map(transformPostDto),
+  };
 };
 
 export const getPaginatedPostsBySubcategory = async (
   subcategoryId: number,
   params: PaginationParams
 ): Promise<PaginatedResult<Post>> => {
-  const response = await apiClient.get(
+  const response = await apiClient.get<PaginatedResult<PostDto>>(
     `/api/Posts/subcategory/${subcategoryId}/paginated?page=${params.page}&pageSize=${params.pageSize}`
   );
-  return response.data;
+
+  return {
+    ...response.data,
+    data: response.data.data.map(transformPostDto),
+  };
 };
 
 export { postsApi, categoriesApi };

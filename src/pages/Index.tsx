@@ -4,7 +4,7 @@ import { PostCard } from "@/components/PostCard";
 import { LoadMoreButton } from "@/components/LoadMoreButton";
 import { BlogFilters } from "@/components/Filters";
 import { useBlogData } from "@/hooks/useBlogData";
-import { useLoadMorePosts } from "@/hooks/useLoadMorePosts";
+import { usePagination } from "@/hooks/usePagination";
 
 const Index = () => {
   const { 
@@ -19,7 +19,8 @@ const Index = () => {
     isLoading,
     error,
     loadMore
-  } = useLoadMorePosts({
+  } = usePagination({
+    type: 'all',
     enabled: true
   });
 

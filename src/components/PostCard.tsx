@@ -19,6 +19,7 @@ interface PostCardProps {
   showPopularityMetrics?: boolean;
   trendingScore?: number;
   popularityScore?: number;
+  showCategoriesAbove?: boolean;
   recentActivity?: {
     likes: number;
     comments: number;
@@ -36,6 +37,7 @@ export function PostCard({
   showPopularityMetrics = false,
   trendingScore = 0,
   popularityScore = 0,
+  showCategoriesAbove = false,
 }: PostCardProps) {
   const navigate = useNavigate();
   const [showAllTags, setShowAllTags] = useState(false);
@@ -148,6 +150,33 @@ export function PostCard({
     </>
   );
 
+  const CategoryBadges = () => (
+    <div className="flex flex-wrap gap-2">
+      <Badge 
+        variant="secondary" 
+        className="bg-background/90 text-foreground backdrop-blur-sm border border-border/50 text-sm font-medium"
+      >
+        <div
+          className="w-2 h-2 rounded-full mr-2"
+          style={{ backgroundColor: post.category.color }}
+        />
+        {post.category.name}
+      </Badge>
+      {post.subcategory && (
+        <Badge 
+          variant="outline" 
+          className="bg-background/90 text-foreground backdrop-blur-sm border border-border/50 text-xs"
+        >
+          <div
+            className="w-1.5 h-1.5 rounded-full mr-1.5"
+            style={{ backgroundColor: post.subcategory.color }}
+          />
+          {post.subcategory.name}
+        </Badge>
+      )}
+    </div>
+  );
+
   const Tags = () => (
     post.tags && post.tags.length > 0 && (
       <div className="flex flex-wrap gap-1">
@@ -191,30 +220,32 @@ export function PostCard({
           alt={post.title}
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
-        <div className="absolute top-4 left-4 flex flex-col gap-2">
-          <Badge 
-            variant="secondary" 
-            className="bg-background/90 text-foreground backdrop-blur-sm border border-border/50 text-sm font-medium"
-          >
-            <div
-              className="w-2 h-2 rounded-full mr-2"
-              style={{ backgroundColor: post.category.color }}
-            />
-            {post.category.name}
-          </Badge>
-          {post.subcategory && (
+        {!showCategoriesAbove && (
+          <div className="absolute top-4 left-4 flex flex-wrap gap-2">
             <Badge 
-              variant="outline" 
-              className="bg-background/90 text-foreground backdrop-blur-sm border border-border/50 text-xs"
+              variant="secondary" 
+              className="bg-background/90 text-foreground backdrop-blur-sm border border-border/50 text-sm font-medium"
             >
               <div
-                className="w-1.5 h-1.5 rounded-full mr-1.5"
-                style={{ backgroundColor: post.subcategory.color }}
+                className="w-2 h-2 rounded-full mr-2"
+                style={{ backgroundColor: post.category.color }}
               />
-              {post.subcategory.name}
+              {post.category.name}
             </Badge>
-          )}
-        </div>
+            {post.subcategory && (
+              <Badge 
+                variant="outline" 
+                className="bg-background/90 text-foreground backdrop-blur-sm border border-border/50 text-xs"
+              >
+                <div
+                  className="w-1.5 h-1.5 rounded-full mr-1.5"
+                  style={{ backgroundColor: post.subcategory.color }}
+                />
+                {post.subcategory.name}
+              </Badge>
+            )}
+          </div>
+        )}
         {post.featured && (
           <div className="absolute top-4 right-4">
             <Badge className="bg-gradient-to-r from-devtalles-blue to-devtalles-purple">
@@ -309,13 +340,25 @@ export function PostCard({
       <Card className="group overflow-hidden transition-all duration-300 hover:shadow-post-hover hover:-translate-y-1 flex flex-col h-full">
         <div className="flex flex-1">
           <div className="flex-1 flex flex-col p-6">
+            {showCategoriesAbove && (
+              <div className="mb-4">
+                <CategoryBadges />
+              </div>
+            )}
             <div className="space-y-3 flex-1">
               <AuthorInfo />
               <TitleAndExcerpt />
               <Tags />
             </div>
           </div>
-          <CoverImage className="w-48 flex-shrink-0" />
+          <div className="relative">
+            <CoverImage className="w-48 flex-shrink-0 h-full" />
+            {!showCategoriesAbove && (
+              <div className="absolute top-4 left-4">
+                <CategoryBadges />
+              </div>
+            )}
+          </div>
         </div>
         <Footer />
       </Card>
@@ -324,7 +367,14 @@ export function PostCard({
 
   return (
     <Card className="group overflow-hidden transition-all duration-300 hover:shadow-post-hover hover:-translate-y-1 flex flex-col h-full">
-      <CoverImage className="h-48 w-full" />
+      <div className="relative">
+        <CoverImage className="h-48 w-full" />
+        {showCategoriesAbove && (
+          <div className="absolute top-4 left-4 z-10">
+            <CategoryBadges />
+          </div>
+        )}
+      </div>
       
       <CardHeader className="space-y-3 flex-1">
         <AuthorInfo />

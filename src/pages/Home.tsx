@@ -93,7 +93,7 @@ const Home = () => {
       <main className="container mx-auto px-4 py-12">
         <div className="flex gap-8">
           {/* Main Content */}
-          <div className="flex-1 pe-8">
+          <div className="flex-1">
             <div className="space-y-6">
               <div className="mb-8">
                 <h2 className="text-3xl font-bold text-foreground mb-2">
@@ -156,6 +156,7 @@ const Home = () => {
                     key={post.id} 
                     post={post}
                     layout="horizontal"
+                    showCategoriesAbove={true}
                   />
                 ))}
               </div>

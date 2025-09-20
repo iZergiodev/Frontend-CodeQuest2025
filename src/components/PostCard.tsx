@@ -213,48 +213,57 @@ export function PostCard({
   );
 
   const CoverImage = ({ className = "" }: { className?: string }) => (
-    post.coverImage && (
-      <div className={`relative overflow-hidden ${className}`}>
+    <div className={`relative overflow-hidden ${className}`}>
+      {post.coverImage ? (
         <img
           src={post.coverImage}
           alt={post.title}
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
-        {!showCategoriesAbove && (
-          <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+      ) : (
+        <div className="h-full w-full bg-gradient-to-br from-devtalles-blue via-devtalles-purple to-devtalles-blue flex items-center justify-center">
+          <div className="text-center text-white/80">
+            <div className="text-4xl font-bold mb-2">DevTalles</div>
+            <div className="text-sm opacity-75">Blog de Programación</div>
+          </div>
+        </div>
+      )}
+      
+      {!showCategoriesAbove && (
+        <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+          <Badge 
+            variant="secondary" 
+            className="bg-background/90 text-foreground backdrop-blur-sm border border-border/50 text-sm font-medium"
+          >
+            <div
+              className="w-2 h-2 rounded-full mr-2"
+              style={{ backgroundColor: post.category.color }}
+            />
+            {post.category.name}
+          </Badge>
+          {post.subcategory && (
             <Badge 
-              variant="secondary" 
-              className="bg-background/90 text-foreground backdrop-blur-sm border border-border/50 text-sm font-medium"
+              variant="outline" 
+              className="bg-background/90 text-foreground backdrop-blur-sm border border-border/50 text-xs"
             >
               <div
-                className="w-2 h-2 rounded-full mr-2"
-                style={{ backgroundColor: post.category.color }}
+                className="w-1.5 h-1.5 rounded-full mr-1.5"
+                style={{ backgroundColor: post.subcategory.color }}
               />
-              {post.category.name}
+              {post.subcategory.name}
             </Badge>
-            {post.subcategory && (
-              <Badge 
-                variant="outline" 
-                className="bg-background/90 text-foreground backdrop-blur-sm border border-border/50 text-xs"
-              >
-                <div
-                  className="w-1.5 h-1.5 rounded-full mr-1.5"
-                  style={{ backgroundColor: post.subcategory.color }}
-                />
-                {post.subcategory.name}
-              </Badge>
-            )}
-          </div>
-        )}
-        {post.featured && (
-          <div className="absolute top-4 right-4">
-            <Badge className="bg-gradient-to-r from-devtalles-blue to-devtalles-purple">
-              Destacado
-            </Badge>
-          </div>
-        )}
-      </div>
-    )
+          )}
+        </div>
+      )}
+      
+      {post.featured && (
+        <div className="absolute top-4 right-4">
+          <Badge className="bg-gradient-to-r from-devtalles-blue to-devtalles-purple">
+            Destacado
+          </Badge>
+        </div>
+      )}
+    </div>
   );
 
   const EngagementMetrics = () => {

@@ -4,38 +4,44 @@ import { LoadMoreButton } from "@/components/LoadMoreButton";
 import { usePagination } from "@/hooks/usePagination";
 import { useCategories } from "@/services/postsService";
 import { useAuth } from "@/hooks/useAuth";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, Clock, TrendingUp, Star, Calendar } from "lucide-react";
+
+type SortKey = "recent" | "popular" | "trending" | "oldest";
 
 const Home = () => {
   const { user, followedSubcategories } = useAuth();
   const { data: categories = [] } = useCategories();
+  const [sortBy, setSortBy] = useState<SortKey>("recent");
+
+  // Convert Set to Array for the API call
+  const followedSubcategoryIds = useMemo(() => {
+    return Array.from(followedSubcategories).map(id => parseInt(id));
+  }, [followedSubcategories]);
 
   const {
-    data: allPosts = [],
+    data: posts = [],
     hasMore,
     isLoading,
     error,
     loadMore
   } = usePagination({
-    type: 'all',
-    enabled: true
+    type: 'followed',
+    followedSubcategoryIds,
+    sortBy,
+    enabled: !!user && followedSubcategories.size > 0
   });
 
-  const posts = useMemo(() => {
-    if (!user) {
-      return [];
-    }
+  const sortOptions = [
+    { value: "recent", label: "Recientes", icon: Clock },
+    { value: "popular", label: "Populares", icon: Star },
+    { value: "trending", label: "Tendencia", icon: TrendingUp },
+    { value: "oldest", label: "Más antiguos", icon: Calendar },
+  ] as const;
 
-    if (followedSubcategories.size === 0) {
-      return [];
-    }
-
-    return allPosts.filter(
-      (post) =>
-        post.subcategory &&
-        followedSubcategories.has(post.subcategory.id.toString())
-    );
-  }, [allPosts, user, followedSubcategories]);
+  const currentSortOption = sortOptions.find(option => option.value === sortBy) || sortOptions[0];
 
   if (!user) {
     return (
@@ -96,18 +102,50 @@ const Home = () => {
           <div className="flex-1">
             <div className="space-y-6">
               <div className="mb-8">
-                <h2 className="text-3xl font-bold text-foreground mb-2">
-                  {followedSubcategories.size > 0 
-                    ? "Posts de tus subcategorías seguidas" 
-                    : "Personaliza tu feed"
-                  }
-                </h2>
-                <p className="text-muted-foreground">
-                  {followedSubcategories.size > 0 
-                    ? "Contenido de las subcategorías que sigues"
-                    : "Sigue las subcategorías que te interesan para ver contenido personalizado"
-                  }
-                </p>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-3xl font-bold text-foreground mb-2">
+                      {followedSubcategories.size > 0 
+                        ? "Posts de tus subcategorías seguidas" 
+                        : "Personaliza tu feed"
+                      }
+                    </h2>
+                    <p className="text-muted-foreground">
+                      {followedSubcategories.size > 0 
+                        ? "Contenido de las subcategorías que sigues"
+                        : "Sigue las subcategorías que te interesan para ver contenido personalizado"
+                      }
+                    </p>
+                  </div>
+                  
+                  {/* Sorting Controls */}
+                  {followedSubcategories.size > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Ordenar por:</span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="gap-2">
+                            <currentSortOption.icon className="h-4 w-4" />
+                            {currentSortOption.label}
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {sortOptions.map((option) => (
+                            <DropdownMenuItem
+                              key={option.value}
+                              onClick={() => setSortBy(option.value as SortKey)}
+                              className="flex items-center gap-2"
+                            >
+                              <option.icon className="h-4 w-4" />
+                              {option.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Empty state for users with no followed subcategories */}
@@ -136,9 +174,9 @@ const Home = () => {
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
                       <span className="text-2xl">🔍</span>
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">No hay posts recientes</h3>
+                    <h3 className="text-xl font-semibold mb-2">No hay posts disponibles</h3>
                     <p className="text-muted-foreground mb-6">
-                      Las subcategorías que sigues no tienen posts nuevos en este momento.
+                      Las subcategorías que sigues no tienen posts en este momento.
                     </p>
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground">🔄 <strong>Actualiza:</strong> Los posts aparecerán aquí cuando se publiquen</p>

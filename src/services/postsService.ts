@@ -563,4 +563,20 @@ export const getPaginatedPostsBySubcategory = async (
   };
 };
 
+export const getPaginatedPostsByFollowedSubcategories = async (
+  subcategoryIds: number[],
+  params: PaginationParams,
+  sortBy: string = "recent"
+): Promise<PaginatedResult<Post>> => {
+  const subcategoryIdsParam = subcategoryIds.join(",");
+  const response = await apiClient.get<PaginatedResult<PostDto>>(
+    `/api/Posts/followed/paginated?subcategoryIds=${subcategoryIdsParam}&page=${params.page}&pageSize=${params.pageSize}&sortBy=${sortBy}`
+  );
+
+  return {
+    ...response.data,
+    data: response.data.data.map(transformPostDto),
+  };
+};
+
 export { postsApi, categoriesApi };

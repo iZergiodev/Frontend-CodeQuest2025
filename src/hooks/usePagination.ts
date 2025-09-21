@@ -5,17 +5,25 @@ import {
   getPaginatedPostsByCategory,
   getPaginatedPostsByAuthor,
   getPaginatedPostsBySubcategory,
+  getPaginatedPostsByFollowedSubcategories,
 } from "@/services/postsService";
 import { useLoadMore } from "./useLoadMore";
 import type { Post, PaginationParams } from "@/types/blog";
 
-type PaginationType = "all" | "category" | "author" | "subcategory";
+type PaginationType =
+  | "all"
+  | "category"
+  | "author"
+  | "subcategory"
+  | "followed";
 
 interface UsePaginationOptions {
   type: PaginationType;
   categoryId?: number;
   authorId?: number;
   subcategoryId?: number;
+  followedSubcategoryIds?: number[];
+  sortBy?: string;
   enabled?: boolean;
   initialPageSize?: number;
 }
@@ -25,6 +33,8 @@ export function usePagination({
   categoryId,
   authorId,
   subcategoryId,
+  followedSubcategoryIds,
+  sortBy = "recent",
   enabled = true,
   initialPageSize = 6,
 }: UsePaginationOptions) {
@@ -78,6 +88,25 @@ export function usePagination({
         }
         return () =>
           getPaginatedPostsBySubcategory(subcategoryId, loadMore.pagination);
+      case "followed":
+        if (!followedSubcategoryIds || followedSubcategoryIds.length === 0) {
+          return () =>
+            Promise.resolve({
+              data: [],
+              hasNextPage: false,
+              hasPreviousPage: false,
+              page: 1,
+              pageSize: 6,
+              totalItems: 0,
+              totalPages: 0,
+            });
+        }
+        return () =>
+          getPaginatedPostsByFollowedSubcategories(
+            followedSubcategoryIds,
+            loadMore.pagination,
+            sortBy
+          );
       case "all":
       default:
         return () => getPaginatedPosts(loadMore.pagination);
@@ -93,6 +122,14 @@ export function usePagination({
         return [...baseKey, "author", authorId, loadMore.pagination];
       case "subcategory":
         return [...baseKey, "subcategory", subcategoryId, loadMore.pagination];
+      case "followed":
+        return [
+          ...baseKey,
+          "followed",
+          followedSubcategoryIds,
+          sortBy,
+          loadMore.pagination,
+        ];
       case "all":
       default:
         return [...baseKey, loadMore.pagination];
@@ -112,6 +149,11 @@ export function usePagination({
           subcategoryId !== undefined &&
           subcategoryId !== null &&
           subcategoryId > 0
+        );
+      case "followed":
+        return (
+          followedSubcategoryIds !== undefined &&
+          followedSubcategoryIds.length > 0
         );
       case "all":
       default:

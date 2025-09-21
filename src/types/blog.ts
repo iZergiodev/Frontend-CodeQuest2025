@@ -36,7 +36,7 @@ export interface User {
   discordUsername?: string;
   discordDiscriminator?: string;
   discordAvatar?: string;
-  birthDate: string;
+  birthDate?: string;
   createdAt: string;
   starDustPoints: number;
 }
@@ -74,7 +74,7 @@ export interface UserRegisterDto {
   role?: string;
   avatar?: string;
   biography?: string;
-  birthDate: string;
+  birthDate?: string;
   createdAt: string;
   starDustPoints: number;
 }

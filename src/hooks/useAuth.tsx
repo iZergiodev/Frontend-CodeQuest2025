@@ -68,6 +68,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             console.log('Skipping token verification to prevent 401 errors');
             // For now, just use the stored user data without verification
             if (storedUser) {
+              console.log('Loading user from localStorage:', storedUser);
+              console.log('Biography from localStorage:', storedUser.biography);
+              console.log('BirthDate from localStorage:', storedUser.birthDate);
               setUser(storedUser);
               console.log('Using stored user data without verification');
             }

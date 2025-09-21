@@ -146,7 +146,30 @@ export const Profile = () => {
     .slice(0, 2)
     .toUpperCase();
 
+  // Calculate age from birthDate
+  const calculateAge = (birthDate: string) => {
+    if (!birthDate) return null;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
+
+  const age = user.birthDate ? calculateAge(user.birthDate) : null;
+
   const joinedAt = formatJoined(user.createdAt);
+
+  // Console log to see user data
+  console.log("User data:", user);
+  console.log("User birthDate:", user.birthDate);
+  console.log("User biography:", user.biography);
+  console.log("Calculated age:", age);
 
   // Form handlers
   const handleInputChange = (field: string, value: string) => {
@@ -224,6 +247,14 @@ export const Profile = () => {
       // Update the user in the auth context
       setUser(updatedUser);
       
+      // Update localStorage to persist the changes
+      localStorage.setItem("devtalles_user", JSON.stringify(updatedUser));
+      
+      // Debug: Log what we're storing in localStorage
+      console.log("Updated user data being stored:", updatedUser);
+      console.log("Biography in updated user:", updatedUser.biography);
+      console.log("BirthDate in updated user:", updatedUser.birthDate);
+      
       toast({
         title: "¡Perfil actualizado!",
         description: "Tu perfil se ha actualizado correctamente.",
@@ -287,6 +318,13 @@ export const Profile = () => {
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>Miembro desde: {joinedAt}</span>
                   </Chip>
+
+                  {age && (
+                    <Chip>
+                      <Calendar className="h-4 w-4 text-blue-500" />
+                      <span>{age} años</span>
+                    </Chip>
+                  )}
                 </div>
               </div>
             </div>
@@ -299,6 +337,21 @@ export const Profile = () => {
             </div>
           </div>
         </div>
+
+        {/* BIOGRAPHY SECTION */}
+        {user.biography && (
+          <div className="mb-6">
+            <div className="bg-card rounded-lg border p-4">
+              <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                <User className="h-5 w-5 text-muted-foreground" />
+                Biografía
+              </h3>
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                {user.biography}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* PERFIL PÚBLICO (colapsable bajo el header) */}
         <AnimatePresence initial={false}>

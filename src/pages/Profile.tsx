@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LoadMoreButton } from "@/components/LoadMoreButton";
 import { useUpdateUser } from "@/services/userService";
 import { DatePicker } from "@/components/ui/date-picker";
+import { useImageUpload } from "@/hooks/useImageUpload";
 
 
 
@@ -50,6 +51,7 @@ export const Profile = () => {
   const [avatarPreview, setAvatarPreview] = useState<string>("");
   
   const updateUserMutation = useUpdateUser();
+  const { uploadAvatar, isUploading: isUploadingAvatar, uploadError: avatarUploadError } = useImageUpload();
 
   // Initialize form data when user data is available
   useEffect(() => {
@@ -154,15 +156,40 @@ export const Profile = () => {
     }));
   };
 
-  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setAvatarFile(file);
+      
+      // Create a preview immediately
       const reader = new FileReader();
       reader.onload = (e) => {
         setAvatarPreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
+
+      // Upload to Cloudinary
+      try {
+        const uploadResult = await uploadAvatar(file);
+        setAvatarPreview(uploadResult.secure_url);
+        
+        toast({
+          title: "Avatar uploaded!",
+          description: "Your new avatar has been uploaded successfully.",
+        });
+      } catch (error) {
+        console.error('Avatar upload error:', error);
+        toast({
+          title: "Upload failed",
+          description: avatarUploadError || "Failed to upload avatar. Please try again.",
+          variant: "destructive",
+        });
+        
+        // Reset to original avatar on error
+        if (user?.avatar) {
+          setAvatarPreview(user.avatar);
+        }
+      }
     }
   };
 
@@ -183,9 +210,8 @@ export const Profile = () => {
         birthDate: editFormData.birthDate ? editFormData.birthDate.toISOString().split('T')[0] : "",
       };
 
-      // If there's a new avatar file, we'll need to handle file upload
-      // For now, we'll just update the avatar URL if it's changed
-      if (avatarPreview !== user?.avatar) {
+      // If there's a new avatar URL (from Cloudinary upload), update it
+      if (avatarPreview !== user?.avatar && avatarPreview.startsWith('http')) {
         updateData.avatar = avatarPreview;
       }
 
@@ -297,24 +323,33 @@ export const Profile = () => {
                     <div className="space-y-4">
                       <Label className="text-base font-medium">Foto de perfil</Label>
                       <div className="flex items-center gap-4">
-                        <div className="relative">
-                          <Avatar className="h-20 w-20">
-                            <AvatarImage src={avatarPreview} alt={editFormData.name} />
-                            <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-                              {editFormData.name ? editFormData.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <label htmlFor="avatar-upload" className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1.5 cursor-pointer hover:bg-primary/90 transition-colors">
-                            <Camera className="h-3 w-3" />
-                            <input
-                              id="avatar-upload"
-                              type="file"
-                              accept="image/*"
-                              onChange={handleAvatarChange}
-                              className="hidden"
-                            />
-                          </label>
-                        </div>
+            <div className="relative">
+              <Avatar className="h-20 w-20">
+                <AvatarImage src={avatarPreview} alt={editFormData.name} />
+                <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                  {editFormData.name ? editFormData.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <label htmlFor="avatar-upload" className={`absolute -bottom-1 -right-1 rounded-full p-1.5 cursor-pointer transition-colors ${
+                isUploadingAvatar 
+                  ? 'bg-orange-500 text-white' 
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
+              }`}>
+                {isUploadingAvatar ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Camera className="h-3 w-3" />
+                )}
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  disabled={isUploadingAvatar}
+                  className="hidden"
+                />
+              </label>
+            </div>
                         <div className="space-y-1">
                           <p className="text-sm text-muted-foreground">
                             Haz clic en la cámara para cambiar tu foto de perfil
@@ -322,6 +357,16 @@ export const Profile = () => {
                           <p className="text-xs text-muted-foreground">
                             Formatos soportados: JPG, PNG, GIF (máx. 5MB)
                           </p>
+                          {isUploadingAvatar && (
+                            <p className="text-xs text-orange-600">
+                              Subiendo imagen...
+                            </p>
+                          )}
+                          {avatarUploadError && (
+                            <p className="text-xs text-red-600">
+                              {avatarUploadError}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -360,28 +405,33 @@ export const Profile = () => {
 
                     {/* Action Buttons */}
                     <div className="flex items-center gap-2 pt-4">
-                      <Button 
-                        className="rounded-xl" 
-                        onClick={handleSavePublic}
-                        disabled={updateUserMutation.isPending}
-                      >
-                        {updateUserMutation.isPending ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Guardando...
-                          </>
-                        ) : (
-                          <>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Guardar cambios
-                          </>
-                        )}
-                      </Button>
+          <Button 
+            className="rounded-xl" 
+            onClick={handleSavePublic}
+            disabled={updateUserMutation.isPending || isUploadingAvatar}
+          >
+            {updateUserMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Guardando...
+              </>
+            ) : isUploadingAvatar ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Subiendo imagen...
+              </>
+            ) : (
+              <>
+                <Edit className="h-4 w-4 mr-2" />
+                Guardar cambios
+              </>
+            )}
+          </Button>
                       <Button 
                         variant="ghost" 
                         className="rounded-xl" 
                         onClick={handleCancelPublic}
-                        disabled={updateUserMutation.isPending}
+                        disabled={updateUserMutation.isPending || isUploadingAvatar}
                       >
                         Cancelar
                       </Button>

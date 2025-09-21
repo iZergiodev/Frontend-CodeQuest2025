@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import MDEditor from '@uiw/react-md-editor';
+import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { Badge } from "@/components/ui/badge";
 import { useTheme } from "next-themes";
 import {
@@ -25,6 +25,7 @@ import { FloatingEdgeButton } from "@/components/FloatingEdgeButton";
 import { useAuth } from "@/hooks/useAuth";
 import { useCreatePost, useUpdatePost, useCategories, useSubcategoriesByCategory, usePostIdFromSlug, usePost } from "@/services/postsService";
 import { useToast } from "@/hooks/use-toast";
+import { useImageUpload } from "@/hooks/useImageUpload";
 
 const CreatePost = () => {
   const { isOpen } = useOpen();
@@ -54,6 +55,7 @@ const CreatePost = () => {
   
   const createPostMutation = useCreatePost();
   const updatePostMutation = useUpdatePost();
+  const { uploadPostCover, isUploading: isUploadingCover, uploadError: coverUploadError } = useImageUpload();
 
   // Load existing post data when in edit mode
   useEffect(() => {
@@ -102,6 +104,31 @@ const CreatePost = () => {
       ...prev,
       tags: prev.tags.filter(tag => tag !== tagToRemove)
     }));
+  };
+
+  const handleCoverImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      try {
+        const uploadResult = await uploadPostCover(file);
+        setFormData(prev => ({
+          ...prev,
+          imageUrl: uploadResult.secure_url
+        }));
+        
+        toast({
+          title: "Cover image uploaded!",
+          description: "Your post cover has been uploaded successfully.",
+        });
+      } catch (error) {
+        console.error('Cover image upload error:', error);
+        toast({
+          title: "Upload failed",
+          description: coverUploadError || "Failed to upload cover image. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const handleBackClick = () => navigate(-1);
@@ -325,40 +352,12 @@ const CreatePost = () => {
                       <Label htmlFor="content" className="text-sm font-medium">
                         Contenido del Post *
                       </Label>
-                      <div className="flex gap-1">
-                        <Button
-                          variant={previewMode === "edit" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setPreviewMode("edit")}
-                          className="text-xs px-2 py-1 h-7"
-                        >
-                          Editar
-                        </Button>
-                        <Button
-                          variant={previewMode === "live" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setPreviewMode("live")}
-                          className="text-xs px-2 py-1 h-7"
-                        >
-                          En Vivo
-                        </Button>
-                        <Button
-                          variant={previewMode === "preview" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setPreviewMode("preview")}
-                          className="text-xs px-2 py-1 h-7"
-                        >
-                          Vista Previa
-                        </Button>
-                      </div>
                     </div>
-                    <div className="mt-2" data-color-mode={theme === "dark" ? "dark" : "light"}>
-                      <MDEditor
+                    <div className="mt-2">
+                      <MarkdownEditor
                         value={formData.content}
                         onChange={(val) => setFormData(prev => ({ ...prev, content: val || "" }))}
-                        preview={previewMode}
-                        hideToolbar={false}
-                        height={400}
+                        placeholder="Escribe tu contenido aquí..."
                       />
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">
@@ -437,9 +436,10 @@ const CreatePost = () => {
                     <div className="mt-2 space-y-2">
                       <Input
                         id="imageUrl"
-                        placeholder="URL de la imagen..."
+                        placeholder="URL de la imagen o sube una nueva..."
                         value={formData.imageUrl}
                         onChange={(e) => setFormData(prev => ({ ...prev, imageUrl: e.target.value }))}
+                        disabled={isUploadingCover}
                       />
                       {formData.imageUrl && (
                         <div className="aspect-video bg-muted rounded-lg overflow-hidden">
@@ -453,10 +453,57 @@ const CreatePost = () => {
                           />
                         </div>
                       )}
-                      <Button variant="outline" size="sm" className="w-full">
-                        <ImageIcon className="h-4 w-4 mr-2" />
-                        Subir Imagen
-                      </Button>
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleCoverImageUpload}
+                            className="hidden"
+                            id="cover-image-upload"
+                            disabled={isUploadingCover}
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full"
+                            disabled={isUploadingCover}
+                            onClick={() => document.getElementById('cover-image-upload')?.click()}
+                          >
+                            {isUploadingCover ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Subiendo...
+                              </>
+                            ) : (
+                              <>
+                                <ImageIcon className="h-4 w-4 mr-2" />
+                                Subir Imagen
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        {formData.imageUrl && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => setFormData(prev => ({ ...prev, imageUrl: "" }))}
+                            disabled={isUploadingCover}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      {isUploadingCover && (
+                        <p className="text-sm text-orange-600">
+                          Subiendo imagen de portada...
+                        </p>
+                      )}
+                      {coverUploadError && (
+                        <p className="text-sm text-red-600">
+                          {coverUploadError}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </CardContent>

@@ -40,14 +40,12 @@ export const Profile = () => {
   const [commentsLoading, setCommentsLoading] = useState(false);
   const { toast } = useToast();
   
-  // Profile edit form state
   const [editFormData, setEditFormData] = useState({
     name: "",
     biography: "",
     birthDate: undefined as Date | undefined,
     avatar: "",
   });
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>("");
   
   const updateUserMutation = useUpdateUser();
@@ -182,7 +180,6 @@ export const Profile = () => {
   const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setAvatarFile(file);
       
       // Create a preview immediately
       const reader = new FileReader();
@@ -281,7 +278,6 @@ export const Profile = () => {
         avatar: user.avatar || "",
       });
       setAvatarPreview(user.avatar || "");
-      setAvatarFile(null);
     }
     setShowPublicForm(false);
   };
@@ -636,7 +632,7 @@ export const Profile = () => {
                 <CardTitle className="text-base">Métricas</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-3">
-                <MetricRow icon={<Stars className="h-5 w-5 text-yellow-500" />} label="Puntos Stardust" value={user.starDustPoints?.toLocaleString() ?? "0"} />
+                <MetricRow icon={<Stars className="h-5 w-5 text-yellow-500" />} label="Stardust" value={user.starDustPoints?.toLocaleString() ?? "0"} />
                 <MetricRow icon={<User className="h-5 w-5 text-muted-foreground" />} label="Nivel de perfil" value="Básico" />
               </CardContent>
             </Card>

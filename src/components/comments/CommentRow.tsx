@@ -39,37 +39,11 @@ export function CommentRow({ c, onReply, onReport, className }: CommentRowProps)
   
   // Calculate indentation based on level (Reddit style)
   const leftPadding = Math.min(level * 24, maxLevel * 24); // 24px per level like Reddit
-  const lineWidth = 1; // Thinner line like Reddit
-  const lineOffset = leftPadding - 12; // Position of the connecting line
 
   return (
     <div className={`relative ${className ?? ""}`}>
       {/* Main comment */}
       <div className={`py-3 ${isMaxLevel ? 'pl-0' : ''}`} style={{ paddingLeft: isMaxLevel ? 0 : `${leftPadding}px` }}>
-        {/* Reddit-style connecting lines */}
-        {level > 0 && (
-          <>
-            {/* Vertical line extending down from parent */}
-            <div 
-              className="absolute left-0 top-0 w-px bg-border/40"
-              style={{
-                left: `${lineOffset}px`,
-                width: '1px',
-                height: '100%'
-              }}
-            />
-            {/* Horizontal line connecting to avatar */}
-            <div 
-              className="absolute left-0 w-3 h-px bg-border/40"
-              style={{
-                left: `${lineOffset}px`,
-                top: '20px', // Align with avatar center
-                width: '12px'
-              }}
-            />
-          </>
-        )}
-
         {/* header */}
         <div className="flex items-center gap-3 mb-2 relative">
           <Avatar className="h-8 w-8 relative z-10">

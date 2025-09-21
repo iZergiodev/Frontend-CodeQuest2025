@@ -11,11 +11,16 @@ export interface CommentDto {
   authorId: number;
   authorName: string;
   authorAvatar?: string;
+  parentId?: number;
+  replies: CommentDto[];
+  likesCount: number;
+  repliesCount: number;
 }
 
 export interface CreateCommentDto {
   content: string;
   postId: number;
+  parentId?: number;
 }
 
 export interface UpdateCommentDto {

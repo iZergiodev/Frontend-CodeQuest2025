@@ -9,13 +9,14 @@ type CommentsListProps = {
 
 export function CommentsList({ comments, onReply, onReport }: CommentsListProps) {
   return (
-    <div className="divide-y divide-transparent">
+    <div className="space-y-0">
       {comments.map((c) => (
         <CommentRow
           key={c.id}
           c={c}
           onReply={onReply}
           onReport={onReport}
+          className="border-b border-border/20 last:border-b-0"
         />
       ))}
     </div>

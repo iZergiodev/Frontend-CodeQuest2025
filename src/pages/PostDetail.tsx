@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { ArrowLeft, User, Calendar, Clock, Trophy, History, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,6 +15,7 @@ import { usePost, usePostIdFromSlug } from "@/services/postsService";
 import { useCommentsByPost, useCreateComment } from "@/services/commentsService";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { bookmarkService } from "@/services/bookmarkService";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -28,6 +29,9 @@ const PostDetail = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [sortBy, setSortBy] = useState<SortKey>("top");
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const { isOpen } = useOpen(); 
   const postRef = useRef<HTMLDivElement>(null);
 
@@ -41,6 +45,56 @@ const PostDetail = () => {
   const { data: comments = [], isLoading: commentsLoading } = useCommentsByPost(postId || "");
   
   const createCommentMutation = useCreateComment();
+
+  // Load bookmark status when user and postId are available
+  useEffect(() => {
+    if (user && postId) {
+      loadBookmarkStatus();
+    }
+  }, [user, postId]);
+
+  const loadBookmarkStatus = async () => {
+    try {
+      const response = await bookmarkService.getBookmarkStatus(postId!.toString());
+      setIsBookmarked(response.isBookmarked);
+      console.log('Bookmark status loaded:', response.isBookmarked);
+    } catch (error) {
+      console.error('Error loading bookmark status:', error);
+      setIsBookmarked(false);
+    }
+  };
+
+  const handleBookmark = async () => {
+    if (!user || !postId) {
+      toast({
+        title: "Acceso requerido",
+        description: "Debes iniciar sesión para guardar posts.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setBookmarkLoading(true);
+    try {
+      const response = await bookmarkService.toggleBookmark(postId.toString());
+      setIsBookmarked(response.isBookmarked);
+      
+      toast({
+        title: response.isBookmarked ? "Post guardado" : "Post eliminado de guardados",
+        description: response.isBookmarked 
+          ? "El post se ha guardado en tus marcadores." 
+          : "El post se ha eliminado de tus marcadores.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "No se pudo completar la acción.",
+        variant: "destructive",
+      });
+    } finally {
+      setBookmarkLoading(false);
+    }
+  };
 
   const formatTimeAgo = (dateString: string) => {
     try {
@@ -59,14 +113,35 @@ const PostDetail = () => {
   };
 
   const flatComments: FlatComment[] = useMemo(() => {
-    return comments.map(comment => ({
+    const mapComment = (comment: any, level: number = 0): FlatComment => ({
       id: comment.id.toString(),
       author: comment.authorName?.trim() || "Usuario",
       avatarUrl: comment.authorAvatar,
       timeAgo: formatTimeAgo(comment.createdAt),
       content: comment.content,
-    }));
+      parentId: comment.parentId,
+      level,
+      replies: comment.replies?.map((reply: any) => mapComment(reply, level + 1)) || [],
+      dust: comment.likesCount || 0,
+      repliesCount: comment.repliesCount || 0,
+    });
+
+    return comments.map(comment => mapComment(comment, 0));
   }, [comments]);
+
+  // Helper function to find a comment by ID in the nested structure
+  const findCommentById = (commentId: string, commentList: FlatComment[]): FlatComment | null => {
+    for (const comment of commentList) {
+      if (comment.id === commentId) {
+        return comment;
+      }
+      if (comment.replies && comment.replies.length > 0) {
+        const found = findCommentById(commentId, comment.replies);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
 
   const sortMeta: Record<SortKey, { label: string; Icon: any }> = {
     top: { label: "Top", Icon: Trophy },
@@ -108,15 +183,23 @@ const PostDetail = () => {
     }
 
     try {
+      const commentContent = replyingTo 
+        ? `@${comments.find(c => c.id.toString() === replyingTo)?.authorName || 'Usuario'} ${content}`
+        : content;
+
       await createCommentMutation.mutateAsync({
-        content,
+        content: commentContent,
         postId: parseInt(postId),
+        parentId: replyingTo ? parseInt(replyingTo) : undefined,
       });
       
       toast({
-        title: "Comentario publicado",
-        description: "Tu comentario se ha publicado correctamente",
+        title: replyingTo ? "Respuesta publicada" : "Comentario publicado",
+        description: replyingTo ? "Tu respuesta se ha publicado correctamente" : "Tu comentario se ha publicado correctamente",
       });
+
+      // Clear reply state
+      setReplyingTo(null);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -124,6 +207,21 @@ const PostDetail = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleReply = (comment: FlatComment) => {
+    setReplyingTo(comment.id);
+    // Scroll to comment input after a short delay
+    setTimeout(() => {
+      document.getElementById("comment-input")?.scrollIntoView({ behavior: "smooth" });
+      // Focus on the textarea
+      setTimeout(() => {
+        const textarea = document.querySelector('#comment-input textarea') as HTMLTextAreaElement;
+        if (textarea) {
+          textarea.focus();
+        }
+      }, 100);
+    }, 100);
   };
 
   if (slugLoading || postLoading) {
@@ -190,7 +288,28 @@ const PostDetail = () => {
             </h1>
 
             <div className="flex flex-wrap gap-2">
-              <Badge className="bg-primary/10 text-primary">{post.category.name}</Badge>
+              <Badge 
+                variant="secondary" 
+                className="bg-background/90 text-foreground backdrop-blur-sm border border-border/50 text-sm font-medium"
+              >
+                <div
+                  className="w-2 h-2 rounded-full mr-2"
+                  style={{ backgroundColor: post.category.color }}
+                />
+                {post.category.name}
+              </Badge>
+              {post.subcategory && (
+                <Badge 
+                  variant="outline" 
+                  className="bg-background/90 text-foreground backdrop-blur-sm border border-border/50 text-xs"
+                >
+                  <div
+                    className="w-1.5 h-1.5 rounded-full mr-1.5"
+                    style={{ backgroundColor: post.subcategory.color }}
+                  />
+                  {post.subcategory.name}
+                </Badge>
+              )}
               {post.tags.map((t, i) => (
                 <Badge key={i} variant="outline">
                   {t}
@@ -269,26 +388,66 @@ const PostDetail = () => {
           </div>
 
           <PostActions
+            key={`post-actions-${postId}-${isBookmarked}`}
             context="post"
             showSave
             showShare
             variant="pill"
             size="md"
-            initialStartDust={post.likesCount}
+            initialLikes={post.likesCount}
             initialComments={post.commentsCount}
             initialSaves={0} // TODO: Add saves count when implemented
             initialShares={0} // TODO: Add shares count when implemented
-            onCommentClick={() =>
-              document.getElementById("comments")?.scrollIntoView({ behavior: "smooth" })
-            }
+            defaultSavedActive={isBookmarked}
+            onCommentClick={() => {
+              // Scroll to comment input
+              document.getElementById("comment-input")?.scrollIntoView({ behavior: "smooth" });
+              // Trigger expansion and focus on the textarea after a short delay
+              setTimeout(() => {
+                // First click on the comment box to expand it
+                const commentBox = document.querySelector('#comment-input > div') as HTMLDivElement;
+                if (commentBox) {
+                  commentBox.click();
+                  // Then focus on the textarea after expansion
+                  setTimeout(() => {
+                    const textarea = document.querySelector('#comment-input textarea') as HTMLTextAreaElement;
+                    if (textarea) {
+                      textarea.focus();
+                    }
+                  }, 100);
+                }
+              }, 300);
+            }}
+            onSaveToggle={handleBookmark}
             onReport={() => console.log("report post")}
           />
 
           <div className="pt-8" id="comments">
-            <CommentBox 
-              onSubmit={handleCommentSubmit}
-              placeholder="Escribe tu comentario..."
-            />
+            <div id="comment-input">
+              {replyingTo && (
+                <div className="mb-3 p-3 bg-muted/50 rounded-lg border border-border/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">
+                      Respondiendo a <span className="font-medium text-foreground">
+                        {findCommentById(replyingTo, flatComments)?.author || 'Usuario'}
+                      </span>
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setReplyingTo(null)}
+                      className="h-6 w-6 p-0"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                </div>
+              )}
+              <CommentBox 
+                onSubmit={handleCommentSubmit}
+                placeholder={replyingTo ? "Escribe tu respuesta..." : "Escribe tu comentario..."}
+              />
+            </div>
 
             <div className="mt-4 flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Ordenar por:</span>
@@ -335,9 +494,7 @@ const PostDetail = () => {
             ) : sortedComments.length > 0 ? (
               <CommentsList
                 comments={sortedComments}
-                onReply={() => {
-                  document.getElementById("comment-box")?.scrollIntoView({ behavior: "smooth" });
-                }}
+                onReply={handleReply}
                 onReport={(c) => console.log("Denunciar comentario:", c.id)}
               />
             ) : (

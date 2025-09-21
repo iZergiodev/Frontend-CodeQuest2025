@@ -1,7 +1,7 @@
 // components/PostActions.tsx
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
-  Sparkles,
+  Heart,
   MessageCircle,
   Share2,
   MoreHorizontal,
@@ -30,13 +30,13 @@ type Variant = "pill" | "ghost"; // pill = con fondo/borde; ghost = solo en hove
 
 type PostActionsProps = {
   // contadores
-  initialStartDust?: number;
+  initialLikes?: number;
   initialComments?: number;
   initialShares?: number;
   initialSaves?: number;
 
   // estados / callbacks
-  defaultStartDustActive?: boolean;
+  defaultLikesActive?: boolean;
   defaultSavedActive?: boolean;
   onCommentClick?: () => void;
   onReport?: () => void;
@@ -58,7 +58,7 @@ type PostActionsProps = {
   showLabels?: boolean;       // mostrar nombres junto a los íconos
 
   tooltips?: {
-    startdust?: string;
+    likes?: string;
     comments?: string;
     save?: string;
     share?: string;
@@ -68,11 +68,11 @@ type PostActionsProps = {
 
 export function PostActions({
   // data
-  initialStartDust = 0,
+  initialLikes = 0,
   initialComments = 0,
   initialShares = 0,
   initialSaves = 0,
-  defaultStartDustActive = false,
+  defaultLikesActive = false,
   defaultSavedActive = false,
   // callbacks
   onCommentClick,
@@ -92,8 +92,8 @@ export function PostActions({
   showLabels = false,
   tooltips,
 }: PostActionsProps) {
-  const [dustActive, setDustActive] = useState(defaultStartDustActive);
-  const [dustCount, setDustCount] = useState(initialStartDust);
+  const [likesActive, setLikesActive] = useState(defaultLikesActive);
+  const [likesCount, setLikesCount] = useState(initialLikes);
 
   const [saved, setSaved] = useState(defaultSavedActive);
   const [saveCount, setSaveCount] = useState(initialSaves);
@@ -101,13 +101,18 @@ export function PostActions({
   const [shareCount, setShareCount] = useState(initialShares);
   const [copied, setCopied] = useState(false);
 
+  // Sync internal state with prop changes
+  useEffect(() => {
+    setSaved(defaultSavedActive);
+  }, [defaultSavedActive]);
+
   const url = useMemo(
     () => shareUrl ?? (typeof window !== "undefined" ? window.location.href : ""),
     [shareUrl]
   );
 
   const t = {
-    startdust: tooltips?.startdust ?? "Dar StartDust",
+    likes: tooltips?.likes ?? "Dar Like",
     comments: tooltips?.comments ?? "Comentar",
     save: tooltips?.save ?? "Guardar",
     share: tooltips?.share ?? "Compartir",
@@ -118,10 +123,10 @@ export function PostActions({
     n >= 1000 ? `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}k` : `${n}`;
 
   // toggles
-  const toggleDust = () => {
-    setDustActive((prev) => {
+  const toggleLikes = () => {
+    setLikesActive((prev) => {
       const next = !prev;
-      setDustCount((c) => (next ? c + 1 : Math.max(0, c - 1)));
+      setLikesCount((c) => (next ? c + 1 : Math.max(0, c - 1)));
       return next;
     });
   };
@@ -171,11 +176,8 @@ export function PostActions({
 
   const baseBtn = cn(S.height, S.px, pillBase, pillVariant);
 
-  const activeDust =
-  // "bg-primary/15 text-primary border border-primary/30 hover:bg-primary/20";
-  "bg-yellow-500/15 text-yellow-600 border border-yellow-500/30 hover:bg-yellow-500/20";
-  const activeSave =
-    "bg-yellow-500/15 text-yellow-600 border border-yellow-500/30 hover:bg-yellow-500/20";
+  const activeLikes = "";
+  const activeSave = "";
 
   const _showSave = showSave ?? context === "post";
 
@@ -184,23 +186,23 @@ export function PostActions({
       <div className={cn("flex items-center w-full", className)}>
         {/* grupo izquierdo */}
         <div className={cn("flex items-center", gapClass)}>
-          {/* StartDust */}
+          {/* Likes */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={toggleDust}
-                aria-pressed={dustActive}
-                aria-label={t.startdust}
-                className={cn(baseBtn, dustActive && activeDust)}
+                onClick={toggleLikes}
+                aria-pressed={likesActive}
+                aria-label={t.likes}
+                className={cn(baseBtn, likesActive && activeLikes)}
               >
-                <Sparkles className={S.icon} />
-                {showLabels && <span className={S.text}>StartDust</span>}
-                <span className={S.text}>{k(dustCount)}</span>
+                <Heart className={cn(S.icon, likesActive && "fill-current text-red-500")} />
+                {showLabels && <span className={S.text}>Like</span>}
+                <span className={S.text}>{k(likesCount)}</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{t.startdust}</TooltipContent>
+            <TooltipContent>{t.likes}</TooltipContent>
           </Tooltip>
 
           {/* Comentar */}
@@ -234,12 +236,11 @@ export function PostActions({
                   className={cn(baseBtn, saved && activeSave)}
                 >
                   {saved ? (
-                    <BookmarkCheck className={S.icon} />
+                    <BookmarkCheck className={cn(S.icon, "fill-current text-yellow-500")} />
                   ) : (
                     <Bookmark className={S.icon} />
                   )}
                   {showLabels && <span className={S.text}>Guardar</span>}
-                  <span className={S.text}>{k(saveCount)}</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>{t.save}</TooltipContent>
@@ -259,7 +260,6 @@ export function PostActions({
                 >
                   <Share2 className={S.icon} />
                   {showLabels && <span className={S.text}>Compartir</span>}
-                  <span className={S.text}>{copied ? "Copiado" : k(shareCount)}</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>{copied ? "Enlace copiado" : t.share}</TooltipContent>

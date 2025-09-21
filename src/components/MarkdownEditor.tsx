@@ -30,8 +30,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     } catch (error) {
       console.error('Markdown image upload error:', error);
       toast({
-        title: "Upload failed",
-        description: uploadError || "Failed to upload image. Please try again.",
+        title: "Error de carga",
+        description: uploadError || "No se pudo subir la imagen. Por favor, inténtalo de nuevo.",
         variant: "destructive",
       });
       throw error;

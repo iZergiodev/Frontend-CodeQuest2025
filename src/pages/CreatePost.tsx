@@ -123,8 +123,8 @@ const CreatePost = () => {
       } catch (error) {
         console.error('Cover image upload error:', error);
         toast({
-          title: "Upload failed",
-          description: coverUploadError || "Failed to upload cover image. Please try again.",
+          title: "Error de carga",
+          description: coverUploadError || "No se pudo subir la imagen de portada. Por favor, inténtalo de nuevo.",
           variant: "destructive",
         });
       }

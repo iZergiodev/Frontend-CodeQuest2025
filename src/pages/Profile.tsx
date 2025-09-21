@@ -203,7 +203,7 @@ export const Profile = () => {
       } catch (error) {
         console.error('Avatar upload error:', error);
         toast({
-          title: "Upload failed",
+          title: "Error de carga",
           description: avatarUploadError || "Failed to upload avatar. Please try again.",
           variant: "destructive",
         });
@@ -636,7 +636,7 @@ export const Profile = () => {
                 <CardTitle className="text-base">Métricas</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-3">
-                <MetricRow icon={<Stars className="h-5 w-5 text-yellow-500" />} label="Stardust points" value={user.starDustPoints?.toLocaleString() ?? "0"} />
+                <MetricRow icon={<Stars className="h-5 w-5 text-yellow-500" />} label="Puntos Stardust" value={user.starDustPoints?.toLocaleString() ?? "0"} />
                 <MetricRow icon={<User className="h-5 w-5 text-muted-foreground" />} label="Nivel de perfil" value="Básico" />
               </CardContent>
             </Card>

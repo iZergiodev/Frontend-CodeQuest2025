@@ -16,8 +16,8 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   useEffect(() => {
     if (!loading && !user) {
       toast({
-        title: "Authentication required",
-        description: "Please log in to access this page.",
+        title: "Autenticación requerida",
+        description: "Por favor, inicie sesión para acceder a esta página.",
         variant: "destructive",
       });
       navigate('/', { replace: true });
@@ -25,11 +25,11 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }, [loading, user, navigate, toast]);
 
   if (loading) {
-    return <LoadingScreen message="Authenticating..." />;
+    return <LoadingScreen message="Autenticando..." />;
   }
 
   if (!user) {
-    return <LoadingScreen message="Redirecting to home..." />;
+    return <LoadingScreen message="Redirigiendo a la página principal..." />;
   }
 
   return <>{children}</>;

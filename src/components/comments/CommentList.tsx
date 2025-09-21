@@ -9,14 +9,15 @@ type CommentsListProps = {
 
 export function CommentsList({ comments, onReply, onReport }: CommentsListProps) {
   return (
-    <div className="space-y-0">
+    // The parent container must be a flexbox column to ensure children grow properly.
+    <div className="flex flex-col space-y-6">
       {comments.map((c) => (
         <CommentRow
           key={c.id}
           c={c}
           onReply={onReply}
           onReport={onReport}
-          className="border-b border-border/20 last:border-b-0"
+          className="pb-6 last:pb-0" // The bottom border and padding will be handled by the children.
         />
       ))}
     </div>

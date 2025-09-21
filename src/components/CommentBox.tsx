@@ -12,15 +12,18 @@ import { Image as ImageIcon, Sticker, Type } from "lucide-react";
 type CommentBoxProps = {
     placeholder?: string;
     onSubmit?: (text: string) => void;
+    autoFocus?: boolean;
 };
 
 export function CommentBox({
     placeholder = "Únete a la conversación",
     onSubmit,
+    autoFocus = false,
 }: CommentBoxProps) {
     const [expanded, setExpanded] = useState(false);
     const [text, setText] = useState("");
     const ref = useRef<HTMLDivElement | null>(null);
+    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
     // Cerrar si clic fuera (solo si está vacío)
     useEffect(() => {
@@ -33,6 +36,16 @@ export function CommentBox({
         document.addEventListener("pointerdown", onDocPointer);
         return () => document.removeEventListener("pointerdown", onDocPointer);
     }, [text]);
+
+    // Handle autoFocus prop
+    useEffect(() => {
+        if (autoFocus) {
+            setExpanded(true);
+            setTimeout(() => {
+                textareaRef.current?.focus();
+            }, 100);
+        }
+    }, [autoFocus]);
 
     const disabled = text.trim() === "";
 
@@ -69,6 +82,7 @@ export function CommentBox({
                 ) : (
                     <>
                         <Textarea
+                            ref={textareaRef}
                             autoFocus
                             value={text}
                             onChange={(e) => setText(e.target.value)}

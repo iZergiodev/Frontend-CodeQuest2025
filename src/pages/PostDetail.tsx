@@ -227,13 +227,6 @@ const PostDetail = () => {
     // Scroll to comment input after a short delay
     setTimeout(() => {
       document.getElementById("comment-input")?.scrollIntoView({ behavior: "smooth" });
-      // Focus on the textarea
-      setTimeout(() => {
-        const textarea = document.querySelector('#comment-input textarea') as HTMLTextAreaElement;
-        if (textarea) {
-          textarea.focus();
-        }
-      }, 100);
     }, 100);
   };
 
@@ -475,6 +468,7 @@ const PostDetail = () => {
               <CommentBox 
                 onSubmit={handleCommentSubmit}
                 placeholder={replyingTo ? "Escribe tu respuesta..." : "Escribe tu comentario..."}
+                autoFocus={!!replyingTo}
               />
             </div>
 

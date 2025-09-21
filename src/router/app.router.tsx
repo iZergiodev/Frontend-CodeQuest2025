@@ -39,6 +39,14 @@ export const appRouter = createBrowserRouter([
                 ),
             },
             {
+                path: "/edit-post/:slug",
+                element: (
+                    <ProtectedRoute>
+                        <CreatePost />
+                    </ProtectedRoute>
+                ),
+            },
+            {
                 path: "/profile",
                 element: (
                     <ProtectedRoute>

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,12 +18,12 @@ import {
   Calendar,
   Loader2,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useOpen } from "@/hooks/useOpen";
 import { FloatingEdgeButton } from "@/components/FloatingEdgeButton";
 import { useAuth } from "@/hooks/useAuth";
-import { useCreatePost, useCategories, useSubcategoriesByCategory } from "@/services/postsService";
+import { useCreatePost, useUpdatePost, useCategories, useSubcategoriesByCategory, usePostIdFromSlug, usePost } from "@/services/postsService";
 import { useToast } from "@/hooks/use-toast";
 
 const CreatePost = () => {
@@ -32,6 +32,12 @@ const CreatePost = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const { slug } = useParams<{ slug?: string }>();
+
+  // Detect if we're in edit mode
+  const isEditMode = !!slug;
+  const { postId, isLoading: slugLoading } = usePostIdFromSlug(slug || "");
+  const { data: existingPost, isLoading: postLoading } = usePost(postId || "");
 
   const [formData, setFormData] = useState({
     title: "",
@@ -47,6 +53,33 @@ const CreatePost = () => {
   const { data: subcategories = [], isLoading: subcategoriesLoading } = useSubcategoriesByCategory(Number(formData.categoryId));
   
   const createPostMutation = useCreatePost();
+  const updatePostMutation = useUpdatePost();
+
+  // Load existing post data when in edit mode
+  useEffect(() => {
+    if (isEditMode && existingPost) {
+      // Check if user is the author
+      if (user && existingPost.authorId !== user.id) {
+        toast({
+          title: "Acceso denegado",
+          description: "Solo puedes editar tus propios posts",
+          variant: "destructive",
+        });
+        navigate(-1);
+        return;
+      }
+
+      setFormData({
+        title: existingPost.title,
+        summary: existingPost.excerpt || "",
+        content: existingPost.content,
+        categoryId: existingPost.category?.id?.toString() || "",
+        subcategoryId: existingPost.subcategory?.id?.toString() || "",
+        imageUrl: existingPost.coverImage || "",
+        tags: existingPost.tags || [],
+      });
+    }
+  }, [isEditMode, existingPost, user, toast, navigate]);
 
   const [newTag, setNewTag] = useState("");
   const [previewMode, setPreviewMode] = useState<"edit" | "live" | "preview">("live");
@@ -121,21 +154,39 @@ const CreatePost = () => {
       console.log("Sending post data:", postData);
       console.log("Author ID:", user.id);
 
-      await createPostMutation.mutateAsync({
-        postData,
-        authorId: user.id,
-      });
+      if (isEditMode && postId) {
+        // Update existing post
+        await updatePostMutation.mutateAsync({
+          id: postId,
+          postData,
+        });
 
-      toast({
-        title: "¡Éxito!",
-        description: status === "published" ? "Post publicado exitosamente!" : "Borrador guardado!",
-      });
+        toast({
+          title: "¡Éxito!",
+          description: "Post actualizado exitosamente!",
+        });
 
-      navigate("/");
+        navigate(`/post/${existingPost?.slug}`);
+      } else {
+        // Create new post
+        await createPostMutation.mutateAsync({
+          postData,
+          authorId: user.id,
+        });
+
+        toast({
+          title: "¡Éxito!",
+          description: status === "published" ? "Post publicado exitosamente!" : "Borrador guardado!",
+        });
+
+        navigate("/");
+      }
     } catch (error) {
-      console.error("Error creating post:", error);
+      console.error("Error saving post:", error);
       
-      let errorMessage = "No se pudo crear el post. Inténtalo de nuevo.";
+      let errorMessage = isEditMode 
+        ? "No se pudo actualizar el post. Inténtalo de nuevo."
+        : "No se pudo crear el post. Inténtalo de nuevo.";
       
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as any;
@@ -145,6 +196,8 @@ const CreatePost = () => {
           errorMessage = "No estás autenticado. Por favor, inicia sesión.";
         } else if (axiosError.response?.status === 400) {
           errorMessage = "Datos inválidos. Verifica que todos los campos estén correctos.";
+        } else if (axiosError.response?.status === 403) {
+          errorMessage = "No tienes permisos para editar este post.";
         }
       }
       
@@ -155,6 +208,22 @@ const CreatePost = () => {
       });
     }
   };
+
+  // Show loading state when in edit mode and post is still loading
+  if (isEditMode && (slugLoading || postLoading)) {
+    return (
+      <div className="bg-background">
+        <main className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Cargando post para editar...</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background">
@@ -172,36 +241,43 @@ const CreatePost = () => {
             </Button> */}
 
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-foreground">Crear Nuevo Post</h1>
+              <h1 className="text-3xl font-bold text-foreground">
+                {isEditMode ? "Editar Post" : "Crear Nuevo Post"}
+              </h1>
               <p className="text-muted-foreground mt-1">
-                Escribe y publica contenido increíble para tu audiencia
+                {isEditMode 
+                  ? "Modifica tu post y actualiza los cambios"
+                  : "Escribe y publica contenido increíble para tu audiencia"
+                }
               </p>
             </div>
 
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => handleSubmit("draft")}
-                disabled={!formData.title || createPostMutation.isPending}
-              >
-                {createPostMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4 mr-2" />
-                )}
-                Guardar Borrador
-              </Button>
+              {!isEditMode && (
+                <Button
+                  variant="outline"
+                  onClick={() => handleSubmit("draft")}
+                  disabled={!formData.title || createPostMutation.isPending || updatePostMutation.isPending}
+                >
+                  {createPostMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  Guardar Borrador
+                </Button>
+              )}
               <Button
                 onClick={() => handleSubmit("published")}
-                disabled={!formData.title || !formData.content || createPostMutation.isPending}
+                disabled={!formData.title || !formData.content || createPostMutation.isPending || updatePostMutation.isPending}
                 className="bg-devtalles-gradient hover:opacity-90"
               >
-                {createPostMutation.isPending ? (
+                {createPostMutation.isPending || updatePostMutation.isPending ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
                   <Eye className="h-4 w-4 mr-2" />
                 )}
-                Publicar
+                {isEditMode ? "Actualizar Post" : "Publicar"}
               </Button>
             </div>
           </div>

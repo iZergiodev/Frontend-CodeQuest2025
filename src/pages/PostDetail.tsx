@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, useEffect } from "react";
-import { ArrowLeft, User, Calendar, Clock, Trophy, History, MessageSquare } from "lucide-react";
+import { ArrowLeft, User, Calendar, Clock, Trophy, History, MessageSquare, Edit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -296,9 +296,24 @@ const PostDetail = () => {
               </div>
             </div>
 
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-tight mb-4">
-              {post.title}
-            </h1>
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-tight flex-1">
+                {post.title}
+              </h1>
+              
+              {/* Edit button for post authors */}
+              {user && post.authorId === user.id && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/edit-post/${post.slug}`)}
+                  className="gap-2 shrink-0"
+                >
+                  <Edit className="h-4 w-4" />
+                  Editar post
+                </Button>
+              )}
+            </div>
 
             <div className="flex flex-wrap gap-2">
               <Badge 
@@ -434,6 +449,7 @@ const PostDetail = () => {
             onLikeToggle={handlePostLike}
             onReport={() => console.log("report post")}
           />
+
 
           <div className="pt-8" id="comments">
             <div id="comment-input">

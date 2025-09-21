@@ -2,11 +2,32 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { User, CreateUserDto } from "../types/blog";
 import apiClient from "../lib/api-client";
 
+// Transform UserDto from backend to frontend User format
+const transformUserDto = (dto: any): User => {
+  console.log("userService: Transforming user DTO:", dto);
+  return {
+    id: dto.id || dto.Id,
+    username: dto.username || dto.Username,
+    email: dto.email || dto.Email,
+    name: dto.name || dto.Name,
+    avatar: dto.avatar || dto.Avatar,
+    biography: dto.biography || dto.Biography,
+    birthDate: dto.birthDate || dto.BirthDate,
+    role: dto.role || dto.Role,
+    discordId: dto.discordId || dto.DiscordId,
+    discordUsername: dto.discordUsername || dto.DiscordUsername,
+    discordDiscriminator: dto.discordDiscriminator || dto.DiscordDiscriminator,
+    discordAvatar: dto.discordAvatar || dto.DiscordAvatar,
+    createdAt: dto.createdAt || dto.CreatedAt,
+    starDustPoints: dto.starDustPoints || dto.StarDustPoints || 0,
+  };
+};
+
 class UserService {
   async getAllUsers(): Promise<User[]> {
     try {
-      const response = await apiClient.get<User[]>("/api/users");
-      return response.data;
+      const response = await apiClient.get<any[]>("/api/users");
+      return response.data.map(transformUserDto);
     } catch (error) {
       console.error("Error fetching users:", error);
       throw error;
@@ -15,8 +36,8 @@ class UserService {
 
   async getUserById(id: number): Promise<User> {
     try {
-      const response = await apiClient.get<User>(`/api/users/${id}`);
-      return response.data;
+      const response = await apiClient.get<any>(`/api/users/${id}`);
+      return transformUserDto(response.data);
     } catch (error) {
       console.error("Error fetching user:", error);
       throw error;
@@ -25,11 +46,11 @@ class UserService {
 
   async createUser(userData: CreateUserDto): Promise<User> {
     try {
-      const response = await apiClient.post<User>(
+      const response = await apiClient.post<any>(
         "/api/users/register",
         userData
       );
-      return response.data;
+      return transformUserDto(response.data);
     } catch (error) {
       console.error("Error creating user:", error);
       throw error;
@@ -38,8 +59,8 @@ class UserService {
 
   async updateUserProfile(id: number, userData: Partial<User>): Promise<User> {
     try {
-      const response = await apiClient.put<User>(`/api/users/${id}`, userData);
-      return response.data;
+      const response = await apiClient.put<any>(`/api/users/${id}`, userData);
+      return transformUserDto(response.data);
     } catch (error) {
       console.error("Error updating user:", error);
       throw error;

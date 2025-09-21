@@ -118,6 +118,10 @@ export function PostCard({
     }
   };
 
+  const handleCardClick = () => {
+    navigate(`/post/${post.slug}`);
+  };
+
   // Reusable components
   const AuthorInfo = () => (
     <div className="flex items-center space-x-3">
@@ -185,7 +189,10 @@ export function PostCard({
             key={tag}
             variant="outline"
             className="text-xs cursor-pointer py-1 px-4 dark:hover:bg-indigo-950 hover:bg-violet-200 hover:border-violet-400 dark:hover:border-indigo-800 transition-colors"
-            onClick={() => onTagClick?.(tag)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onTagClick?.(tag);
+            }}
           >
             {tag}
           </Badge>
@@ -194,7 +201,10 @@ export function PostCard({
           <Badge 
             variant="outline" 
             className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-            onClick={() => setShowAllTags(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowAllTags(true);
+            }}
           >
             +{post.tags.length - 3}
           </Badge>
@@ -203,7 +213,10 @@ export function PostCard({
           <Badge 
             variant="outline" 
             className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-            onClick={() => setShowAllTags(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowAllTags(false);
+            }}
           >
             Ver menos
           </Badge>
@@ -336,7 +349,14 @@ export function PostCard({
               </Button>
             </>
           )}
-          <Button variant="ghost" size="sm" onClick={() => navigate(`/post/${post.slug}`)}>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/post/${post.slug}`);
+            }}
+          >
             {compact ? "Ver →" : "Leer más →"}
           </Button>
         </div>
@@ -346,7 +366,10 @@ export function PostCard({
 
   if (layout === 'horizontal') {
     return (
-      <Card className="group overflow-hidden transition-all duration-300 hover:shadow-post-hover hover:-translate-y-1 flex flex-col h-full">
+      <Card 
+        className="group overflow-hidden transition-all duration-300 hover:shadow-post-hover hover:-translate-y-1 flex flex-col h-full cursor-pointer"
+        onClick={handleCardClick}
+      >
         <div className="flex flex-1">
           <div className="flex-1 flex flex-col p-6">
             {showCategoriesAbove && (
@@ -375,7 +398,10 @@ export function PostCard({
   }
 
   return (
-    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-post-hover hover:-translate-y-1 flex flex-col h-full">
+    <Card 
+      className="group overflow-hidden transition-all duration-300 hover:shadow-post-hover hover:-translate-y-1 flex flex-col h-full cursor-pointer"
+      onClick={handleCardClick}
+    >
       <div className="relative">
         <CoverImage className="h-48 w-full" />
         {showCategoriesAbove && (

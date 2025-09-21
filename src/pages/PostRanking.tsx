@@ -3,7 +3,7 @@ import { useRankingData, usePopularPostsByCategory } from '../hooks/useRankingDa
 import { PostCard } from '../components/PostCard';
 import { LoadMoreButton } from '../components/LoadMoreButton';
 import { BlogFilters } from '../components/Filters';
-import { useCategories } from '../services/postsService';
+import { useCategories, generateSlug } from '../services/postsService';
 import { RefreshCw, Star, TrendingUp, MessageCircle, Heart } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
@@ -272,7 +272,7 @@ export default function PostRanking() {
                         readTime: Math.ceil(post.content.length / 200),
                         published: true,
                         featured: false,
-                        slug: `post-${post.id}`,
+                        slug: generateSlug(post.title),
                         author: post.authorId
                       }}
                       showTrendingMetrics={isTrending}

@@ -246,17 +246,27 @@ export const Profile = () => {
                   </Card>
                 ) : (
                   <>
-                    {userPosts.map(p => (
-                      <PostRow key={p.id} p={p} />
-                    ))}
-                    {userComments.map(c => (
-                      <CommentRow key={c.id} c={c} />
-                    ))}
-                    {userPosts.length === 0 && userComments.length === 0 && (
-                      <EmptyState icon={<Sparkles className="h-6 w-6" />} title="Aún no hay actividad">
-                        Cuando publiques o comentes, verás tu actividad aquí.
-                      </EmptyState>
-                    )}
+                    {(() => {
+                      // Combine posts and comments and sort by most recent
+                      const activities: Array<{ type: 'post', data: Post, date: string } | { type: 'comment', data: CommentDto, date: string }> = [
+                        ...userPosts.map(p => ({ type: 'post' as const, data: p, date: p.createdAt })),
+                        ...userComments.map(c => ({ type: 'comment' as const, data: c, date: c.createdAt }))
+                      ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+                      return activities.length > 0 ? (
+                        activities.map((activity) => {
+                          if (activity.type === 'post') {
+                            return <PostRow key={`post-${activity.data.id}`} p={activity.data} />;
+                          } else {
+                            return <CommentRow key={`comment-${activity.data.id}`} c={activity.data} />;
+                          }
+                        })
+                      ) : (
+                        <EmptyState icon={<Sparkles className="h-6 w-6" />} title="Aún no hay actividad">
+                          Cuando publiques o comentes, verás tu actividad aquí.
+                        </EmptyState>
+                      );
+                    })()}
                   </>
                 )}
               </TabsContent>
@@ -424,6 +434,8 @@ function MetricRow({ icon, label, value }: { icon: React.ReactNode; label: strin
 }
 
 function PostRow({ p }: { p: Post }) {
+  const navigate = useNavigate();
+  
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -440,8 +452,19 @@ function PostRow({ p }: { p: Post }) {
     }
   };
 
+  const handleViewPost = () => {
+    navigate(`/post/${p.slug}`);
+  };
+
+  const handleCardClick = () => {
+    navigate(`/post/${p.slug}`);
+  };
+
   return (
-    <Card className="hover:bg-muted/30 transition-colors">
+    <Card 
+      className="hover:bg-muted/30 transition-colors cursor-pointer"
+      onClick={handleCardClick}
+    >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <div className="mt-1 rounded-lg border px-2 py-1 text-xs text-muted-foreground">Post</div>
@@ -449,7 +472,16 @@ function PostRow({ p }: { p: Post }) {
             <p className="font-medium truncate">{p.title}</p>
             <p className="text-xs text-muted-foreground mt-0.5">{formatDate(p.createdAt)} • {p.likesCount} likes • {p.commentsCount} comentarios</p>
           </div>
-          <Button variant="ghost" size="sm">Ver</Button>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleViewPost();
+            }}
+          >
+            Ver
+          </Button>
         </div>
       </CardContent>
     </Card>

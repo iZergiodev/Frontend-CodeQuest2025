@@ -57,19 +57,6 @@ const Header = () => {
           />
         </div>
 
-        {/* Search (centrado y liviano) */}
-        {user && (
-          <div className="hidden md:flex flex-1 justify-center">
-            <div className="relative w-full max-w-2xl">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Buscar posts..."
-                className="pl-10 rounded-xl bg-muted/50"
-              />
-            </div>
-          </div>
-        )}
-
         {/* Acciones */}
         <div className="flex items-center gap-3">
           {user ? (

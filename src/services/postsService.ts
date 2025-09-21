@@ -29,6 +29,7 @@ interface PostDto {
   likesCount: number;
   commentsCount: number;
   visitsCount: number;
+  isLikedByUser?: boolean;
 }
 
 interface CreatePostDto {
@@ -98,6 +99,7 @@ const transformPostDto = (dto: PostDto): Post => {
     likesCount: dto.likesCount,
     commentsCount: dto.commentsCount,
     visitsCount: dto.visitsCount,
+    isLikedByUser: dto.isLikedByUser,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,
     slug: dto.title.toLowerCase().replace(/\s+/g, "-"),

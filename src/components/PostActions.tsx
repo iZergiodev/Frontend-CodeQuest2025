@@ -41,6 +41,7 @@ type PostActionsProps = {
   onCommentClick?: () => void;
   onReport?: () => void;
   onSaveToggle?: (saved: boolean) => void;
+  onLikeToggle?: () => void;
 
   // compartir
   shareUrl?: string;
@@ -78,6 +79,7 @@ export function PostActions({
   onCommentClick,
   onReport,
   onSaveToggle,
+  onLikeToggle,
   // share
   shareUrl,
   // visibility
@@ -106,6 +108,14 @@ export function PostActions({
     setSaved(defaultSavedActive);
   }, [defaultSavedActive]);
 
+  useEffect(() => {
+    setLikesActive(defaultLikesActive);
+  }, [defaultLikesActive]);
+
+  useEffect(() => {
+    setLikesCount(initialLikes);
+  }, [initialLikes]);
+
   const url = useMemo(
     () => shareUrl ?? (typeof window !== "undefined" ? window.location.href : ""),
     [shareUrl]
@@ -124,11 +134,18 @@ export function PostActions({
 
   // toggles
   const toggleLikes = () => {
-    setLikesActive((prev) => {
-      const next = !prev;
-      setLikesCount((c) => (next ? c + 1 : Math.max(0, c - 1)));
-      return next;
-    });
+    if (onLikeToggle) {
+      // Don't do optimistic updates when using external callbacks
+      // Let the external callback (React Query mutation) handle the optimistic updates
+      onLikeToggle();
+    } else {
+      // Only do optimistic updates when no external callback is provided
+      setLikesActive((prev) => {
+        const next = !prev;
+        setLikesCount((c) => (next ? c + 1 : Math.max(0, c - 1)));
+        return next;
+      });
+    }
   };
 
   const toggleSave = () => {
@@ -236,7 +253,7 @@ export function PostActions({
                   className={cn(baseBtn, saved && activeSave)}
                 >
                   {saved ? (
-                    <BookmarkCheck className={cn(S.icon, "fill-current text-yellow-500")} />
+                    <BookmarkCheck className={cn(S.icon, "fill-current text-indigo-900")} />
                   ) : (
                     <Bookmark className={S.icon} />
                   )}

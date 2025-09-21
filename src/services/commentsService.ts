@@ -15,6 +15,7 @@ export interface CommentDto {
   replies: CommentDto[];
   likesCount: number;
   repliesCount: number;
+  isLikedByUser: boolean;
 }
 
 export interface CreateCommentDto {
@@ -40,8 +41,14 @@ class CommentsService {
     return response.data;
   }
 
-  async getCommentsByPost(postId: string): Promise<CommentDto[]> {
-    const response = await apiClient.get(`${this.baseUrl}/post/${postId}`);
+  async getCommentsByPost(
+    postId: string,
+    sortBy?: string
+  ): Promise<CommentDto[]> {
+    const url = `${this.baseUrl}/post/${postId}${
+      sortBy ? `?sortBy=${sortBy}` : ""
+    }`;
+    const response = await apiClient.get(url);
     return response.data;
   }
 
@@ -95,10 +102,10 @@ export const useComment = (id: string) => {
   });
 };
 
-export const useCommentsByPost = (postId: string) => {
+export const useCommentsByPost = (postId: string, sortBy?: string) => {
   return useQuery({
-    queryKey: ["comments", "post", postId],
-    queryFn: () => commentsService.getCommentsByPost(postId),
+    queryKey: ["comments", "post", postId, sortBy],
+    queryFn: () => commentsService.getCommentsByPost(postId, sortBy),
     enabled: !!postId,
   });
 };

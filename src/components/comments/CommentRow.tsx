@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PostActions } from "@/components/PostActions";
 import { User } from "lucide-react";
+import { useToggleCommentLike } from "@/services/likesService";
 
 export type FlatComment = {
   id: string;
@@ -14,6 +15,7 @@ export type FlatComment = {
   parentId?: number;   // for nested comments
   replies?: FlatComment[]; // nested replies
   level?: number;      // nesting level for indentation
+  isLikedByUser?: boolean; // whether current user has liked this comment
 };
 
 type CommentRowProps = {
@@ -27,6 +29,13 @@ export function CommentRow({ c, onReply, onReport, className }: CommentRowProps)
   const level = c.level || 0;
   const maxLevel = 6; // Increased max level for deeper nesting
   const isMaxLevel = level >= maxLevel;
+  
+  const toggleCommentLikeMutation = useToggleCommentLike();
+
+  const handleLike = async () => {
+    const commentId = parseInt(c.id);
+    await toggleCommentLikeMutation.mutateAsync(commentId);
+  };
   
   // Calculate indentation based on level (Reddit style)
   const leftPadding = Math.min(level * 24, maxLevel * 24); // 24px per level like Reddit
@@ -98,6 +107,8 @@ export function CommentRow({ c, onReply, onReport, className }: CommentRowProps)
           gapClass="gap-2"
           initialLikes={c.dust ?? 0}
           initialComments={c.repliesCount ?? 0}
+          defaultLikesActive={c.isLikedByUser}
+          onLikeToggle={handleLike}
           onCommentClick={() => onReply?.(c)}
           onReport={() => onReport?.(c)}
         />

@@ -13,6 +13,7 @@ export interface Post {
   likesCount: number;
   commentsCount: number;
   visitsCount: number;
+  isLikedByUser?: boolean;
   createdAt: string;
   updatedAt: string;
   slug: string;

@@ -13,6 +13,7 @@ import { useOpen } from "@/hooks/useOpen";
 import { FloatingEdgeButton } from "@/components/FloatingEdgeButton";
 import { usePost, usePostIdFromSlug } from "@/services/postsService";
 import { useCommentsByPost, useCreateComment } from "@/services/commentsService";
+import { useTogglePostLike } from "@/services/likesService";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { bookmarkService } from "@/services/bookmarkService";
@@ -20,7 +21,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 
-type SortKey = "top" | "new" | "old" | "controversial";
+type SortKey = "top" | "newest" | "oldest" | "controversial";
 
 
 const PostDetail = () => {
@@ -28,9 +29,8 @@ const PostDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [sortBy, setSortBy] = useState<SortKey>("top");
+  const [sortBy, setSortBy] = useState<SortKey>("newest");
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const { isOpen } = useOpen(); 
   const postRef = useRef<HTMLDivElement>(null);
@@ -42,9 +42,10 @@ const PostDetail = () => {
 
   const { data: post, isLoading: postLoading, error: postError } = usePost(postId || "");
   
-  const { data: comments = [], isLoading: commentsLoading } = useCommentsByPost(postId || "");
+  const { data: comments = [], isLoading: commentsLoading } = useCommentsByPost(postId || "", sortBy);
   
   const createCommentMutation = useCreateComment();
+  const togglePostLikeMutation = useTogglePostLike();
 
   // Load bookmark status when user and postId are available
   useEffect(() => {
@@ -74,7 +75,6 @@ const PostDetail = () => {
       return;
     }
 
-    setBookmarkLoading(true);
     try {
       const response = await bookmarkService.toggleBookmark(postId.toString());
       setIsBookmarked(response.isBookmarked);
@@ -91,8 +91,28 @@ const PostDetail = () => {
         description: error.response?.data?.message || "No se pudo completar la acción.",
         variant: "destructive",
       });
-    } finally {
-      setBookmarkLoading(false);
+    }
+  };
+
+  const handlePostLike = async () => {
+    if (!user || !postId) {
+      toast({
+        title: "Acceso requerido",
+        description: "Debes iniciar sesión para dar like.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await togglePostLikeMutation.mutateAsync(parseInt(postId));
+    } catch (error: any) {
+      console.error("Error toggling post like:", error);
+      toast({
+        title: "Error",
+        description: "Error al cambiar el like del post. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -124,6 +144,7 @@ const PostDetail = () => {
       replies: comment.replies?.map((reply: any) => mapComment(reply, level + 1)) || [],
       dust: comment.likesCount || 0,
       repliesCount: comment.repliesCount || 0,
+      isLikedByUser: comment.isLikedByUser || false,
     });
 
     return comments.map(comment => mapComment(comment, 0));
@@ -145,8 +166,8 @@ const PostDetail = () => {
 
   const sortMeta: Record<SortKey, { label: string; Icon: any }> = {
     top: { label: "Top", Icon: Trophy },
-    new: { label: "Recientes", Icon: Clock },
-    old: { label: "Antiguos", Icon: History },
+    newest: { label: "Recientes", Icon: Clock },
+    oldest: { label: "Antiguos", Icon: History },
     controversial: { label: "Controversiales", Icon: MessageSquare },
   };
 
@@ -161,16 +182,8 @@ const PostDetail = () => {
     return 0;
   };
 
-  const sortedComments = useMemo(() => {
-    const arr = [...flatComments];
-    switch (sortBy) {
-      case "new": return arr.sort((a, b) => toTime(b) - toTime(a));
-      case "old": return arr.sort((a, b) => toTime(a) - toTime(b));
-      case "controversial": return arr.sort((a, b) => (b.repliesCount ?? 0) - (a.repliesCount ?? 0));
-      case "top":
-      default: return arr.sort((a, b) => score(b) - score(a));
-    }
-  }, [flatComments, sortBy]);
+  // Server-side sorting is now handled, so we just use the flatComments directly
+  const sortedComments = flatComments;
 
   const handleCommentSubmit = async (content: string) => {
     if (!user || !postId) {
@@ -388,7 +401,7 @@ const PostDetail = () => {
           </div>
 
           <PostActions
-            key={`post-actions-${postId}-${isBookmarked}`}
+            key={`post-actions-${postId}-${isBookmarked}-${post.likesCount}`}
             context="post"
             showSave
             showShare
@@ -396,9 +409,8 @@ const PostDetail = () => {
             size="md"
             initialLikes={post.likesCount}
             initialComments={post.commentsCount}
-            initialSaves={0} // TODO: Add saves count when implemented
-            initialShares={0} // TODO: Add shares count when implemented
             defaultSavedActive={isBookmarked}
+            defaultLikesActive={post.isLikedByUser || false}
             onCommentClick={() => {
               // Scroll to comment input
               document.getElementById("comment-input")?.scrollIntoView({ behavior: "smooth" });
@@ -419,6 +431,7 @@ const PostDetail = () => {
               }, 300);
             }}
             onSaveToggle={handleBookmark}
+            onLikeToggle={handlePostLike}
             onReport={() => console.log("report post")}
           />
 
@@ -470,11 +483,11 @@ const PostDetail = () => {
                     <Trophy className="mr-2 h-4 w-4" />
                     <span>Top</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy("new")} className="cursor-pointer">
+                  <DropdownMenuItem onClick={() => setSortBy("newest")} className="cursor-pointer">
                     <Clock className="mr-2 h-4 w-4" />
                     <span>Recientes</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy("old")} className="cursor-pointer">
+                  <DropdownMenuItem onClick={() => setSortBy("oldest")} className="cursor-pointer">
                     <History className="mr-2 h-4 w-4" />
                     <span>Antiguos</span>
                   </DropdownMenuItem>

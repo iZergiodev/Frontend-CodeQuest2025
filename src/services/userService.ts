@@ -5,7 +5,7 @@ import apiClient from "../lib/api-client";
 class UserService {
   async getAllUsers(): Promise<User[]> {
     try {
-      const response = await apiClient.get<User[]>("/users");
+      const response = await apiClient.get<User[]>("/api/users");
       return response.data;
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -15,7 +15,7 @@ class UserService {
 
   async getUserById(id: number): Promise<User> {
     try {
-      const response = await apiClient.get<User>(`/users/${id}`);
+      const response = await apiClient.get<User>(`/api/users/${id}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -25,7 +25,10 @@ class UserService {
 
   async createUser(userData: CreateUserDto): Promise<User> {
     try {
-      const response = await apiClient.post<User>("/users/register", userData);
+      const response = await apiClient.post<User>(
+        "/api/users/register",
+        userData
+      );
       return response.data;
     } catch (error) {
       console.error("Error creating user:", error);
@@ -35,7 +38,7 @@ class UserService {
 
   async updateUserProfile(id: number, userData: Partial<User>): Promise<User> {
     try {
-      const response = await apiClient.put<User>(`/users/${id}`, userData);
+      const response = await apiClient.put<User>(`/api/users/${id}`, userData);
       return response.data;
     } catch (error) {
       console.error("Error updating user:", error);
@@ -45,7 +48,7 @@ class UserService {
 
   async deleteUser(id: number): Promise<void> {
     try {
-      await apiClient.delete(`/users/${id}`);
+      await apiClient.delete(`/api/users/${id}`);
     } catch (error) {
       console.error("Error deleting user:", error);
       throw error;

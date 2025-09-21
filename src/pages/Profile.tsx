@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Shield, Stars, User, Bookmark, MessageSquare, FileText, Sparkles, ArrowLeft, Calendar,
+  Shield, Stars, User, Bookmark, MessageSquare, FileText, Sparkles, ArrowLeft, Calendar, Edit, Camera, Loader2,
 } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { FloatingEdgeButton } from "@/components/FloatingEdgeButton";
@@ -23,11 +23,13 @@ import { usePagination } from "@/hooks/usePagination";
 import { Post } from "@/types/blog";
 import { useToast } from "@/hooks/use-toast";
 import { LoadMoreButton } from "@/components/LoadMoreButton";
+import { useUpdateUser } from "@/services/userService";
+import { DatePicker } from "@/components/ui/date-picker";
 
 
 
 export const Profile = () => {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const navigate = useNavigate();
   const contentRef = useRef<HTMLDivElement>(null);
   const [showPublicForm, setShowPublicForm] = useState(false);
@@ -36,6 +38,31 @@ export const Profile = () => {
   const [userComments, setUserComments] = useState<CommentDto[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const { toast } = useToast();
+  
+  // Profile edit form state
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    biography: "",
+    birthDate: undefined as Date | undefined,
+    avatar: "",
+  });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string>("");
+  
+  const updateUserMutation = useUpdateUser();
+
+  // Initialize form data when user data is available
+  useEffect(() => {
+    if (user) {
+      setEditFormData({
+        name: user.name || "",
+        biography: user.biography || "",
+        birthDate: user.birthDate ? new Date(user.birthDate) : undefined,
+        avatar: user.avatar || "",
+      });
+      setAvatarPreview(user.avatar || "");
+    }
+  }, [user]);
 
   // Fetch user posts using pagination
   const {
@@ -119,12 +146,88 @@ export const Profile = () => {
 
   const joinedAt = formatJoined(user.createdAt);
 
-  /* Handlers para el formulario de Perfil público */
-  const handleSavePublic = () => {
-    // aquí iría tu lógica real de guardado
+  // Form handlers
+  const handleInputChange = (field: string, value: string) => {
+    setEditFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setAvatarPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSavePublic = async () => {
+    try {
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "No se encontró información del usuario.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const updateData: any = {
+        name: editFormData.name,
+        biography: editFormData.biography,
+        birthDate: editFormData.birthDate ? editFormData.birthDate.toISOString().split('T')[0] : "",
+      };
+
+      // If there's a new avatar file, we'll need to handle file upload
+      // For now, we'll just update the avatar URL if it's changed
+      if (avatarPreview !== user?.avatar) {
+        updateData.avatar = avatarPreview;
+      }
+
+      // Use the regular updateUserProfile method with the user ID from context
+      const updatedUser = await updateUserMutation.mutateAsync({
+        id: user.id,
+        userData: updateData
+      });
+      
+      // Update the user in the auth context
+      setUser(updatedUser);
+      
+      toast({
+        title: "¡Perfil actualizado!",
+        description: "Tu perfil se ha actualizado correctamente.",
+      });
+      
+      setShowPublicForm(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el perfil. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelPublic = () => {
+    // Reset form data to original user data
+    if (user) {
+      setEditFormData({
+        name: user.name || "",
+        biography: user.biography || "",
+        birthDate: user.birthDate ? new Date(user.birthDate) : undefined,
+        avatar: user.avatar || "",
+      });
+      setAvatarPreview(user.avatar || "");
+      setAvatarFile(null);
+    }
     setShowPublicForm(false);
   };
-  const handleCancelPublic = () => setShowPublicForm(false);
 
   return (
     <div className="bg-background">
@@ -189,22 +292,99 @@ export const Profile = () => {
                     <CardTitle className="text-base">Perfil público</CardTitle>
                     <CardDescription>Controla cómo te ve la comunidad</CardDescription>
                   </CardHeader>
-                  <CardContent className="grid gap-4 sm:grid-cols-2">
+                  <CardContent className="space-y-6">
+                    {/* Avatar Section */}
+                    <div className="space-y-4">
+                      <Label className="text-base font-medium">Foto de perfil</Label>
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <Avatar className="h-20 w-20">
+                            <AvatarImage src={avatarPreview} alt={editFormData.name} />
+                            <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                              {editFormData.name ? editFormData.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <label htmlFor="avatar-upload" className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1.5 cursor-pointer hover:bg-primary/90 transition-colors">
+                            <Camera className="h-3 w-3" />
+                            <input
+                              id="avatar-upload"
+                              type="file"
+                              accept="image/*"
+                              onChange={handleAvatarChange}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm text-muted-foreground">
+                            Haz clic en la cámara para cambiar tu foto de perfil
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Formatos soportados: JPG, PNG, GIF (máx. 5MB)
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Form Fields */}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Nombre completo</Label>
+                        <Input
+                          id="name"
+                          value={editFormData.name}
+                          onChange={(e) => handleInputChange('name', e.target.value)}
+                          placeholder="Tu nombre completo"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="birthDate">Fecha de nacimiento</Label>
+                        <DatePicker
+                          value={editFormData.birthDate}
+                          onChange={(date) => setEditFormData(prev => ({ ...prev, birthDate: date }))}
+                          placeholder="Selecciona tu fecha de nacimiento"
+                        />
+                      </div>
+                    </div>
+
                     <div className="space-y-2">
-                      <Label>Nombre para mostrar</Label>
-                      <Input defaultValue={user.name} placeholder="Tu nombre" />
+                      <Label htmlFor="biography">Biografía</Label>
+                      <Textarea
+                        id="biography"
+                        value={editFormData.biography}
+                        onChange={(e) => handleInputChange('biography', e.target.value)}
+                        placeholder="Cuéntanos algo sobre ti..."
+                        rows={4}
+                      />
                     </div>
-                    <div className="space-y-2">
-                      <Label>Nombre de usuario</Label>
-                      <Input defaultValue={user.username ?? ""} placeholder="usuario" />
-                    </div>
-                    <div className="sm:col-span-2 space-y-2">
-                      <Label>Bio</Label>
-                      <Textarea placeholder="Cuéntanos algo sobre ti…" />
-                    </div>
-                    <div className="sm:col-span-2 flex items-center gap-2">
-                      <Button className="rounded-xl" onClick={handleSavePublic}>Guardar cambios</Button>
-                      <Button variant="ghost" className="rounded-xl" onClick={handleCancelPublic}>Cancelar</Button>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2 pt-4">
+                      <Button 
+                        className="rounded-xl" 
+                        onClick={handleSavePublic}
+                        disabled={updateUserMutation.isPending}
+                      >
+                        {updateUserMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Guardando...
+                          </>
+                        ) : (
+                          <>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Guardar cambios
+                          </>
+                        )}
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        className="rounded-xl" 
+                        onClick={handleCancelPublic}
+                        disabled={updateUserMutation.isPending}
+                      >
+                        Cancelar
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>

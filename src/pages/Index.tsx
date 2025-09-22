@@ -61,6 +61,7 @@ const Index = () => {
           categories={categories}
           filters={filters}
           onFiltersChange={setFilters}
+          hideSearch={true}
         />
         <div className="flex pt-8">
           {/* Main Content */}

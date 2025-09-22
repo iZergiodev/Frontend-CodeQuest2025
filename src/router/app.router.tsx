@@ -83,11 +83,7 @@ export const appRouter = createBrowserRouter([
             },
             {
                 path: "/explore",
-                element: (
-                    <ProtectedRoute>
-                        <Explore />
-                    </ProtectedRoute>
-                ),
+                element: <Explore />,
             },
         ]
     },

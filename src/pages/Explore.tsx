@@ -3,17 +3,30 @@ import { LoadMoreButton } from "@/components/LoadMoreButton";
 import { usePagination } from "@/hooks/usePagination";
 import { useCategories } from "@/services/postsService";
 import { BlogFilters } from "@/components/Filters";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Compass, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useSearchParams } from "react-router-dom";
 import type { BlogFilters as BlogFiltersType } from "@/types/blog";
 
 const Explore = () => {
   const { data: categories = [] } = useCategories();
+  const [searchParams] = useSearchParams();
   const [filters, setFilters] = useState<BlogFiltersType>({
     sortBy: "latest"
   });
+
+  // Initialize filters with URL search parameter
+  useEffect(() => {
+    const searchParam = searchParams.get('search');
+    if (searchParam) {
+      setFilters(prev => ({
+        ...prev,
+        search: searchParam
+      }));
+    }
+  }, [searchParams]);
 
   const {
     data: allPosts = [],
@@ -138,7 +151,6 @@ const Explore = () => {
               categories={categories}
               filters={filters}
               onFiltersChange={handleFiltersChange}
-              rankingType={true}
             />
           </div>
 

@@ -4,10 +4,12 @@ import { Input } from "@/components/ui/input";
 import AnimatedSVG from "./AnimatedSVG.tsx";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
 
 const Hero = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
 
   const DevtallesLogo = () => (
     <svg 
@@ -58,7 +60,7 @@ const Hero = () => {
   const buttonIcon = user ? <DiscordLogo /> : <Search className="h-5 w-5 mr-2" />;
   const buttonAction = user 
     ? () => window.open('https://discord.gg/2KbNVhXPke', '_blank') // Discord server link
-    : () => navigate('/#posts');
+    : () => navigate(`/explore${searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : ''}`);
 
   // Container classes based on auth status
   const containerClass = user 
@@ -136,6 +138,8 @@ const Hero = () => {
                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 transition-colors group-hover:text-primary" />
                     <Input 
                       placeholder="¿Qué quieres aprender hoy?" 
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-12 h-14 text-lg bg-background/90 backdrop-blur border-2 border-primary/30 focus:border-primary focus:shadow-[var(--glow-primary)] transition-all duration-300 rounded-2xl"
                     />
                   </div>

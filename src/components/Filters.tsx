@@ -13,9 +13,10 @@ interface BlogFiltersProps {
   onFiltersChange: (filters: BlogFilters) => void;
   categoryPage?: boolean;
   rankingType?: boolean;
+  hideSearch?: boolean;
 }
 
-export function BlogFilters({ categories, filters, onFiltersChange, categoryPage = false, rankingType = false }: BlogFiltersProps) {
+export function BlogFilters({ categories, filters, onFiltersChange, categoryPage = false, rankingType = false, hideSearch = false }: BlogFiltersProps) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   
   const sortOptions = [
@@ -76,30 +77,32 @@ export function BlogFilters({ categories, filters, onFiltersChange, categoryPage
         </div>
       }
 
-      {/* Search Input */}
-      <div className="space-y-3">
-        <h3 className="font-medium">Buscar</h3>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Buscar posts por título, contenido o tags..."
-            value={filters.search || ""}
-            onChange={(e) => onFiltersChange({ ...filters, search: e.target.value || undefined })}
-            className="pl-10 pr-10"
-          />
-          {filters.search && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onFiltersChange({ ...filters, search: undefined })}
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-muted"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
+      {/* Search Input - Hidden for ranking pages and when hideSearch is true */}
+      {!rankingType && !hideSearch && (
+        <div className="space-y-3">
+          <h3 className="font-medium">Buscar</h3>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Buscar posts por título, contenido o tags..."
+              value={filters.search || ""}
+              onChange={(e) => onFiltersChange({ ...filters, search: e.target.value || undefined })}
+              className="pl-10 pr-10"
+            />
+            {filters.search && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onFiltersChange({ ...filters, search: undefined })}
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-muted"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Categories - Only show if not on category page */}
       {!categoryPage && (

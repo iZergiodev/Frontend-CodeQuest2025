@@ -18,7 +18,7 @@ export class NotificationService {
       this.disconnect();
     }
 
-    const url = `${API_BASE_URL}/Notifications/user/${userId}/stream`;
+    const url = `${API_BASE_URL}/api/Notifications/user/${userId}/stream`;
     console.log("Connecting to SSE:", url);
     this.eventSource = new EventSource(url);
 

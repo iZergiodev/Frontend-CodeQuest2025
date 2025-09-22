@@ -55,7 +55,7 @@ export interface RemoveEngagementRequest {
 }
 
 class RankingService {
-  private baseUrl = `${API_BASE_URL}/Ranking`;
+  private baseUrl = `${API_BASE_URL}/api/Ranking`;
 
   // Get trending posts
   async getTrendingPosts(

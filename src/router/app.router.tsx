@@ -56,6 +56,10 @@ export const appRouter = createBrowserRouter([
                 ),
             },
             {
+                path: "/profile/:userId",
+                element: <Profile />,
+            },
+            {
                 path: "/settings",
                 element: (
                     <ProtectedRoute>

@@ -274,7 +274,19 @@ const PostDetail = () => {
           {/* Header autor */}
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-3">
-              <Avatar className="h-12 w-12">
+              <Avatar 
+                className="h-12 w-12 cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all"
+                onClick={() => navigate(`/profile/${post.authorId}`)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    navigate(`/profile/${post.authorId}`);
+                  }
+                }}
+                aria-label={`Ver perfil de ${post.authorName}`}
+              >
                 {post.authorAvatar ? (
                   <AvatarImage src={post.authorAvatar} alt={post.authorName} />
                 ) : (
@@ -284,7 +296,19 @@ const PostDetail = () => {
                 )}
               </Avatar>
 
-              <div className="flex-1 min-w-0 leading-tight">
+              <div 
+                className="flex-1 min-w-0 leading-tight cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors"
+                onClick={() => navigate(`/profile/${post.authorId}`)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    navigate(`/profile/${post.authorId}`);
+                  }
+                }}
+                aria-label={`Ver perfil de ${post.authorName}`}
+              >
                 <p className="text-sm font-medium truncate">{post.authorName}</p>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Calendar className="h-3 w-3" />

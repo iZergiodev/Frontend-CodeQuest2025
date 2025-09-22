@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "@/components/ui/card";
@@ -24,16 +24,33 @@ import { usePagination } from "@/hooks/usePagination";
 import { Post } from "@/types/blog";
 import { useToast } from "@/hooks/use-toast";
 import { LoadMoreButton } from "@/components/LoadMoreButton";
-import { useUpdateUser } from "@/services/userService";
+import { useUpdateUser, useUser, useCurrentUser } from "@/services/userService";
 import { DatePicker } from "@/components/ui/date-picker";
 import { useImageUpload } from "@/hooks/useImageUpload";
 
 
 
 export const Profile = () => {
-  const { user, setUser } = useAuth();
+  const { user: currentUser, setUser } = useAuth();
+  const { userId } = useParams<{ userId?: string }>();
   const navigate = useNavigate();
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Determine if we're viewing current user or another user
+  const isViewingCurrentUser = !userId;
+  const isViewingOtherUser = !!userId;
+
+  // Fetch user data based on route
+  const { data: profileUser, isLoading: profileLoading, error: profileError } = useUser(
+    userId ? parseInt(userId) : 0
+  );
+  const { data: currentUserData, isLoading: currentUserLoading } = useCurrentUser();
+  
+  // Use the appropriate user data
+  // For current user, try useAuth first, then fallback to useCurrentUser
+  const user = isViewingCurrentUser ? (currentUser || currentUserData) : profileUser;
+  const isLoading = isViewingCurrentUser ? (currentUserLoading && !currentUser) : profileLoading;
+  
   const [showPublicForm, setShowPublicForm] = useState(false);
   const [bookmarkedPosts, setBookmarkedPosts] = useState<Post[]>([]);
   const [bookmarksLoading, setBookmarksLoading] = useState(false);
@@ -128,9 +145,37 @@ export const Profile = () => {
     fetchComments();
   }, [user, toast]);
 
-  if (!user) {
-    navigate("/");
-    return null;
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Cargando perfil...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle error state
+  if ((isViewingOtherUser && (profileError || !user)) || (isViewingCurrentUser && !user)) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Usuario no encontrado</h2>
+              <p className="text-muted-foreground mb-4">
+                {isViewingOtherUser
+                  ? `El usuario con ID "${userId}" no existe o no está disponible.`
+                  : "No se pudo cargar tu perfil."
+                }
+          </p>
+          <Button onClick={() => navigate("/")}>
+            Volver al inicio
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   const provider =
@@ -164,11 +209,6 @@ export const Profile = () => {
 
   const joinedAt = formatJoined(user.createdAt);
 
-  // Console log to see user data
-  console.log("User data:", user);
-  console.log("User birthDate:", user.birthDate);
-  console.log("User biography:", user.biography);
-  console.log("Calculated age:", age);
 
   // Form handlers
   const handleInputChange = (field: string, value: string) => {
@@ -296,8 +336,8 @@ export const Profile = () => {
                 <AvatarFallback className="bg-primary text-primary-foreground text-lg sm:text-base">{initials}</AvatarFallback>
               </Avatar>
 
-              <div className="min-w-0 text-center">
-                <div className="flex flex-col items-center gap-2">
+              <div className="min-w-0 text-center sm:text-left">
+                <div className="flex flex-col items-center sm:items-start gap-2">
                   <UserNameWithCrown 
                     name={user.name || "User"}
                     userId={user.id}
@@ -339,12 +379,14 @@ export const Profile = () => {
               </div>
             </div>
 
-            {/* Action Button */}
-            <div className="shrink-0 self-center sm:self-auto">
-              <Button className="rounded-xl w-full sm:w-auto" onClick={() => setShowPublicForm(v => !v)}>
-                {showPublicForm ? "Ocultar" : "Editar perfil"}
-              </Button>
-            </div>
+            {/* Action Button - Only show for current user */}
+            {isViewingCurrentUser && (
+              <div className="shrink-0 self-center sm:self-auto">
+                <Button className="rounded-xl w-full sm:w-auto" onClick={() => setShowPublicForm(v => !v)}>
+                  {showPublicForm ? "Ocultar" : "Editar perfil"}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -352,20 +394,20 @@ export const Profile = () => {
         {user.biography && (
           <div className="mb-6">
             <div className="bg-card rounded-lg border p-4 sm:p-6">
-              <h3 className="text-lg font-semibold mb-3 flex items-center justify-center gap-2">
+              <h3 className="text-lg font-semibold mb-3 flex items-center justify-center sm:justify-start gap-2">
                 <User className="h-5 w-5 text-muted-foreground" />
                 Biografía
               </h3>
-              <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-center">
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-center sm:text-left">
                 {user.biography}
               </p>
             </div>
           </div>
         )}
 
-        {/* PERFIL PÚBLICO (colapsable bajo el header) */}
+        {/* PERFIL PÚBLICO (colapsable bajo el header) - Only show for current user */}
         <AnimatePresence initial={false}>
-          {showPublicForm && (
+          {isViewingCurrentUser && showPublicForm && (
             <motion.section
               key="public-profile"
               className="mb-6"
@@ -520,14 +562,18 @@ export const Profile = () => {
                   <span className="hidden sm:inline">Publicaciones</span>
                   <span className="sm:hidden">Posts</span>
                 </TabsTrigger>
-                <TabsTrigger className="rounded-full px-2 sm:px-4 data-[state=active]:bg-background text-xs sm:text-sm" value="comments">
-                  <span className="hidden sm:inline">Comentarios</span>
-                  <span className="sm:hidden">Com.</span>
-                </TabsTrigger>
-                <TabsTrigger className="rounded-full px-2 sm:px-4 data-[state=active]:bg-background text-xs sm:text-sm" value="saved">
-                  <span className="hidden sm:inline">Guardados</span>
-                  <span className="sm:hidden">Guard.</span>
-                </TabsTrigger>
+                {isViewingCurrentUser && (
+                  <>
+                    <TabsTrigger className="rounded-full px-2 sm:px-4 data-[state=active]:bg-background text-xs sm:text-sm" value="comments">
+                      <span className="hidden sm:inline">Comentarios</span>
+                      <span className="sm:hidden">Com.</span>
+                    </TabsTrigger>
+                    <TabsTrigger className="rounded-full px-2 sm:px-4 data-[state=active]:bg-background text-xs sm:text-sm" value="saved">
+                      <span className="hidden sm:inline">Guardados</span>
+                      <span className="sm:hidden">Guard.</span>
+                    </TabsTrigger>
+                  </>
+                )}
               </TabsList>
 
               {/* OVERVIEW */}
@@ -599,8 +645,9 @@ export const Profile = () => {
                 )}
               </TabsContent>
 
-              {/* COMMENTS */}
-              <TabsContent value="comments" className="space-y-3">
+              {/* COMMENTS - Only for current user */}
+              {isViewingCurrentUser && (
+                <TabsContent value="comments" className="space-y-3">
                 {commentsLoading ? (
                   <Card>
                     <CardContent className="p-10 text-center">
@@ -618,9 +665,11 @@ export const Profile = () => {
                   </EmptyState>
                 )}
               </TabsContent>
+              )}
 
-              {/* SAVED */}
-              <TabsContent value="saved" className="space-y-3">
+              {/* SAVED - Only for current user */}
+              {isViewingCurrentUser && (
+                <TabsContent value="saved" className="space-y-3">
                 {bookmarksLoading ? (
                   <Card>
                     <CardContent className="p-10 text-center">
@@ -640,6 +689,7 @@ export const Profile = () => {
                   </EmptyState>
                 )}
               </TabsContent>
+              )}
             </Tabs>
           </div>
 
@@ -766,12 +816,16 @@ function PostRow({ p }: { p: Post }) {
         <div className="flex items-start gap-3">
           <div className="mt-1 rounded-lg border px-2 py-1 text-xs text-muted-foreground">Post</div>
           <div className="min-w-0 flex-1">
-            <p className="font-medium truncate">{p.title}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{formatDate(p.createdAt)} • {p.likesCount} likes • {p.commentsCount} comentarios</p>
+            <p className="font-medium break-words">{p.title}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              <span className="hidden sm:inline">{formatDate(p.createdAt)} • {p.likesCount} likes • {p.commentsCount} comentarios</span>
+              <span className="sm:hidden">{formatDate(p.createdAt)} • {p.likesCount} • {p.commentsCount}</span>
+            </p>
           </div>
           <Button 
             variant="ghost" 
             size="sm"
+            className="hidden sm:flex"
             onClick={(e) => {
               e.stopPropagation();
               handleViewPost();
@@ -821,20 +875,48 @@ function CommentRow({ c }: { c: CommentDto }) {
           <div className="mt-1 rounded-lg border px-2 py-1 text-xs text-muted-foreground">Comment</div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <UserNameWithCrown 
-                name={c.authorName || "Usuario"}
-                userId={c.authorId}
-                userRole={c.authorRole}
-                className="text-sm font-medium"
-                crownSize="sm"
-              />
+              <div
+                className="cursor-pointer hover:bg-muted/50 rounded px-1 -mx-1 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (c.authorId) {
+                    navigate(`/profile/${c.authorId}`);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if ((e.key === "Enter" || e.key === " ") && c.authorId) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate(`/profile/${c.authorId}`);
+                  }
+                }}
+                aria-label={`Ver perfil de ${c.authorName}`}
+              >
+                <UserNameWithCrown 
+                  name={c.authorName || "Usuario"}
+                  userId={c.authorId}
+                  userRole={c.authorRole}
+                  className="text-sm font-medium"
+                  crownSize="sm"
+                />
+              </div>
             </div>
-            <p className="text-sm">{c.content}</p>
+            <p className="text-sm break-words">{c.content}</p>
             <p className="text-xs text-muted-foreground mt-1">
-              En: <span className="font-medium">{c.postTitle}</span> • {formatDate(c.createdAt)}
+              <span className="hidden sm:inline">En: <span className="font-medium">{c.postTitle}</span> • {formatDate(c.createdAt)}</span>
+              <span className="sm:hidden">En: <span className="font-medium">{c.postTitle}</span> • {formatDate(c.createdAt)}</span>
             </p>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleGoToPost}>Ir al post</Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="hidden sm:flex"
+            onClick={handleGoToPost}
+          >
+            Ir al post
+          </Button>
         </div>
       </CardContent>
     </Card>

@@ -86,7 +86,7 @@ class UserService {
 
       // Decode JWT token to get user ID
       const payload = JSON.parse(atob(token.split(".")[1]));
-      const userId = payload.nameid || payload.sub;
+      const userId = payload.sub;
 
       if (!userId) {
         throw new Error("User ID not found in token");
@@ -109,7 +109,7 @@ class UserService {
 
       // Decode JWT token to get user ID
       const payload = JSON.parse(atob(token.split(".")[1]));
-      const userId = payload.nameid || payload.sub;
+      const userId = payload.sub;
 
       if (!userId) {
         throw new Error("User ID not found in token");

@@ -4,6 +4,7 @@ import { PostActions } from "@/components/PostActions";
 import { User } from "lucide-react";
 import { useToggleCommentLike } from "@/services/likesService";
 import { UserNameWithCrown } from "@/components/UserNameWithCrown";
+import { useNavigate } from "react-router-dom";
 
 export type FlatComment = {
   id: string;
@@ -33,6 +34,7 @@ type CommentRowProps = {
 export function CommentRow({ c, onReply, onReport, className, isLastReply }: CommentRowProps) {
   const level = c.level || 0;
   const maxLevel = 6;
+  const navigate = useNavigate();
 
   const toggleCommentLikeMutation = useToggleCommentLike();
 
@@ -45,7 +47,19 @@ export function CommentRow({ c, onReply, onReport, className, isLastReply }: Com
     <div className={`flex ${className ?? ""}`}>
       {/* Container for Avatar and the vertical line */}
       <div className="flex flex-col items-center flex-shrink-0">
-        <Avatar className="h-8 w-8 z-10">
+        <Avatar 
+          className="h-8 w-8 z-10 cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all"
+          onClick={() => (c.authorId) && navigate(`/profile/${c.authorId}`)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if ((e.key === "Enter" || e.key === " ") && (c.authorId)) {
+              e.preventDefault();
+              navigate(`/profile/${c.authorId}`);
+            }
+          }}
+          aria-label={`Ver perfil de ${c.author}`}
+        >
           {c.avatarUrl ? (
             <AvatarImage src={c.avatarUrl} alt={c.author} />
           ) : (
@@ -62,13 +76,27 @@ export function CommentRow({ c, onReply, onReport, className, isLastReply }: Com
             <div className="absolute z-0 -left-[30px] top-5 h-full w-0.25 bg-gray-300 dark:bg-gray-600"></div>
           )}
           <div className="flex items-baseline gap-2 mb-1">
-            <UserNameWithCrown 
-              name={c.author}
-              userId={c.authorId}
-              userRole={c.authorRole}
-              className="font-semibold text-sm"
-              crownSize="sm"
-            />
+            <div
+              className="cursor-pointer hover:bg-muted/50 rounded px-1 -mx-1 transition-colors"
+              onClick={() => (c.authorId) && navigate(`/profile/${c.authorId}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if ((e.key === "Enter" || e.key === " ") && (c.authorId)) {
+                  e.preventDefault();
+                  navigate(`/profile/${c.authorId}`);
+                }
+              }}
+              aria-label={`Ver perfil de ${c.author}`}
+            >
+              <UserNameWithCrown 
+                name={c.author}
+                userId={c.authorId}
+                userRole={c.authorRole}
+                className="font-semibold text-sm"
+                crownSize="sm"
+              />
+            </div>
             <span className="text-xs text-muted-foreground">{c.timeAgo}</span>
           </div>
           <div className="text-sm leading-6 text-foreground mb-3 whitespace-pre-wrap">

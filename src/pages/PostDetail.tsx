@@ -137,6 +137,8 @@ const PostDetail = () => {
     const mapComment = (comment: any, level: number = 0): FlatComment => ({
       id: comment.id.toString(),
       author: comment.authorName?.trim() || "Usuario",
+      authorId: comment.authorId,
+      authorRole: comment.authorRole,
       avatarUrl: comment.authorAvatar,
       timeAgo: formatTimeAgo(comment.createdAt),
       content: comment.content,

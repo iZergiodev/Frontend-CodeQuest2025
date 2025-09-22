@@ -1,6 +1,5 @@
-import { Search, Menu, User, Crown } from "lucide-react";
+import { Menu, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import AuthModal from "@/components/AuthModal";
@@ -61,19 +60,6 @@ const Header = () => {
         <div className="flex items-center gap-3">
           {user ? (
             <>
-              {/* Admin link si aplica */}
-              {user.role?.toLowerCase() === "admin" && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate("/admin/users")}
-                  className="hidden md:inline-flex items-center gap-2 rounded-xl"
-                >
-                  <Crown className="h-4 w-4" />
-                  Admin
-                </Button>
-              )}
-
               {/* Campanita */}
               <NotificationBell size="md" />
 

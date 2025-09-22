@@ -10,6 +10,7 @@ export interface CommentDto {
   postTitle: string;
   authorId: number;
   authorName: string;
+  authorRole?: string;
   authorAvatar?: string;
   parentId?: number;
   replies: CommentDto[];

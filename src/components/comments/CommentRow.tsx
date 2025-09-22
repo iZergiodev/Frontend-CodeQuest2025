@@ -3,10 +3,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PostActions } from "@/components/PostActions";
 import { User } from "lucide-react";
 import { useToggleCommentLike } from "@/services/likesService";
+import { UserNameWithCrown } from "@/components/UserNameWithCrown";
 
 export type FlatComment = {
   id: string;
   author: string;
+  authorId?: number;
+  authorRole?: string;
   avatarUrl?: string | null;
   timeAgo: string;
   content: string;
@@ -59,7 +62,13 @@ export function CommentRow({ c, onReply, onReport, className, isLastReply }: Com
             <div className="absolute z-0 -left-[30px] top-5 h-full w-0.25 bg-gray-300 dark:bg-gray-600"></div>
           )}
           <div className="flex items-baseline gap-2 mb-1">
-            <span className="font-semibold text-sm">{c.author}</span>
+            <UserNameWithCrown 
+              name={c.author}
+              userId={c.authorId}
+              userRole={c.authorRole}
+              className="font-semibold text-sm"
+              crownSize="sm"
+            />
             <span className="text-xs text-muted-foreground">{c.timeAgo}</span>
           </div>
           <div className="text-sm leading-6 text-foreground mb-3 whitespace-pre-wrap">

@@ -16,9 +16,9 @@ import {
   LogOut,
   Settings,
   User2,
-  Crown,
   Moon,
   Stars,
+  Crown,
 } from "lucide-react";
 import { useMemo } from "react";
 
@@ -138,8 +138,8 @@ const UserMenu = () => {
                   <p className="text-sm font-semibold leading-none truncate">
                     {user.name || "User"}
                   </p>
-                  {user.role?.toLowerCase() === "admin" && (
-                    <Crown className="h-3.5 w-3.5 text-yellow-500" />
+                  {user.role?.toLowerCase() === 'admin' && (
+                    <Crown className="h-3 w-3 text-yellow-500 fill-current" />
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground truncate">
@@ -174,6 +174,15 @@ const UserMenu = () => {
           onClick={() => navigate("/profile")}
         />
 
+        {/* Admin Panel - only for admin users */}
+        {user.role?.toLowerCase() === 'admin' && (
+          <MenuRow
+            icon={<Crown className="h-4 w-4 text-yellow-500 fill-current" />}
+            label="Panel de Administración"
+            onClick={() => navigate("/admin")}
+          />
+        )}
+
         {/* Dark Mode: mantenemos mismo alto/estructura con right element */}
         <MenuRow
           icon={<Moon className="h-4 w-4" />}
@@ -195,6 +204,7 @@ const UserMenu = () => {
           label="Configuración"
           onClick={() => navigate("/settings")}
         />
+
 
         <DropdownMenuSeparator />
 

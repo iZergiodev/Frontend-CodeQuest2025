@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Shield, Stars, User, Bookmark, MessageSquare, FileText, Sparkles, ArrowLeft, Calendar, Edit, Camera, Loader2,
 } from "lucide-react";
+import { UserNameWithCrown } from "@/components/UserNameWithCrown";
 import { useRef, useState, useEffect } from "react";
 import { FloatingEdgeButton } from "@/components/FloatingEdgeButton";
 import { Button } from "@/components/ui/button";
@@ -297,7 +298,13 @@ export const Profile = () => {
 
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold leading-tight truncate">{user.name}</h1>
+                  <UserNameWithCrown 
+                    name={user.name || "User"}
+                    userId={user.id}
+                    userRole={user.role}
+                    className="text-2xl font-bold leading-tight truncate"
+                    crownSize="md"
+                  />
                   <Badge variant="outline" className={`${provider.text} border-current`}>
                     <Shield className="mr-1 h-3.5 w-3.5" />
                     {provider.name}
@@ -802,6 +809,15 @@ function CommentRow({ c }: { c: CommentDto }) {
         <div className="flex items-start gap-3">
           <div className="mt-1 rounded-lg border px-2 py-1 text-xs text-muted-foreground">Comment</div>
           <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <UserNameWithCrown 
+                name={c.authorName || "Usuario"}
+                userId={c.authorId}
+                userRole={c.authorRole}
+                className="text-sm font-medium"
+                crownSize="sm"
+              />
+            </div>
             <p className="text-sm">{c.content}</p>
             <p className="text-xs text-muted-foreground mt-1">
               En: <span className="font-medium">{c.postTitle}</span> • {formatDate(c.createdAt)}

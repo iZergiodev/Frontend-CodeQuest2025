@@ -5,10 +5,11 @@ import PostDetail from "@/pages/PostDetail";
 import CreatePost from "@/pages/CreatePost";
 import CategoryPage from "@/pages/CategoryPage";
 import {Profile} from "@/pages/Profile";
-import AdminDashboard from "@/pages/AdminDashboard";
+import AdminPanel from "@/pages/AdminPanel";
 import PostRanking from "@/pages/PostRanking";
 import Explore from "@/pages/Explore";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
 import ConditionalRoute from "@/components/ConditionalRoute";
 import { createBrowserRouter } from "react-router-dom";
 import Settings from "@/pages/Settings";
@@ -66,7 +67,9 @@ export const appRouter = createBrowserRouter([
                 path: "/admin",
                 element: (
                     <ProtectedRoute>
-                        <AdminDashboard />
+                        <AdminRoute>
+                            <AdminPanel />
+                        </AdminRoute>
                     </ProtectedRoute>
                 ),
             },

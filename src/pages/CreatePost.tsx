@@ -60,8 +60,8 @@ const CreatePost = () => {
   // Load existing post data when in edit mode
   useEffect(() => {
     if (isEditMode && existingPost) {
-      // Check if user is the author
-      if (user && existingPost.authorId !== user.id) {
+      // Check if user is the author or an admin
+      if (user && existingPost.authorId !== user.id && user.role?.toLowerCase() !== 'admin') {
         toast({
           title: "Acceso denegado",
           description: "Solo puedes editar tus propios posts",

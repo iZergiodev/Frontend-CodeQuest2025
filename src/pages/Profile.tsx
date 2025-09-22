@@ -286,23 +286,23 @@ export const Profile = () => {
   return (
     <div className="bg-background">
       <motion.main className="container mx-auto px-4 py-6">
-        {/* HEADER LIMPIO */}
+        {/* HEADER RESPONSIVE */}
         <div ref={contentRef} className="mb-4">
-          <div className="flex items-start justify-between gap-4">
-            {/* Izquierda: avatar + info */}
-            <div className="flex items-start gap-4 min-w-0">
-              <Avatar className="h-16 w-16 ring-4 ring-background shadow">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            {/* Avatar + Info Section */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 min-w-0">
+              <Avatar className="h-20 w-20 sm:h-16 sm:w-16 ring-4 ring-background shadow">
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="bg-primary text-primary-foreground">{initials}</AvatarFallback>
+                <AvatarFallback className="bg-primary text-primary-foreground text-lg sm:text-base">{initials}</AvatarFallback>
               </Avatar>
 
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
+              <div className="min-w-0 text-center">
+                <div className="flex flex-col items-center gap-2">
                   <UserNameWithCrown 
                     name={user.name || "User"}
                     userId={user.id}
                     userRole={user.role}
-                    className="text-2xl font-bold leading-tight truncate"
+                    className="text-2xl font-bold leading-tight"
                     crownSize="md"
                   />
                   <Badge variant="outline" className={`${provider.text} border-current`}>
@@ -311,30 +311,37 @@ export const Profile = () => {
                   </Badge>
                 </div>
 
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-                  <Chip>
-                    <Stars className="h-4 w-4 text-yellow-500" />
-                    <span>{user.starDustPoints?.toLocaleString() ?? 0} Stardust</span>
-                  </Chip>
+                <div className="mt-2 flex flex-col sm:flex-row sm:flex-wrap items-center sm:items-center gap-2 text-sm">
+                  <div className="self-center sm:self-auto">
+                    <Chip>
+                      <Stars className="h-4 w-4 text-yellow-500" />
+                      <span>{user.starDustPoints?.toLocaleString() ?? 0} Stardust</span>
+                    </Chip>
+                  </div>
 
-                  <Chip>
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>Miembro desde: {joinedAt}</span>
-                  </Chip>
+                  <div className="self-center sm:self-auto">
+                    <Chip>
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="hidden sm:inline">Miembro desde: {joinedAt}</span>
+                      <span className="sm:hidden">Desde: {joinedAt}</span>
+                    </Chip>
+                  </div>
 
                   {age && (
-                    <Chip>
-                      <Calendar className="h-4 w-4 text-blue-500" />
-                      <span>{age} años</span>
-                    </Chip>
+                    <div className="self-center sm:self-auto">
+                      <Chip>
+                        <Calendar className="h-4 w-4 text-blue-500" />
+                        <span>{age} años</span>
+                      </Chip>
+                    </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Derecha: acción */}
-            <div className="shrink-0">
-              <Button className="rounded-xl" onClick={() => setShowPublicForm(v => !v)}>
+            {/* Action Button */}
+            <div className="shrink-0 self-center sm:self-auto">
+              <Button className="rounded-xl w-full sm:w-auto" onClick={() => setShowPublicForm(v => !v)}>
                 {showPublicForm ? "Ocultar" : "Editar perfil"}
               </Button>
             </div>
@@ -344,12 +351,12 @@ export const Profile = () => {
         {/* BIOGRAPHY SECTION */}
         {user.biography && (
           <div className="mb-6">
-            <div className="bg-card rounded-lg border p-4">
-              <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+            <div className="bg-card rounded-lg border p-4 sm:p-6">
+              <h3 className="text-lg font-semibold mb-3 flex items-center justify-center gap-2">
                 <User className="h-5 w-5 text-muted-foreground" />
                 Biografía
               </h3>
-              <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-center">
                 {user.biography}
               </p>
             </div>
@@ -378,7 +385,7 @@ export const Profile = () => {
                     {/* Avatar Section */}
                     <div className="space-y-4">
                       <Label className="text-base font-medium">Foto de perfil</Label>
-                      <div className="flex items-center gap-4">
+                      <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="relative">
               <Avatar className="h-20 w-20">
                 <AvatarImage src={avatarPreview} alt={editFormData.name} />
@@ -504,18 +511,22 @@ export const Profile = () => {
           {/* CONTENIDO (tabs) */}
           <div className="lg:col-span-8 space-y-4">
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="h-10 gap-1 rounded-full dark:bg-muted/70 bg-violet-200 p-1">
-                <TabsTrigger className="rounded-full px-4 data-[state=active]:bg-background" value="overview">
-                  Actividad
+              <TabsList className="h-10 gap-1 rounded-full dark:bg-muted/70 bg-violet-200 p-1 flex-wrap">
+                <TabsTrigger className="rounded-full px-2 sm:px-4 data-[state=active]:bg-background text-xs sm:text-sm" value="overview">
+                  <span className="hidden sm:inline">Actividad</span>
+                  <span className="sm:hidden">Act.</span>
                 </TabsTrigger>
-                <TabsTrigger className="rounded-full px-4 data-[state=active]:bg-background" value="posts">
-                  Publicaciones
+                <TabsTrigger className="rounded-full px-2 sm:px-4 data-[state=active]:bg-background text-xs sm:text-sm" value="posts">
+                  <span className="hidden sm:inline">Publicaciones</span>
+                  <span className="sm:hidden">Posts</span>
                 </TabsTrigger>
-                <TabsTrigger className="rounded-full px-4 data-[state=active]:bg-background" value="comments">
-                  Comentarios
+                <TabsTrigger className="rounded-full px-2 sm:px-4 data-[state=active]:bg-background text-xs sm:text-sm" value="comments">
+                  <span className="hidden sm:inline">Comentarios</span>
+                  <span className="sm:hidden">Com.</span>
                 </TabsTrigger>
-                <TabsTrigger className="rounded-full px-4 data-[state=active]:bg-background" value="saved">
-                  Guardados
+                <TabsTrigger className="rounded-full px-2 sm:px-4 data-[state=active]:bg-background text-xs sm:text-sm" value="saved">
+                  <span className="hidden sm:inline">Guardados</span>
+                  <span className="sm:hidden">Guard.</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -632,7 +643,7 @@ export const Profile = () => {
             </Tabs>
           </div>
 
-          {/* SIDEBAR STICKY */}
+          {/* SIDEBAR RESPONSIVE */}
           <div className="lg:col-span-4 space-y-4 lg:sticky lg:top-24 self-start">
             <Card>
               <CardHeader className="pb-2">
@@ -899,13 +910,13 @@ function BookmarkedPostRow({ post, onRemove }: { post: Post; onRemove: () => voi
   return (
     <Card className="hover:bg-muted/30 transition-colors">
       <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <div className="mt-1 rounded-lg border px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">
+        <div className="flex flex-col sm:flex-row items-start gap-3">
+          <div className="rounded-lg border px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 self-start">
             <Bookmark className="h-3 w-3 inline mr-1" />
             Guardado
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-medium truncate">{post.title}</p>
+          <div className="min-w-0 flex-1 w-full">
+            <p className="font-medium break-words">{post.title}</p>
             <p className="text-xs text-muted-foreground mt-0.5">
               {formatDate(post.createdAt)} • {post.likesCount} likes • {post.commentsCount} comentarios
             </p>
@@ -913,8 +924,8 @@ function BookmarkedPostRow({ post, onRemove }: { post: Post; onRemove: () => voi
               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{post.excerpt}</p>
             )}
           </div>
-          <div className="flex gap-2">
-            <Button size="sm" variant="ghost" onClick={handleViewPost}>
+          <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+            <Button size="sm" variant="ghost" onClick={handleViewPost} className="flex-1 sm:flex-none">
               Ver
             </Button>
             <Button 
@@ -922,6 +933,7 @@ function BookmarkedPostRow({ post, onRemove }: { post: Post; onRemove: () => voi
               variant="outline" 
               onClick={handleRemoveBookmark}
               disabled={isRemoving}
+              className="flex-1 sm:flex-none"
             >
               {isRemoving ? "..." : "Quitar"}
             </Button>

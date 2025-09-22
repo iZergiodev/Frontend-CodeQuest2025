@@ -13,6 +13,7 @@ export const Layout = () => {
     <>
       <Header />
       <div className="flex">
+        {/* Desktop Sidebar - handled by Sidebar component */}
         <Sidebar />
         <div className={`flex-grow overflow-auto transition-all duration-300 ease-in-out ${isOpen ? 'md:ml-86' : 'md:ml-16'}`}>
           <Outlet />

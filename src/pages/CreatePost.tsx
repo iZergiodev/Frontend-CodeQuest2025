@@ -8,7 +8,6 @@ import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { Badge } from "@/components/ui/badge";
 import { useTheme } from "next-themes";
 import {
-  Save,
   Eye,
   ArrowLeft,
   Image as ImageIcon,
@@ -167,6 +166,24 @@ const CreatePost = () => {
       return;
     }
 
+    if (!formData.categoryId) {
+      toast({
+        title: "Error",
+        description: "Debes seleccionar una categoría",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.subcategoryId) {
+      toast({
+        title: "Error",
+        description: "Debes seleccionar una subcategoría",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const postData = {
         title: formData.title.trim(),
@@ -257,21 +274,12 @@ const CreatePost = () => {
       <main className="container mx-auto px-4 py-8">
         <div ref={postRef} className="mx-auto">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            {/* <Button 
-              variant="outline" 
-              onClick={() => navigate(-1)}
-              className="shrink-0"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
-            </Button> */}
-
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-foreground">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                 {isEditMode ? "Editar Post" : "Crear Nuevo Post"}
               </h1>
-              <p className="text-muted-foreground mt-1">
+              <p className="text-muted-foreground mt-1 text-sm sm:text-base">
                 {isEditMode 
                   ? "Modifica tu post y actualiza los cambios"
                   : "Escribe y publica contenido increíble para tu audiencia"
@@ -279,25 +287,11 @@ const CreatePost = () => {
               </p>
             </div>
 
-            <div className="flex gap-2">
-              {!isEditMode && (
-                <Button
-                  variant="outline"
-                  onClick={() => handleSubmit("draft")}
-                  disabled={!formData.title || createPostMutation.isPending || updatePostMutation.isPending}
-                >
-                  {createPostMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Save className="h-4 w-4 mr-2" />
-                  )}
-                  Guardar Borrador
-                </Button>
-              )}
+            <div className="flex gap-2 w-full sm:w-auto">
               <Button
                 onClick={() => handleSubmit("published")}
-                disabled={!formData.title || !formData.content || createPostMutation.isPending || updatePostMutation.isPending}
-                className="bg-devtalles-gradient hover:opacity-90"
+                disabled={!formData.title || !formData.content || !formData.categoryId || !formData.subcategoryId || createPostMutation.isPending || updatePostMutation.isPending}
+                className="bg-devtalles-gradient hover:opacity-90 w-full sm:w-auto"
               >
                 {createPostMutation.isPending || updatePostMutation.isPending ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -381,7 +375,7 @@ const CreatePost = () => {
                 <CardContent className="space-y-4">
                   <div>
                     <Label htmlFor="category" className="text-sm font-medium">
-                      Categoría
+                      Categoría *
                     </Label>
                     <Select 
                       value={formData.categoryId} 
@@ -408,7 +402,7 @@ const CreatePost = () => {
                   {formData.categoryId && (
                     <div>
                       <Label htmlFor="subcategory" className="text-sm font-medium">
-                        Subcategoría
+                        Subcategoría *
                       </Label>
                       <Select 
                         value={formData.subcategoryId} 

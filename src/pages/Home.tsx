@@ -93,10 +93,10 @@ const Home = () => {
     <div className="bg-background">
       <Hero />
       
-      <main className="container mx-auto px-4 py-12">
-        <div className="flex gap-8">
+      <main className="container mx-auto px-4 py-8 sm:py-12">
+        <div className="flex gap-4 sm:gap-8">
           {/* Main Content */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <PostsSection
               posts={posts}
               isLoading={isLoading}
@@ -118,13 +118,14 @@ const Home = () => {
               }
               headerActions={
                 followedSubcategories.size > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Ordenar por:</span>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                    <span className="text-sm text-muted-foreground hidden sm:inline">Ordenar por:</span>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-2">
+                        <Button variant="outline" size="sm" className="gap-2 w-full sm:w-auto">
                           <currentSortOption.icon className="h-4 w-4" />
-                          {currentSortOption.label}
+                          <span className="hidden sm:inline">{currentSortOption.label}</span>
+                          <span className="sm:hidden">Ordenar</span>
                           <ChevronDown className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>

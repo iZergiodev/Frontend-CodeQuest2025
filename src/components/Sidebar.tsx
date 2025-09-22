@@ -15,19 +15,31 @@ import {
   Terminal,
   TrendingUp,
   Star,
-  Compass
+  Compass,
+  X
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useOpen } from "@/hooks/useOpen";
 import { useCategories, useSubcategoriesByCategory } from "@/services/postsService";
+import { useAuth } from "@/hooks/useAuth";
 import type { Category } from "@/types/blog";
+import { useTheme } from "next-themes";
+import logoDark from "@/assets/logo_d.svg?url";
+import logoLight from "@/assets/logo_l.svg?url";
+import nameLogo from "@/assets/name_logo.svg?url";
 
+interface SidebarProps {
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
 
-export const Sidebar = () => {
+export const Sidebar = ({ isMobileOpen = false, onMobileClose }: SidebarProps = {}) => {
   const { isOpen, setIsOpen } = useOpen();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+  const { theme } = useTheme();
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -100,6 +112,13 @@ export const Sidebar = () => {
     }
   };
 
+  const handleNavigation = (callback: () => void) => {
+    callback();
+    if (onMobileClose) {
+      onMobileClose(); // Close mobile menu after navigation
+    }
+  };
+
   const handleHomeClick = () => {
     setSelectedHome(true);
     setSelectedCategory(null);
@@ -108,6 +127,7 @@ export const Sidebar = () => {
     setSelectedPopular(false);
     setSelectedExplore(false);
     navigate('/');
+    if (onMobileClose) onMobileClose();
   };
 
   const handleTrendingClick = () => {
@@ -118,6 +138,7 @@ export const Sidebar = () => {
     setSelectedPopular(false);
     setSelectedExplore(false);
     navigate('/trending');
+    if (onMobileClose) onMobileClose();
   };
 
   const handlePopularClick = () => {
@@ -128,6 +149,7 @@ export const Sidebar = () => {
     setSelectedTrending(false);
     setSelectedExplore(false);
     navigate('/popular');
+    if (onMobileClose) onMobileClose();
   };
 
   const handleExploreClick = () => {
@@ -138,6 +160,7 @@ export const Sidebar = () => {
     setSelectedTrending(false);
     setSelectedPopular(false);
     navigate('/explore');
+    if (onMobileClose) onMobileClose();
   };
 
   const handleCategoryClick = (categoryId: string, categorySlug: string) => {
@@ -148,6 +171,7 @@ export const Sidebar = () => {
     setSelectedHome(false);
     setSelectedTrending(false);
     setSelectedPopular(false);
+    if (onMobileClose) onMobileClose();
   };
 
   const toggleCategoryDropdown = (categoryId: string, event: React.MouseEvent) => {
@@ -175,6 +199,7 @@ export const Sidebar = () => {
     }
     // Navigate to category page with subcategory filter
     navigate(`/category/${categorySlug}?subcategory=${subcategorySlug}`);
+    if (onMobileClose) onMobileClose();
   };
 
   const CategoryItem = ({ category }: { category: Category }) => {
@@ -246,97 +271,133 @@ export const Sidebar = () => {
     );
   };
 
+  // Mobile sidebar content
+  const SidebarContent = () => (
+    <div className="space-y-6">
+      {/* Mobile Header */}
+      {isMobileOpen && (
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <img
+              src={theme === "dark" ? logoLight : logoDark}
+              alt="Logo"
+              className="h-8 w-8"
+            />
+            <img
+              src={nameLogo}
+              alt="DevBlog"
+              className="h-6 w-auto"
+              style={{
+                filter: theme === "dark" ? "brightness(0) invert(1)" : "brightness(0) invert(0)"
+              }}
+            />
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={onMobileClose}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+      )}
+
+      {/* Navigation */}
+      <div>
+        <h3 className="text-sm font-semibold mt-3 mb-3 text-muted-foreground uppercase tracking-wider">
+          Navegación
+        </h3>
+        <nav className="space-y-1">
+          {/* Home Button */}
+          <Button
+            variant={selectedHome ? "secondary" : "ghost"}
+            className={`w-full justify-start gap-3 transition-smooth ${
+              selectedHome ? 'bg-primary/10 text-primary hover:bg-primary/15' : 'hover:bg-accent'
+            }`}
+            onClick={handleHomeClick}
+          >
+            <Home className="h-4 w-4" />
+            <span className="flex-1 text-left">Inicio</span>
+          </Button>
+
+          {/* Trending Button */}
+          <Button
+            variant={selectedTrending ? "secondary" : "ghost"}
+            className={`w-full justify-start gap-3 transition-smooth ${
+              selectedTrending ? 'bg-primary/10 text-primary hover:bg-primary/15' : 'hover:bg-accent'
+            }`}
+            onClick={handleTrendingClick}
+          >
+            <TrendingUp className="h-4 w-4" />
+            <span className="flex-1 text-left">Tendencia</span>
+          </Button>
+
+          {/* Popular Button */}
+          <Button
+            variant={selectedPopular ? "secondary" : "ghost"}
+            className={`w-full justify-start gap-3 transition-smooth ${
+              selectedPopular ? 'bg-primary/10 text-primary hover:bg-primary/15' : 'hover:bg-accent'
+            }`}
+            onClick={handlePopularClick}
+          >
+            <Star className="h-4 w-4" />
+            <span className="flex-1 text-left">Popular</span>
+          </Button>
+
+          {/* Explore Button - Only show if user is authenticated */}
+          {user && (
+            <Button
+              variant={selectedExplore ? "secondary" : "ghost"}
+              className={`w-full justify-start gap-3 transition-smooth ${
+                selectedExplore ? 'bg-primary/10 text-primary hover:bg-primary/15' : 'hover:bg-accent'
+              }`}
+              onClick={handleExploreClick}
+            >
+              <Compass className="h-4 w-4" />
+              <span className="flex-1 text-left">Explorar</span>
+            </Button>
+          )}
+
+          {categoriesLoading ? (
+            <div className="flex items-center justify-center py-4">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            categories.map((category) => (
+              <CategoryItem key={category.id} category={category} />
+            ))
+          )}
+        </nav>
+      </div>
+
+      {/* Community Stats */}
+      <div className="bg-card border rounded-lg p-4 mb-4">
+        <h3 className="font-semibold mb-3">Estadísticas</h3>
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Miembros activos</span>
+            <span className="font-medium">1,247</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Posts hoy</span>
+            <span className="font-medium">28</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Online ahora</span>
+            <span className="font-medium text-success">156</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
-        <aside 
-          className={`${isOpen ? "w-86" : "w-16"} fixed top-20 left-0 h-[calc(100dvh-5rem)] overflow-y-auto p-4 border-r bg-background/95 backdrop-blur-sm z-40 transition-all duration-300 ease-in-out sidebar-scroll hidden md:block`}
-        >
-        {isOpen && <div className="space-y-6">
-          {/* Navigation */}
-          <div>
-            <h3 className="text-sm font-semibold mt-3 mb-3 text-muted-foreground uppercase tracking-wider">
-              Navegación
-            </h3>
-            <nav className="space-y-1">
-              {/* Home Button */}
-              <Button
-                variant={selectedHome ? "secondary" : "ghost"}
-                className={`w-full justify-start gap-3 transition-smooth ${
-                  selectedHome ? 'bg-primary/10 text-primary hover:bg-primary/15' : 'hover:bg-accent'
-                }`}
-                onClick={handleHomeClick}
-              >
-                <Home className="h-4 w-4" />
-                <span className="flex-1 text-left">Inicio</span>
-              </Button>
-
-              {/* Trending Button */}
-              <Button
-                variant={selectedTrending ? "secondary" : "ghost"}
-                className={`w-full justify-start gap-3 transition-smooth ${
-                  selectedTrending ? 'bg-primary/10 text-primary hover:bg-primary/15' : 'hover:bg-accent'
-                }`}
-                onClick={handleTrendingClick}
-              >
-                <TrendingUp className="h-4 w-4" />
-                <span className="flex-1 text-left">Tendencia</span>
-              </Button>
-
-              {/* Popular Button */}
-              <Button
-                variant={selectedPopular ? "secondary" : "ghost"}
-                className={`w-full justify-start gap-3 transition-smooth ${
-                  selectedPopular ? 'bg-primary/10 text-primary hover:bg-primary/15' : 'hover:bg-accent'
-                }`}
-                onClick={handlePopularClick}
-              >
-                <Star className="h-4 w-4" />
-                <span className="flex-1 text-left">Popular</span>
-              </Button>
-
-              {/* Explore Button */}
-              <Button
-                variant={selectedExplore ? "secondary" : "ghost"}
-                className={`w-full justify-start gap-3 transition-smooth ${
-                  selectedExplore ? 'bg-primary/10 text-primary hover:bg-primary/15' : 'hover:bg-accent'
-                }`}
-                onClick={handleExploreClick}
-              >
-                <Compass className="h-4 w-4" />
-                <span className="flex-1 text-left">Explorar</span>
-              </Button>
-
-              {categoriesLoading ? (
-                <div className="flex items-center justify-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                </div>
-              ) : (
-                categories.map((category) => (
-                  <CategoryItem key={category.id} category={category} />
-                ))
-              )}
-            </nav>
-          </div>
-
-          {/* Community Stats */}
-          <div className="bg-card border rounded-lg p-4 mb-4">
-            <h3 className="font-semibold mb-3">Estadísticas</h3>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Miembros activos</span>
-                <span className="font-medium">1,247</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Posts hoy</span>
-                <span className="font-medium">28</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Online ahora</span>
-                <span className="font-medium text-success">156</span>
-              </div>
-            </div>
-          </div>
-        </div>}
+      {/* Desktop Sidebar */}
+      <aside 
+        className={`${isOpen ? "w-86" : "w-16"} fixed top-20 left-0 h-[calc(100dvh-5rem)] overflow-y-auto p-4 border-r bg-background/95 backdrop-blur-sm z-40 transition-all duration-300 ease-in-out sidebar-scroll hidden md:block`}
+      >
+        {isOpen && <SidebarContent />}
       </aside>
       {/* BOTÓN FLOTANTE (fijo y visible siempre) */}
       <Button
@@ -352,6 +413,24 @@ export const Sidebar = () => {
           <ChevronRight className="h-5 w-5" />
         )}
       </Button>
+
+      {/* Mobile Sidebar Overlay */}
+      {isMobileOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={onMobileClose}
+          />
+          
+          {/* Mobile Sidebar */}
+          <div className="fixed left-0 top-0 h-full w-80 bg-background border-r shadow-xl overflow-y-auto">
+            <div className="p-4">
+              <SidebarContent />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

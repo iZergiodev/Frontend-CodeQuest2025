@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5110/api";
+  import.meta.env.VITE_BACKEND_URL || "http://localhost:5110";
 
 export interface RankingPost {
   id: number;

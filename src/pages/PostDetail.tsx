@@ -451,32 +451,51 @@ const PostDetail = () => {
 
 
           <div className="pt-8" id="comments">
-            <div id="comment-input">
-              {replyingTo && (
-                <div className="mb-3 p-3 bg-muted/50 rounded-lg border border-border/50">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Respondiendo a <span className="font-medium text-foreground">
-                        {findCommentById(replyingTo, flatComments)?.author || 'Usuario'}
+            {/* Comment Box - Only show if user is authenticated */}
+            {user ? (
+              <div id="comment-input">
+                {replyingTo && (
+                  <div className="mb-3 p-3 bg-muted/50 rounded-lg border border-border/50">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Respondiendo a <span className="font-medium text-foreground">
+                          {findCommentById(replyingTo, flatComments)?.author || 'Usuario'}
+                        </span>
                       </span>
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setReplyingTo(null)}
-                      className="h-6 w-6 p-0"
-                    >
-                      ×
-                    </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setReplyingTo(null)}
+                        className="h-6 w-6 p-0"
+                      >
+                        ×
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              )}
-              <CommentBox 
-                onSubmit={handleCommentSubmit}
-                placeholder={replyingTo ? "Escribe tu respuesta..." : "Escribe tu comentario..."}
-                autoFocus={!!replyingTo}
-              />
-            </div>
+                )}
+                <CommentBox 
+                  onSubmit={handleCommentSubmit}
+                  placeholder={replyingTo ? "Escribe tu respuesta..." : "Escribe tu comentario..."}
+                  autoFocus={!!replyingTo}
+                />
+              </div>
+            ) : (
+              <div className="mb-6 p-4 bg-muted/50 rounded-lg border border-border/50 text-center">
+                <MessageSquare className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-muted-foreground text-sm">
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto text-primary hover:text-primary/80"
+                    onClick={() => {
+                      // You might want to open login modal here
+                      navigate('/login');
+                    }}
+                  >
+                    Inicia sesión
+                  </Button> para comentar
+                </p>
+              </div>
+            )}
 
             <div className="mt-4 flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Ordenar por:</span>

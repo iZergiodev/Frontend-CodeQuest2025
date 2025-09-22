@@ -44,7 +44,7 @@ export function BlogFilters({ categories, filters, onFiltersChange, categoryPage
   }, []);
 
   return (
-    <div className={`space-y-6 ${categoryPage || rankingType ? 'px-0' : 'px-8'}`}>
+    <div className={`space-y-6 px-0`}>
       {/* Sort and main filters */}
       {!rankingType && 
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">

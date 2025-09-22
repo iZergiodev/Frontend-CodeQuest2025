@@ -1,8 +1,6 @@
 import Hero from "@/components/Hero";
-import { PostCard } from "@/components/PostCard";
-import { LoadMoreButton } from "@/components/LoadMoreButton";
+import { PostsSection } from "@/components/PostsSection";
 import { usePagination } from "@/hooks/usePagination";
-import { useCategories } from "@/services/postsService";
 import { useAuth } from "@/hooks/useAuth";
 import { useMemo, useState } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -13,7 +11,6 @@ type SortKey = "recent" | "popular" | "trending" | "oldest";
 
 const Home = () => {
   const { user, followedSubcategories } = useAuth();
-  const { data: categories = [] } = useCategories();
   const [sortBy, setSortBy] = useState<SortKey>("recent");
 
   // Convert Set to Array for the API call
@@ -100,114 +97,69 @@ const Home = () => {
         <div className="flex gap-8">
           {/* Main Content */}
           <div className="flex-1">
-            <div className="space-y-6">
-              <div className="mb-8">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h2 className="text-3xl font-bold text-foreground mb-2">
-                      {followedSubcategories.size > 0 
-                        ? "Posts de tus subcategorías seguidas" 
-                        : "Personaliza tu feed"
-                      }
-                    </h2>
-                    <p className="text-muted-foreground">
-                      {followedSubcategories.size > 0 
-                        ? "Contenido de las subcategorías que sigues"
-                        : "Sigue las subcategorías que te interesan para ver contenido personalizado"
-                      }
-                    </p>
+            <PostsSection
+              posts={posts}
+              isLoading={isLoading}
+              error={error}
+              hasMore={hasMore}
+              onLoadMore={loadMore}
+              loadingMore={isLoading}
+              layout="horizontal"
+              showCategoriesAbove={true}
+              title={
+                followedSubcategories.size > 0 
+                  ? "Posts de tus subcategorías seguidas" 
+                  : "Personaliza tu feed"
+              }
+              description={
+                followedSubcategories.size > 0 
+                  ? "Contenido de las subcategorías que sigues"
+                  : "Sigue las subcategorías que te interesan para ver contenido personalizado"
+              }
+              headerActions={
+                followedSubcategories.size > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Ordenar por:</span>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-2">
+                          <currentSortOption.icon className="h-4 w-4" />
+                          {currentSortOption.label}
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {sortOptions.map((option) => (
+                          <DropdownMenuItem
+                            key={option.value}
+                            onClick={() => setSortBy(option.value as SortKey)}
+                            className="flex items-center gap-2"
+                          >
+                            <option.icon className="h-4 w-4" />
+                            {option.label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                  
-                  {/* Sorting Controls */}
-                  {followedSubcategories.size > 0 && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Ordenar por:</span>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm" className="gap-2">
-                            <currentSortOption.icon className="h-4 w-4" />
-                            {currentSortOption.label}
-                            <ChevronDown className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {sortOptions.map((option) => (
-                            <DropdownMenuItem
-                              key={option.value}
-                              onClick={() => setSortBy(option.value as SortKey)}
-                              className="flex items-center gap-2"
-                            >
-                              <option.icon className="h-4 w-4" />
-                              {option.label}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Empty state for users with no followed subcategories */}
-              {followedSubcategories.size === 0 && (
-                <div className="text-center py-12">
-                  <div className="max-w-md mx-auto">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                      <span className="text-2xl">📝</span>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">¡Personaliza tu feed!</h3>
-                    <p className="text-muted-foreground mb-6">
-                      Sigue las subcategorías que te interesan para ver contenido relevante aquí.
-                    </p>
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">💡 <strong>Tip:</strong> Usa los botones "Seguir" en la barra lateral</p>
-                      <p className="text-sm text-muted-foreground">🎯 <strong>Beneficio:</strong> Solo verás posts de tus temas favoritos</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Empty state for users with followed subcategories but no posts */}
-              {followedSubcategories.size > 0 && posts.length === 0 && !isLoading && (
-                <div className="text-center py-12">
-                  <div className="max-w-md mx-auto">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                      <span className="text-2xl">🔍</span>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">No hay posts disponibles</h3>
-                    <p className="text-muted-foreground mb-6">
-                      Las subcategorías que sigues no tienen posts en este momento.
-                    </p>
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">🔄 <strong>Actualiza:</strong> Los posts aparecerán aquí cuando se publiquen</p>
-                      <p className="text-sm text-muted-foreground">📚 <strong>Explora:</strong> Visita otras categorías para descubrir contenido</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-                
-            {posts.length > 0 && (
-              <div className="space-y-6">
-              {posts.map((post) => (
-                  <PostCard 
-                    key={post.id} 
-                    post={post}
-                    layout="horizontal"
-                    showCategoriesAbove={true}
-                  />
-                ))}
-              </div>
-            )}
-                
-            {/* Load More */}
-            {posts.length > 0 && hasMore && (
-              <LoadMoreButton 
-                onClick={loadMore}
-                disabled={!hasMore}
-                loading={isLoading}
-              />
-            )}
+                )
+              }
+              emptyTitle={
+                followedSubcategories.size === 0 
+                  ? "¡Personaliza tu feed!" 
+                  : "No hay posts disponibles"
+              }
+              emptyDescription={
+                followedSubcategories.size === 0 
+                  ? "Sigue las subcategorías que te interesan para ver contenido relevante aquí."
+                  : "Las subcategorías que sigues no tienen posts en este momento."
+              }
+              emptyIcon={
+                followedSubcategories.size === 0 
+                  ? <span className="text-2xl">📝</span>
+                  : <span className="text-2xl">🔍</span>
+              }
+            />
           </div>
         </div>
       </main>

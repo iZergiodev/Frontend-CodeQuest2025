@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { bookmarkService } from "@/services/bookmarkService";
 import { useToast } from "@/hooks/use-toast";
+import { UserNameWithCrown } from "@/components/UserNameWithCrown";
 
 interface PostCardProps {
   post: Post;
@@ -20,6 +21,7 @@ interface PostCardProps {
   trendingScore?: number;
   popularityScore?: number;
   showCategoriesAbove?: boolean;
+  isAdminView?: boolean;
   recentActivity?: {
     likes: number;
     comments: number;
@@ -38,6 +40,7 @@ export function PostCard({
   trendingScore = 0,
   popularityScore = 0,
   showCategoriesAbove = false,
+  isAdminView = false,
 }: PostCardProps) {
   const navigate = useNavigate();
   const [showAllTags, setShowAllTags] = useState(false);
@@ -47,10 +50,10 @@ export function PostCard({
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user) {
+    if (user && !isAdminView) {
       loadBookmarkStatus();
     }
-  }, [user, post.id]);
+  }, [user, post.id, isAdminView]);
 
   const loadBookmarkStatus = async () => {
     try {
@@ -132,7 +135,12 @@ export function PostCard({
         </AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate">{post.authorName}</p>
+        <UserNameWithCrown 
+          name={post.authorName} 
+          userId={post.authorId}
+          className="text-sm font-medium truncate"
+          crownSize="sm"
+        />
         <div className="flex items-center space-x-2 text-xs text-muted-foreground">
           <Calendar className="h-3 w-3" />
           <span>{new Date(post.createdAt).toLocaleDateString("es-ES")}</span>
@@ -322,7 +330,7 @@ export function PostCard({
         </div>
         
         <div className="flex items-center space-x-2">
-          {user && (
+          {!isAdminView && user && (
             <>
               <Button
                 variant="ghost"
@@ -349,16 +357,18 @@ export function PostCard({
               </Button>
             </>
           )}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/post/${post.slug}`);
-            }}
-          >
-            {compact ? "Ver →" : "Leer más →"}
-          </Button>
+          {!isAdminView && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/post/${post.slug}`);
+              }}
+            >
+              {compact ? "Ver →" : "Leer más →"}
+            </Button>
+          )}
         </div>
       </div>
     </div>
@@ -367,8 +377,8 @@ export function PostCard({
   if (layout === 'horizontal') {
     return (
       <Card 
-        className="group overflow-hidden transition-all duration-300 hover:shadow-post-hover hover:-translate-y-1 flex flex-col h-full cursor-pointer"
-        onClick={handleCardClick}
+        className={`group overflow-hidden transition-all duration-300 hover:shadow-post-hover hover:-translate-y-1 flex flex-col h-full ${!isAdminView ? 'cursor-pointer' : ''}`}
+        onClick={!isAdminView ? handleCardClick : undefined}
       >
         <div className="flex flex-1">
           <div className="flex-1 flex flex-col p-6">
@@ -399,8 +409,8 @@ export function PostCard({
 
   return (
     <Card 
-      className="group overflow-hidden transition-all duration-300 hover:shadow-post-hover hover:-translate-y-1 flex flex-col h-full cursor-pointer"
-      onClick={handleCardClick}
+      className={`group overflow-hidden transition-all duration-300 hover:shadow-post-hover hover:-translate-y-1 flex flex-col h-full ${!isAdminView ? 'cursor-pointer' : ''}`}
+      onClick={!isAdminView ? handleCardClick : undefined}
     >
       <div className="relative">
         <CoverImage className="h-48 w-full" />

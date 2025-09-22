@@ -1,15 +1,13 @@
 import { useParams, useSearchParams } from "react-router-dom";
-import { PostCard } from "@/components/PostCard";
+import { PostsSection } from "@/components/PostsSection";
 import { useCategory, useSubcategoriesByCategory, useCategories } from "@/services/postsService";
 import { usePagination } from "@/hooks/usePagination";
-import { BlogFilters } from "@/components/Filters";
 import { Button } from "@/components/ui/button";
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { BlogFilters as BlogFiltersType } from "@/types/blog";
 import { FloatingEdgeButton } from "@/components/FloatingEdgeButton";
-import { LoadMoreButton } from "@/components/LoadMoreButton";
 
 const CategoryPage = () => {
   const contentRef = useRef();
@@ -53,39 +51,18 @@ const CategoryPage = () => {
     }));
   }, [categorySlug, searchParams]);
 
-  const filteredPosts = useMemo(() => {
-    let result = [...posts];
-    if (filters.subcategory) {
-      result = result.filter(post => post.subcategory?.slug === filters.subcategory);
+  const handleFiltersChange = (newFilters: BlogFiltersType) => {
+    setFilters(newFilters);
+    // Update URL parameters
+    const newSearchParams = new URLSearchParams();
+    if (newFilters.subcategory) {
+      newSearchParams.set('subcategory', newFilters.subcategory);
     }
-
-    if (filters.tag) {
-      result = result.filter(post => post.tags && post.tags.includes(filters.tag));
-    }
-
-    if (filters.search) {
-      const searchTerm = filters.search.toLowerCase();
-      result = result.filter(post =>
-        post.title.toLowerCase().includes(searchTerm) ||
-        post.excerpt.toLowerCase().includes(searchTerm) ||
-        (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
-      );
-    }
-
-    if (filters.sortBy === "popular") {
-      result.sort((a, b) => b.likesCount - a.likesCount);
-    } else if (filters.sortBy === "trending") {
-      result.sort((a, b) => 
-        b.likesCount + b.commentsCount - (a.likesCount + a.commentsCount)
-      );
-    } else {
-      result.sort((a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-    }
-
-    return result;
-  }, [posts, filters]);
+    const newUrl = newSearchParams.toString() 
+      ? `/category/${categorySlug}?${newSearchParams.toString()}`
+      : `/category/${categorySlug}`;
+    navigate(newUrl, { replace: true });
+  };
 
   if (categoryLoading || postsLoading) {
     return (
@@ -160,64 +137,29 @@ const CategoryPage = () => {
           )}
         </div>
 
-        {/* Filters */}
-        <div className="mb-8">
-          <BlogFilters 
-            categories={categories}
-            filters={filters}
-            onFiltersChange={(newFilters) => {
-              setFilters(newFilters);
-              // Update URL parameters
-              const newSearchParams = new URLSearchParams();
-              if (newFilters.subcategory) {
-                newSearchParams.set('subcategory', newFilters.subcategory);
-              }
-              const newUrl = newSearchParams.toString() 
-                ? `/category/${categorySlug}?${newSearchParams.toString()}`
-                : `/category/${categorySlug}`;
-              navigate(newUrl, { replace: true });
-            }}
-            categoryPage={true}
-          />
-        </div>
-
-        {/* Posts Grid */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-foreground">
-              {filters.subcategory 
-                ? `${subcategories.find(s => s.slug === filters.subcategory)?.name} Posts`
-                : `${category.name} Posts`
-              }
-            </h2>
-          </div>
-
-          {filteredPosts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg">
-                No hay posts que coincidan con los filtros seleccionados
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {filteredPosts.map((post) => (
-                <PostCard 
-                  key={post.id} 
-                  post={post}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        <PostsSection
+          posts={posts}
+          isLoading={postsLoading}
+          error={postsError}
+          hasMore={hasMore}
+          onLoadMore={loadMore}
+          loadingMore={postsLoading}
+          showFilters={true}
+          categories={categories}
+          initialFilters={filters}
+          onFiltersChange={handleFiltersChange}
+          layout="grid"
+          gridColumns={2}
+          title={
+            filters.subcategory 
+              ? `${subcategories.find(s => s.slug === filters.subcategory)?.name} Posts`
+              : `${category.name} Posts`
+          }
+          emptyTitle="No se encontraron posts"
+          emptyDescription="No hay posts que coincidan con los filtros seleccionados"
+        />
       </div>
 
-      {hasMore && (
-        <LoadMoreButton
-          onClick={loadMore}
-          disabled={!hasMore}
-          loading={postsLoading}
-        />
-      )}
 
       <FloatingEdgeButton
         referenceRef={contentRef}

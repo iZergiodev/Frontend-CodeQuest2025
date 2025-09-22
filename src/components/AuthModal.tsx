@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Mail, Lock, User, Loader2 } from "lucide-react";
+import { Mail, Lock, User, Loader2, AlertCircle, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { User as UserModel } from "@/types/blog";
@@ -34,6 +34,17 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }: AuthModa
   });
   const [isDiscordLoading, setIsDiscordLoading] = useState(false);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+    username: "",
+  });
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false,
+    username: false,
+  });
   const { toast } = useToast();
   const { loginWithDiscord, loginWithEmail, registerWithEmail } = useAuth();
 
@@ -45,13 +56,85 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }: AuthModa
         password: "",
         username: "",
       });
+      setErrors({
+        email: "",
+        password: "",
+        username: "",
+      });
+      setTouched({
+        email: false,
+        password: false,
+        username: false,
+      });
+      setShowPassword(false);
     }
   }, [isOpen, initialMode]);
 
+  // Validation functions
+  const validateEmail = (email: string): string => {
+    if (!email) return "El email es obligatorio";
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return "Formato de email inválido";
+    return "";
+  };
+
+  const validatePassword = (password: string): string => {
+    if (!password) return "La contraseña es obligatoria";
+    if (password.length < 6) return "La contraseña debe tener al menos 6 caracteres";
+    return "";
+  };
+
+  const validateUsername = (username: string): string => {
+    if (!username) return "El nombre de usuario es obligatorio";
+    if (username.length < 3) return "El nombre de usuario debe tener al menos 3 caracteres";
+    if (username.length > 20) return "El nombre de usuario no puede tener más de 20 caracteres";
+    const usernameRegex = /^[a-zA-Z0-9_]+$/;
+    if (!usernameRegex.test(username)) return "Solo se permiten letras, números y guiones bajos";
+    return "";
+  };
+
+  const validateField = (name: string, value: string): string => {
+    switch (name) {
+      case 'email':
+        return validateEmail(value);
+      case 'password':
+        return validatePassword(value);
+      case 'username':
+        return validateUsername(value);
+      default:
+        return "";
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
+    }));
+
+    // Validate field if it has been touched
+    if (touched[name as keyof typeof touched]) {
+      const error = validateField(name, value);
+      setErrors(prev => ({
+        ...prev,
+        [name]: error
+      }));
+    }
+  };
+
+  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setTouched(prev => ({
+      ...prev,
+      [name]: true
+    }));
+
+    // Validate field on blur
+    const error = validateField(name, value);
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
     }));
   };
 
@@ -74,19 +157,59 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }: AuthModa
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Mark all fields as touched
+    setTouched({
+      email: true,
+      password: true,
+      username: !isLoginMode,
+    });
+
+    // Validate all fields
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
+    const usernameError = !isLoginMode ? validateUsername(formData.username) : "";
+
+    setErrors({
+      email: emailError,
+      password: passwordError,
+      username: usernameError,
+    });
+
+    // If there are validation errors, don't submit
+    if (emailError || passwordError || usernameError) {
+      return;
+    }
+    
     try {
       setIsEmailLoading(true);
       
-       if (isLoginMode) {
-         await loginWithEmail(formData.email, formData.password);
-         onClose(); // Close modal on successful login
-       } else {
-         await registerWithEmail(formData.email, formData.password, formData.username, "User");
-         onClose(); // Close modal on successful registration
-       }
-    } catch (error) {
-      // Error handling is done in the useAuth hook
+      if (isLoginMode) {
+        await loginWithEmail(formData.email, formData.password);
+        onClose(); // Close modal on successful login
+      } else {
+        await registerWithEmail(formData.email, formData.password, formData.username, "User");
+        onClose(); // Close modal on successful registration
+      }
+    } catch (error: any) {
       console.error('Email auth error:', error);
+      
+      // Handle specific error messages
+      const errorMessage = error?.message || "Ha ocurrido un error inesperado";
+      
+      // Check for specific error types
+      if (errorMessage.includes("email") && errorMessage.includes("exist")) {
+        setErrors(prev => ({ ...prev, email: "Este email ya está registrado" }));
+      } else if (errorMessage.includes("Invalid credentials") || errorMessage.includes("credenciales")) {
+        setErrors(prev => ({ ...prev, password: "Email o contraseña incorrectos" }));
+      } else if (errorMessage.includes("username") && errorMessage.includes("exist")) {
+        setErrors(prev => ({ ...prev, username: "Este nombre de usuario ya está en uso" }));
+      } else {
+        toast({
+          title: "Error de autenticación",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsEmailLoading(false);
     }
@@ -128,7 +251,13 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }: AuthModa
                <div className="space-y-2">
                  <Label htmlFor="username">Nombre de usuario</Label>
                  <div className="relative">
-                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                   <User className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${
+                     touched.username && errors.username 
+                       ? "text-red-500" 
+                       : touched.username && !errors.username 
+                         ? "text-green-500" 
+                         : "text-muted-foreground"
+                   }`} />
                    <Input
                      id="username"
                      name="username"
@@ -136,17 +265,39 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }: AuthModa
                      placeholder="Ingresa tu nombre de usuario"
                      value={formData.username}
                      onChange={handleInputChange}
-                     className="pl-10"
+                     onBlur={handleInputBlur}
+                     className={`pl-10 ${
+                       touched.username && errors.username 
+                         ? "border-red-500 focus:border-red-500 focus:ring-red-500" 
+                         : touched.username && !errors.username 
+                           ? "border-green-500 focus:border-green-500 focus:ring-green-500" 
+                           : ""
+                     }`}
                      required
                    />
+                   {touched.username && !errors.username && (
+                     <CheckCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-500" />
+                   )}
                  </div>
+                 {touched.username && errors.username && (
+                   <div className="flex items-center gap-1 text-red-500 text-sm">
+                     <AlertCircle className="h-3 w-3" />
+                     {errors.username}
+                   </div>
+                 )}
                </div>
              )}
              
              <div className="space-y-2">
                <Label htmlFor="email">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${
+                  touched.email && errors.email 
+                    ? "text-red-500" 
+                    : touched.email && !errors.email 
+                      ? "text-green-500" 
+                      : "text-muted-foreground"
+                }`} />
                 <Input
                   id="email"
                   name="email"
@@ -154,27 +305,77 @@ const AuthModal = ({ isOpen, onClose, onLogin, initialMode = 'login' }: AuthModa
                   placeholder="tu@email.com"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="pl-10"
+                  onBlur={handleInputBlur}
+                  className={`pl-10 ${
+                    touched.email && errors.email 
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500" 
+                      : touched.email && !errors.email 
+                        ? "border-green-500 focus:border-green-500 focus:ring-green-500" 
+                        : ""
+                  }`}
                   required
                 />
+                {touched.email && !errors.email && (
+                  <CheckCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-500" />
+                )}
               </div>
+              {touched.email && errors.email && (
+                <div className="flex items-center gap-1 text-red-500 text-sm">
+                  <AlertCircle className="h-3 w-3" />
+                  {errors.email}
+                </div>
+              )}
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Lock className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${
+                  touched.password && errors.password 
+                    ? "text-red-500" 
+                    : touched.password && !errors.password 
+                      ? "text-green-500" 
+                      : "text-muted-foreground"
+                }`} />
                 <Input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="pl-10"
+                  onBlur={handleInputBlur}
+                  className={`pl-10 pr-10 ${
+                    touched.password && errors.password 
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500" 
+                      : touched.password && !errors.password 
+                        ? "border-green-500 focus:border-green-500 focus:ring-green-500" 
+                        : ""
+                  }`}
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+                {touched.password && !errors.password && (
+                  <CheckCircle className="absolute right-10 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-500" />
+                )}
               </div>
+              {touched.password && errors.password && (
+                <div className="flex items-center gap-1 text-red-500 text-sm">
+                  <AlertCircle className="h-3 w-3" />
+                  {errors.password}
+                </div>
+              )}
+              {!isLoginMode && touched.password && !errors.password && (
+                <div className="text-green-600 text-xs">
+                  ✓ Contraseña válida
+                </div>
+              )}
             </div>
             
             <Button 

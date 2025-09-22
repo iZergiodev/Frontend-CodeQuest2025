@@ -162,6 +162,16 @@ const postsApi = {
     return response.data.map(transformPostDto);
   },
 
+  getRelatedPosts: async (
+    postId: string,
+    limit: number = 5
+  ): Promise<Post[]> => {
+    const response = await apiClient.get<PostDto[]>(
+      `/api/posts/${postId}/related?limit=${limit}`
+    );
+    return response.data.map(transformPostDto);
+  },
+
   createPost: async (
     postData: CreatePostDto,
     authorId: number
@@ -283,6 +293,16 @@ export const usePostsByCategory = (categoryId: number) => {
     queryKey: ["posts", "category", categoryId],
     queryFn: () => postsApi.getPostsByCategory(categoryId),
     enabled: !!categoryId,
+  });
+};
+
+export const useRelatedPosts = (postId: string, limit: number = 5) => {
+  return useQuery({
+    queryKey: ["posts", "related", postId, limit],
+    queryFn: () => postsApi.getRelatedPosts(postId, limit),
+    enabled: !!postId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 };
 

@@ -17,6 +17,7 @@ import { useTogglePostLike } from "@/services/likesService";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { bookmarkService } from "@/services/bookmarkService";
+import { RelatedPosts } from "@/components/RelatedPosts";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -263,8 +264,11 @@ const PostDetail = () => {
   return (
     <div className="bg-background">
       <main className="container mx-auto px-4 py-8">
-        {/* Wrapper principal del post: referencia para Floating UI */}
-        <div ref={postRef} className="mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Main content area */}
+          <div className="lg:col-span-3 order-1">
+            {/* Wrapper principal del post: referencia para Floating UI */}
+            <div ref={postRef} className="mx-auto">
           {/* Header autor */}
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-3">
@@ -526,6 +530,15 @@ const PostDetail = () => {
                 <p className="text-muted-foreground">No hay comentarios aún. ¡Sé el primero en comentar!</p>
               </div>
             )}
+          </div>
+            </div>
+          </div>
+
+          {/* Related posts sidebar */}
+          <div className="lg:col-span-1 order-2 lg:order-2">
+            <div className="lg:sticky lg:top-8">
+              <RelatedPosts postId={postId} limit={5} />
+            </div>
           </div>
         </div>
       </main>

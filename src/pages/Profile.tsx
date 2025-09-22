@@ -19,7 +19,7 @@ import { FloatingEdgeButton } from "@/components/FloatingEdgeButton";
 import { Button } from "@/components/ui/button";
 import { bookmarkService } from "@/services/bookmarkService";
 import { commentsService, CommentDto } from "@/services/commentsService";
-import { usePostSlugFromId } from "@/services/postsService";
+import { usePostSlugFromId, generateSlug } from "@/services/postsService";
 import { usePagination } from "@/hooks/usePagination";
 import { Post } from "@/types/blog";
 import { useToast } from "@/hooks/use-toast";
@@ -970,7 +970,15 @@ function BookmarkedPostRow({ post, onRemove }: { post: Post; onRemove: () => voi
   };
 
   const handleViewPost = () => {
-    navigate(`/post/${post.slug}`);
+    console.log('BookmarkedPost navigation debug:', {
+      postId: post.id,
+      postTitle: post.title,
+      postSlug: post.slug,
+      fullPost: post
+    });
+    
+    const slug = post.slug || generateSlug(post.title);
+    navigate(`/post/${slug}`);
   };
 
   const formatDate = (dateString: string) => {
@@ -990,7 +998,10 @@ function BookmarkedPostRow({ post, onRemove }: { post: Post; onRemove: () => voi
   };
 
   return (
-    <Card className="hover:bg-muted/30 transition-colors">
+    <Card 
+      className="hover:bg-muted/30 transition-colors cursor-pointer"
+      onClick={handleViewPost}
+    >
       <CardContent className="p-4">
         <div className="flex flex-col sm:flex-row items-start gap-3">
           <div className="rounded-lg border px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 self-start">
@@ -1007,13 +1018,24 @@ function BookmarkedPostRow({ post, onRemove }: { post: Post; onRemove: () => voi
             )}
           </div>
           <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-            <Button size="sm" variant="ghost" onClick={handleViewPost} className="flex-1 sm:flex-none">
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleViewPost();
+              }} 
+              className="flex-1 sm:flex-none"
+            >
               Ver
             </Button>
             <Button 
               size="sm" 
               variant="outline" 
-              onClick={handleRemoveBookmark}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRemoveBookmark();
+              }}
               disabled={isRemoving}
               className="flex-1 sm:flex-none"
             >

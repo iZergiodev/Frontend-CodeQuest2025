@@ -102,7 +102,7 @@ const transformPostDto = (dto: PostDto): Post => {
     isLikedByUser: dto.isLikedByUser,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,
-    slug: dto.title.toLowerCase().replace(/\s+/g, "-"),
+    slug: generateSlug(dto.title),
     coverImage: dto.imageUrl,
     readTime: Math.ceil(dto.content.length / 1000), // Estimate
     published: true,

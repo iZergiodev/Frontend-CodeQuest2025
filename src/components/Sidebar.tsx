@@ -91,23 +91,24 @@ export const Sidebar = ({ isMobileOpen = false, onMobileClose }: SidebarProps = 
   }, [location, categories]);
 
   const getCategoryIcon = (categoryName: string) => {
-    const name = categoryName.toLowerCase();
+    const name = categoryName.toLowerCase().replace(/\s+/g, ' ').trim();
     switch (name) {
       case 'frontend':
         return Code;
       case 'backend':
         return Database;
-      case 'programming':
+      case 'programación':
         return Terminal;
       case 'full-stack':
         return Globe;
       case 'devops':
         return Users;
-      case 'mobile development':
+      case 'desarrollo móvil':
         return Smartphone;
-      case 'ai':
+      case 'inteligencia artificial':
         return Brain;
       default:
+        console.warn(`Unknown category name: "${categoryName}" - using default Code icon`);
         return Code;
     }
   };

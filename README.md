@@ -213,7 +213,7 @@ La aplicación incluye un sistema de temas completo que se adapta automáticamen
 
 ## 🏆 Sistema de Gamificación
 
-### StarDust Points
+### Stardust Points
 
 - **Puntos por Publicar**: Gana puntos por crear contenido
 - **Puntos por Interactuar**: Likes, comentarios, etc.

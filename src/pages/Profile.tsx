@@ -831,7 +831,7 @@ function PostRow({ p }: { p: Post }) {
               handleViewPost();
             }}
           >
-            Ver
+            Ir al post
           </Button>
         </div>
       </CardContent>

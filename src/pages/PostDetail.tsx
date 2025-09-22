@@ -521,7 +521,7 @@ const PostDetail = () => {
               </div>
             )}
 
-            <div className="mt-4 flex items-center gap-2">
+            <div className="mt-4 flex items-center gap-2 mb-8">
               <span className="text-sm text-muted-foreground">Ordenar por:</span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

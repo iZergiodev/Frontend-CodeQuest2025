@@ -17,7 +17,7 @@ export function CommentsList({ comments, onReply, onReport }: CommentsListProps)
           c={c}
           onReply={onReply}
           onReport={onReport}
-          className="pb-6 last:pb-0" // The bottom border and padding will be handled by the children.
+          className="" // The bottom border and padding will be handled by the children.
         />
       ))}
     </div>

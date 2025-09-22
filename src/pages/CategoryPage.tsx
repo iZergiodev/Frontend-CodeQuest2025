@@ -47,7 +47,8 @@ const CategoryPage = () => {
     setFilters(prevFilters => ({
       ...prevFilters,
       category: categorySlug,
-      subcategory: searchParams.get('subcategory') || undefined
+      // Reset subcategory when category changes, only preserve if explicitly in URL
+      subcategory: prevFilters.category === categorySlug ? (searchParams.get('subcategory') || undefined) : undefined
     }));
   }, [categorySlug, searchParams]);
 
@@ -148,6 +149,7 @@ const CategoryPage = () => {
           categories={categories}
           initialFilters={filters}
           onFiltersChange={handleFiltersChange}
+          categoryPage={true}
           layout="grid"
           gridColumns={2}
           title={

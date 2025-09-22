@@ -112,7 +112,7 @@ export function BlogFilters({ categories, filters, onFiltersChange, categoryPage
             <Button
               variant={!filters.category ? "default" : "outline"}
               size="sm"
-              onClick={() => onFiltersChange({ ...filters, category: undefined })}
+              onClick={() => onFiltersChange({ ...filters, category: undefined, subcategory: undefined })}
               className="h-8"
             >
               Todas
@@ -125,7 +125,8 @@ export function BlogFilters({ categories, filters, onFiltersChange, categoryPage
                 onClick={() => 
                   onFiltersChange({ 
                     ...filters, 
-                    category: filters.category === category.slug ? undefined : category.slug 
+                    category: filters.category === category.slug ? undefined : category.slug,
+                    subcategory: undefined // Reset subcategory when category changes
                   })
                 }
                 className="h-8"

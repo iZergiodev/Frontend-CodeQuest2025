@@ -32,6 +32,7 @@ export interface PostsSectionProps {
   categories?: Category[];
   initialFilters?: BlogFiltersType;
   onFiltersChange?: (filters: BlogFiltersType) => void;
+  categoryPage?: boolean;
   
   // Layout
   layout?: 'grid' | 'horizontal' | 'admin';
@@ -70,6 +71,7 @@ export const PostsSection = ({
   categories = [],
   initialFilters = {},
   onFiltersChange,
+  categoryPage = false,
   layout = 'grid',
   gridColumns = 2,
   showCategoriesAbove = false,
@@ -311,6 +313,7 @@ export const PostsSection = ({
           categories={availableCategories}
           filters={filters}
           onFiltersChange={handleFiltersChange}
+          categoryPage={categoryPage}
         />
       )}
 

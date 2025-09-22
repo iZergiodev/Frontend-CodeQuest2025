@@ -56,15 +56,15 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Hero />
       
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto py-12">
         <BlogFilters 
           categories={categories}
           filters={filters}
           onFiltersChange={setFilters}
         />
-        <div className="flex ga p-8">
+        <div className="flex pt-8">
           {/* Main Content */}
-          <div className="flex-1 pe-8">
+          <div className="flex-1">
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-foreground mb-2">
                 Últimos Posts

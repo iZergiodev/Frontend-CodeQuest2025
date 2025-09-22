@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { AuthResponse, User, DiscordLoginUrlResponse } from "../types/blog";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5110";
 
 class AuthService {
   private readonly TOKEN_KEY = "devtalles_token";

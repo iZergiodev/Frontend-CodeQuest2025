@@ -116,35 +116,6 @@ const Home = () => {
                   ? "Contenido de las subcategorías que sigues"
                   : "Sigue las subcategorías que te interesan para ver contenido personalizado"
               }
-              headerActions={
-                followedSubcategories.size > 0 && (
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                    <span className="text-sm text-muted-foreground hidden sm:inline">Ordenar por:</span>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-2 w-full sm:w-auto">
-                          <currentSortOption.icon className="h-4 w-4" />
-                          <span className="hidden sm:inline">{currentSortOption.label}</span>
-                          <span className="sm:hidden">Ordenar</span>
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {sortOptions.map((option) => (
-                          <DropdownMenuItem
-                            key={option.value}
-                            onClick={() => setSortBy(option.value as SortKey)}
-                            className="flex items-center gap-2"
-                          >
-                            <option.icon className="h-4 w-4" />
-                            {option.label}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                )
-              }
               emptyTitle={
                 followedSubcategories.size === 0 
                   ? "¡Personaliza tu feed!" 
